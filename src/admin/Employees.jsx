@@ -372,8 +372,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [importing, setImporting] = useState(false)
-  const [role, setRole] = useState('staff')
-  const [status, setStatus] = useState('active')
+  const [role, setRole] = useState('')
+  const [status, setStatus] = useState('')
   const [adding, setAdding] = useState(false)
   const [filters, setFilters] = useState({})
   const [showFilters, setShowFilters] = useState(false)
@@ -454,8 +454,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
         email: mail,
         phone: ph || null,
         full_name: fullName.trim() || null,
-        role,
-        is_active: status === 'active',
+        role: role || 'staff',
+        is_active: status ? status === 'active' : true,
       })
       saved(res.employee)
       setSecret({
@@ -469,8 +469,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       setFullName('')
       setEmail('')
       setPhone('')
-      setRole('staff')
-      setStatus('active')
+      setRole('')
+      setStatus('')
     } catch (err) {
       setError(err.message)
     }
@@ -487,7 +487,12 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
           </label>
           <label className="field field-sm ad-col-5">
             <span>Tên nhân viên</span>
-            <input value={fullName} maxLength={100} onChange={(e) => setFullName(e.target.value)} />
+            <input
+              value={fullName}
+              maxLength={100}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Ví dụ: Nguyễn Văn An"
+            />
           </label>
           <label className="field field-sm ad-col-4">
             <span>Email công ty</span>
@@ -495,7 +500,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={`ten@${COMPANY_DOMAINS[0]}`}
+              placeholder={`Ví dụ: ten@${COMPANY_DOMAINS[0]}`}
             />
           </label>
           <label className="field field-sm ad-col-4">
@@ -506,19 +511,29 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
               maxLength={16}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="0901234567"
+              placeholder="Ví dụ: 0901234567"
             />
           </label>
           <label className="field field-sm ad-col-4">
             <span>Vai trò</span>
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
+            <select
+              className={role ? '' : 'is-empty'}
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="">Mặc định: Nhân viên</option>
               <option value="staff">Nhân viên</option>
               <option value="manager">Quản lý</option>
             </select>
           </label>
           <label className="field field-sm ad-col-4">
             <span>Trạng thái</span>
-            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <select
+              className={status ? '' : 'is-empty'}
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">Mặc định: Active</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>

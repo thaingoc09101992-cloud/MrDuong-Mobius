@@ -1317,3 +1317,44 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ==========================================================
+   Form tạo nhân viên: gợi ý mờ, cỡ chữ cân đối với toàn trang
+   ========================================================== */
+.ad-addform .field {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  gap: var(--space-2);
+}
+.ad-addform .field input,
+.ad-addform .field select {
+  min-height: 42px;
+  font-size: 0.88rem;
+  padding: 8px 14px;
+}
+/* Gợi ý chỉ mờ vừa đủ thấy (khoảng 30%), điền xong chữ hiện bình thường */
+.ad-addform .field input::placeholder {
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+  opacity: 1;
+}
+.ad-addform .field select.is-empty {
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+}
+.ad-addform .field select option {
+  color: var(--text);
+  background: var(--surface);
+}
+.ad-addform-fields .field input,
+.ad-addform-fields .field select {
+  min-height: 42px;
+}
+.ad-shell .ad-addform-actions .btn {
+  min-height: 42px;
+  font-size: 0.7rem;
+}
+
+/* Gợi ý trong bảng mờ cùng mức với form tạo nhân viên */
+.ad-table-fixed .ad-input::placeholder {
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+  opacity: 1;
+}
