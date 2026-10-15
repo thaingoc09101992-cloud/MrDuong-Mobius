@@ -1562,3 +1562,9 @@
     display: none;
   }
 }
+
+/* Nút mũi tên thu/mở sidebar nằm ở cuối sidebar, ngang hàng mục dưới cùng */
+.ad-edge-toggle {
+  top: auto;
+  bottom: 25px;
+}
