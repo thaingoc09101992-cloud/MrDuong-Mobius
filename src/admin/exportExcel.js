@@ -1,7 +1,7 @@
 import { photoUrl } from '../supabase.js'
 import { dayKey, mapsUrl, pad } from './util.js'
 
-const HEADER_FILL = 'FF0F766E'
+const HEADER_FILL = 'FF111111'
 
 function toLocalExcelDate(iso) {
   const d = new Date(iso)

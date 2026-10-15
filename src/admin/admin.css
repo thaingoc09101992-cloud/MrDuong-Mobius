@@ -513,3 +513,62 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------- Số điện thoại, xóa, import hàng loạt ---------- */
+.ad-addform {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
+}
+.ad-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: nowrap;
+}
+.ad-danger {
+  color: var(--danger-text);
+}
+.ad-danger:hover:not(:disabled) {
+  border-color: var(--danger-text);
+}
+.ad-modal-wide {
+  max-width: 1100px;
+}
+.ad-modal-table {
+  max-height: 46vh;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.ad-rowbad td {
+  background: var(--danger-bg);
+}
+.ad-steps {
+  margin: 0;
+  padding-left: var(--space-6);
+  color: var(--text-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ad-progress {
+  height: 6px;
+  background: var(--track);
+  overflow: hidden;
+}
+.ad-progress-bar {
+  height: 100%;
+  background: var(--bar);
+  transition: width var(--motion-normal) var(--ease);
+}
+.ad-modal-box .ad-secret-pass {
+  font-size: 0.95rem;
+}
+@media (max-width: 1280px) {
+  .ad-addform {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .ad-addform {
+    grid-template-columns: 1fr;
+  }
+}

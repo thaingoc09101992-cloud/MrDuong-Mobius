@@ -219,6 +219,7 @@ export default function AdminApp() {
             rows={rows}
             onSaved={(emp) => setEmployees((list) => list.map((e) => (e.code === emp.code ? emp : e)))}
             onAdded={(emp) => setEmployees((list) => [...list, emp].sort((a, b) => (a.code < b.code ? -1 : 1)))}
+            onDeleted={(code) => setEmployees((list) => list.filter((e) => e.code !== code))}
           />
         )}
       </main>

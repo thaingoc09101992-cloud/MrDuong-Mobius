@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { sb, callEmployeesFn } from './adminClient.js'
-import { formatTime, CODE_PATTERN, COMPANY_DOMAINS, isCompanyEmail } from '../supabase.js'
+import { formatTime, CODE_PATTERN, COMPANY_DOMAINS, isCompanyEmail, normalizePhone, isPhone } from '../supabase.js'
 import { fold } from './util.js'
+import BulkImport from './BulkImport.jsx'
 
 const DOMAIN_HINT = COMPANY_DOMAINS.map((d) => `@${d}`).join(' hoặc ')
 
@@ -63,9 +64,10 @@ function AccountState({ emp }) {
   return <span className="chip">Đã kích hoạt</span>
 }
 
-function EmployeeRow({ emp, count, onSaved, onError, onSecret }) {
+function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
   const [name, setName] = useState(emp.full_name || '')
   const [email, setEmail] = useState(emp.email || '')
+  const [phone, setPhone] = useState(emp.phone || '')
   const [editingEmail, setEditingEmail] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -74,7 +76,8 @@ function EmployeeRow({ emp, count, onSaved, onError, onSecret }) {
   useEffect(() => {
     setName(emp.full_name || '')
     setEmail(emp.email || '')
-  }, [emp.full_name, emp.email])
+    setPhone(emp.phone || '')
+  }, [emp.full_name, emp.email, emp.phone])
 
   async function patch(changes) {
     setBusy(true)
@@ -134,6 +137,39 @@ function EmployeeRow({ emp, count, onSaved, onError, onSecret }) {
   function resetPassword() {
     if (!window.confirm(`Đặt lại mật khẩu cho ${emp.email}? Mật khẩu cũ sẽ không dùng được nữa.`)) return
     run({ action: 'reset_password', code: emp.code }, 'Đã đặt lại mật khẩu')
+  }
+
+  function savePhone() {
+    const v = normalizePhone(phone)
+    if (v === (emp.phone || '')) {
+      setPhone(emp.phone || '')
+      return
+    }
+    if (v && !isPhone(v)) {
+      onError('Số điện thoại gồm 9 đến 12 chữ số.')
+      setPhone(emp.phone || '')
+      return
+    }
+    patch({ phone: v || null })
+  }
+
+  async function remove() {
+    if (count > 0) {
+      onError(`Nhân viên ${emp.code} đã có ${count} điểm bán nên không thể xóa. Hãy chuyển sang Inactive để giữ dữ liệu.`)
+      return
+    }
+    const label = emp.full_name ? `${emp.full_name} (${emp.code})` : emp.code
+    const extra = emp.email ? `\nTài khoản đăng nhập ${emp.email} cũng sẽ bị xóa.` : ''
+    if (!window.confirm(`Xóa vĩnh viễn nhân viên ${label}?${extra}\nThao tác này không thể hoàn tác.`)) return
+    setBusy(true)
+    onError('')
+    try {
+      await callEmployeesFn({ action: 'delete', code: emp.code })
+      onDeleted(emp.code)
+    } catch (err) {
+      onError(err.message)
+      setBusy(false)
+    }
   }
 
   return (
@@ -196,6 +232,20 @@ function EmployeeRow({ emp, count, onSaved, onError, onSecret }) {
         <AccountState emp={emp} />
       </td>
       <td>
+        <input
+          className="ad-input"
+          type="tel"
+          inputMode="tel"
+          maxLength={16}
+          value={phone}
+          placeholder="Số điện thoại"
+          disabled={busy}
+          onChange={(e) => setPhone(e.target.value)}
+          onBlur={savePhone}
+          aria-label={`Số điện thoại của ${emp.code}`}
+        />
+      </td>
+      <td>
         <select
           className="ad-input"
           value={emp.role}
@@ -223,21 +273,28 @@ function EmployeeRow({ emp, count, onSaved, onError, onSecret }) {
       <td className="ad-nowrap small muted">{emp.inactive_at ? formatTime(emp.inactive_at) : '-'}</td>
       <td className="center">{count}</td>
       <td>
-        {hasAccount && (
-          <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={resetPassword}>
-            Đặt lại MK
+        <div className="ad-actions">
+          {hasAccount && (
+            <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={resetPassword}>
+              Đặt lại MK
+            </button>
+          )}
+          <button type="button" className="btn btn-ghost btn-sm ad-danger" disabled={busy} onClick={remove}>
+            Xóa
           </button>
-        )}
+        </div>
       </td>
     </tr>
   )
 }
 
-export default function Employees({ employees, rows, onSaved, onAdded }) {
+export default function Employees({ employees, rows, onSaved, onAdded, onDeleted }) {
   const [error, setError] = useState('')
   const [code, setCode] = useState('')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [importing, setImporting] = useState(false)
   const [role, setRole] = useState('staff')
   const [status, setStatus] = useState('active')
   const [adding, setAdding] = useState(false)
@@ -252,7 +309,7 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
 
   const shown = employees.filter((e) => {
     const s = fold(q.trim())
-    return !s || fold(`${e.code} ${e.full_name || ''} ${e.email || ''}`).includes(s)
+    return !s || fold(`${e.code} ${e.full_name || ''} ${e.email || ''} ${e.phone || ''}`).includes(s)
   })
 
   function saved(emp) {
@@ -272,6 +329,11 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
       setError(`Email phải thuộc tên miền công ty (${DOMAIN_HINT}).`)
       return
     }
+    const ph = normalizePhone(phone)
+    if (ph && !isPhone(ph)) {
+      setError('Số điện thoại gồm 9 đến 12 chữ số.')
+      return
+    }
     setAdding(true)
     setError('')
     try {
@@ -279,6 +341,7 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
         action: 'create',
         code: c,
         email: mail,
+        phone: ph || null,
         full_name: fullName.trim() || null,
         role,
         is_active: status === 'active',
@@ -294,6 +357,7 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
       setCode('')
       setFullName('')
       setEmail('')
+      setPhone('')
       setRole('staff')
       setStatus('active')
     } catch (err) {
@@ -320,6 +384,17 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={`ten@${COMPANY_DOMAINS[0]}`}
+          />
+        </label>
+        <label className="field field-sm">
+          <span>Số điện thoại</span>
+          <input
+            type="tel"
+            inputMode="tel"
+            maxLength={16}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="0901234567"
           />
         </label>
         <label className="field field-sm">
@@ -356,9 +431,14 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
           <span>Tìm nhân viên</span>
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Mã, tên hoặc email" />
         </label>
-        <span className="small muted">
-          {shown.length} / {employees.length} nhân viên. Chỉ nhân viên Active có email mới đăng nhập được.
-        </span>
+        <div className="row wrap-row">
+          <span className="small muted">
+            {shown.length} / {employees.length} nhân viên. Chỉ nhân viên Active có email mới đăng nhập được.
+          </span>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setImporting(true)}>
+            Import từ Excel
+          </button>
+        </div>
       </div>
 
       <div className="card ad-tablewrap">
@@ -368,12 +448,13 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
               <th>Mã NV</th>
               <th>Tên nhân viên</th>
               <th>Email</th>
+              <th>Số điện thoại</th>
               <th>Vai trò</th>
               <th>Trạng thái</th>
               <th>Ngày Active</th>
               <th>Ngày Inactive</th>
               <th>Số điểm</th>
-              <th>Mật khẩu</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -383,13 +464,14 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
                 emp={emp}
                 count={counts.get(emp.code) || 0}
                 onSaved={saved}
+                onDeleted={onDeleted}
                 onError={setError}
                 onSecret={setSecret}
               />
             ))}
             {shown.length === 0 && (
               <tr>
-                <td colSpan={9} className="center muted">
+                <td colSpan={10} className="center muted">
                   Chưa có nhân viên nào.
                 </td>
               </tr>
@@ -399,6 +481,7 @@ export default function Employees({ employees, rows, onSaved, onAdded }) {
       </div>
 
       {secret && <SecretModal secret={secret} onClose={() => setSecret(null)} />}
+      {importing && <BulkImport employees={employees} onCreated={saved} onClose={() => setImporting(false)} />}
     </div>
   )
 }

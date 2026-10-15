@@ -31,6 +31,15 @@ export const CODE_PATTERN = /^[A-Z0-9_-]{3,20}$/
 // Chỉ email thuộc các tên miền công ty mới được tạo tài khoản (cũng được kiểm tra ở cơ sở dữ liệu)
 export const COMPANY_DOMAINS = ['thophat.vn', 'kdc.vn']
 
+export function normalizePhone(value) {
+  return String(value || '').replace(/[\s.\-()]/g, '')
+}
+
+// 9 đến 12 chữ số, có thể bắt đầu bằng +
+export function isPhone(value) {
+  return /^\+?[0-9]{9,12}$/.test(String(value || ''))
+}
+
 export function isCompanyEmail(email) {
   const m = /^[a-z0-9._%+-]+@([a-z0-9.-]+)$/i.exec(String(email || '').trim())
   return Boolean(m) && COMPANY_DOMAINS.includes(m[1].toLowerCase())
