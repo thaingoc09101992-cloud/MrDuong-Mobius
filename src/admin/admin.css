@@ -1489,3 +1489,7 @@
   margin-left: 6px;
   vertical-align: baseline;
 }
+
+.ad-nw {
+  white-space: nowrap;
+}

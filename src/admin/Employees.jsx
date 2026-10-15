@@ -411,6 +411,23 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret, onView
   )
 }
 
+/** Nhãn cột kèm mũi tên sắp xếp: mũi tên dính liền với từ cuối nên không bao giờ rơi xuống dòng riêng. */
+function SortLabel({ label, state }) {
+  const words = label.split(' ')
+  const last = words.pop()
+  return (
+    <>
+      {words.length > 0 ? `${words.join(' ')} ` : ''}
+      <span className="ad-nw">
+        {last}
+        <span className="ad-sort-ico" aria-hidden="true">
+          {state === 'asc' ? '▲' : state === 'desc' ? '▼' : '↕'}
+        </span>
+      </span>
+    </>
+  )
+}
+
 const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
 
 // Cấu hình các cột của bảng: kiểu dữ liệu quyết định cách sắp xếp (chữ A-Z, ngày cũ/mới, số tăng/giảm)
@@ -734,10 +751,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                   aria-sort={sort.key === c.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
                 >
                   <button type="button" className="ad-sort" onClick={() => toggleSort(c.key)} title={SORT_HINT[c.type]}>
-                    <span>{c.label}</span>
-                    <span className="ad-sort-ico" aria-hidden="true">
-                      {sort.key === c.key ? (sort.dir === 'asc' ? '▲' : '▼') : '↕'}
-                    </span>
+                    <SortLabel label={c.label} state={sort.key === c.key ? sort.dir : null} />
                   </button>
                   {showFilters && c.options && (
                     <select
