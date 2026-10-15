@@ -36,6 +36,8 @@ export default function AdminApp() {
   const [exporting, setExporting] = useState(false)
   const [notice, setNotice] = useState('')
   const [isFs, setIsFs] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => safeGet('ad-collapsed') === '1')
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     document.title = 'Quản trị - Thu thập điểm bán'
@@ -146,83 +148,134 @@ export default function AdminApp() {
   }
 
   const showFilters = tab === 'list' || tab === 'map'
+  const current = TABS.find((t) => t.id === tab)
+  const initial = (email || '?').trim().charAt(0).toUpperCase()
+
+  function toggleSidebar() {
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      setMobileOpen((o) => !o)
+    } else {
+      setCollapsed((c) => {
+        safeSet('ad-collapsed', c ? '0' : '1')
+        return !c
+      })
+    }
+  }
+
+  function go(id) {
+    setTab(id)
+    setMobileOpen(false)
+  }
 
   return (
-    <div className="ad-app">
-      <header className="ad-topbar">
-        <div className="ad-brand">
-          <strong>Quản trị điểm bán</strong>
-          <span className="small muted ad-email">{email}</span>
+    <div className={`ad-shell ${collapsed ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
+      <aside className="ad-sidebar" aria-label="Menu quản trị">
+        <div className="ad-account">
+          <span className="ad-avatar" aria-hidden="true">
+            {initial}
+          </span>
+          <div className="ad-account-info">
+            <strong>Quản trị viên</strong>
+            <span className="small muted" title={email}>
+              {email}
+            </span>
+          </div>
         </div>
-        <nav className="ad-tabs" aria-label="Điều hướng admin">
+
+        <nav className="ad-nav" aria-label="Điều hướng admin">
           {TABS.map((t) => (
             <button
               key={t.id}
               type="button"
-              className={`ad-tab ${tab === t.id ? 'ad-tab-active' : ''}`}
+              className={`ad-navbtn ${tab === t.id ? 'is-active' : ''}`}
               aria-current={tab === t.id ? 'page' : undefined}
-              onClick={() => setTab(t.id)}
+              title={t.label}
+              onClick={() => go(t.id)}
             >
-              <Icon name={t.icon} size={18} />
-              {t.label}
+              <Icon name={t.icon} size={20} />
+              <span className="ad-label">{t.label}</span>
             </button>
           ))}
         </nav>
-        <div className="row">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={load} disabled={loading}>
-            {loading ? 'Đang tải...' : 'Tải lại'}
+
+        <div className="ad-sidebar-foot">
+          <button type="button" className="ad-navbtn" onClick={load} disabled={loading} title="Tải lại dữ liệu">
+            <Icon name="refresh" size={20} />
+            <span className="ad-label">{loading ? 'Đang tải...' : 'Tải lại'}</span>
           </button>
           {typeof document.documentElement.requestFullscreen === 'function' && (
-            <button type="button" className="btn btn-ghost btn-sm" onClick={toggleFullscreen}>
-              {isFs ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+            <button type="button" className="ad-navbtn" onClick={toggleFullscreen} title="Toàn màn hình">
+              <Icon name="expand" size={20} />
+              <span className="ad-label">{isFs ? 'Thoát toàn màn hình' : 'Toàn màn hình'}</span>
             </button>
           )}
-          <button type="button" className="btn btn-ghost btn-sm" onClick={themeToggle}>
-            {theme === 'dark' ? 'Sáng' : 'Tối'}
+          <button type="button" className="ad-navbtn" onClick={themeToggle} title="Đổi giao diện sáng hoặc tối">
+            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={20} />
+            <span className="ad-label">{theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}</span>
           </button>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={logout}>
-            Đăng xuất
+          <button type="button" className="ad-navbtn" onClick={logout} title="Đăng xuất">
+            <Icon name="logout" size={20} />
+            <span className="ad-label">Đăng xuất</span>
           </button>
         </div>
-      </header>
+      </aside>
+      <div className="ad-backdrop" onClick={() => setMobileOpen(false)} aria-hidden="true" />
 
-      <main className="ad-main">
-        {loadError && (
-          <div className="alert alert-error" role="alert">
-            {loadError}
+      <div className="ad-content">
+        <header className="ad-bar">
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm btn-icon"
+            onClick={toggleSidebar}
+            aria-label="Ẩn hoặc hiện menu"
+            aria-expanded={!collapsed}
+          >
+            <Icon name="panel" size={20} />
+          </button>
+          <div className="ad-bar-title">
+            <span className="eyebrow">Quản trị điểm bán</span>
+            <h1 className="ad-pagetitle">{current ? current.label : ''}</h1>
           </div>
-        )}
-        {notice && (
-          <div className="alert ad-notice" role="status">
-            {notice}
-          </div>
-        )}
+        </header>
 
-        {showFilters && (
-          <FilterBar
-            filters={filters}
-            onChange={setFilters}
-            employees={employees}
-            rows={rows}
-            shown={filtered.length}
-            onExport={doExport}
-            exporting={exporting}
-          />
-        )}
+        <main className="ad-main">
+          {loadError && (
+            <div className="alert alert-error" role="alert">
+              {loadError}
+            </div>
+          )}
+          {notice && (
+            <div className="alert ad-notice" role="status">
+              {notice}
+            </div>
+          )}
 
-        {tab === 'overview' && <Overview rows={rows} employees={employees} />}
-        {tab === 'list' && <OutletTable rows={filtered} />}
-        {tab === 'map' && <AdminMap rows={filtered} />}
-        {tab === 'employees' && (
-          <Employees
-            employees={employees}
-            rows={rows}
-            onSaved={(emp) => setEmployees((list) => list.map((e) => (e.code === emp.code ? emp : e)))}
-            onAdded={(emp) => setEmployees((list) => [...list, emp].sort((a, b) => (a.code < b.code ? -1 : 1)))}
-            onDeleted={(code) => setEmployees((list) => list.filter((e) => e.code !== code))}
-          />
-        )}
-      </main>
+          {showFilters && (
+            <FilterBar
+              filters={filters}
+              onChange={setFilters}
+              employees={employees}
+              rows={rows}
+              shown={filtered.length}
+              onExport={doExport}
+              exporting={exporting}
+            />
+          )}
+
+          {tab === 'overview' && <Overview rows={rows} employees={employees} />}
+          {tab === 'list' && <OutletTable rows={filtered} />}
+          {tab === 'map' && <AdminMap rows={filtered} />}
+          {tab === 'employees' && (
+            <Employees
+              employees={employees}
+              rows={rows}
+              onSaved={(emp) => setEmployees((list) => list.map((e) => (e.code === emp.code ? emp : e)))}
+              onAdded={(emp) => setEmployees((list) => [...list, emp].sort((a, b) => (a.code < b.code ? -1 : 1)))}
+              onDeleted={(code) => setEmployees((list) => list.filter((e) => e.code !== code))}
+            />
+          )}
+        </main>
+      </div>
     </div>
   )
 }

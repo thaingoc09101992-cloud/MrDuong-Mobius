@@ -288,6 +288,54 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
   )
 }
 
+const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
+
+// Cấu hình các cột của bảng: kiểu dữ liệu quyết định cách sắp xếp (chữ A-Z, ngày cũ/mới, số tăng/giảm)
+const COLUMNS = [
+  { key: 'code', w: 76, label: 'Mã NV', type: 'text', get: (e) => e.code },
+  { key: 'full_name', w: 150, label: 'Tên nhân viên', type: 'text', get: (e) => e.full_name || '' },
+  { key: 'email', w: 220, label: 'Email', type: 'text', get: (e) => e.email || '' },
+  { key: 'phone', w: 120, label: 'Số điện thoại', type: 'text', get: (e) => e.phone || '' },
+  {
+    key: 'role', w: 116,
+    label: 'Vai trò',
+    type: 'text',
+    get: (e) => ROLE_LABEL[e.role] || e.role,
+    options: [
+      ['staff', 'Nhân viên'],
+      ['manager', 'Quản lý'],
+    ],
+    match: (e, v) => e.role === v,
+  },
+  {
+    key: 'status', w: 116,
+    label: 'Trạng thái',
+    type: 'text',
+    get: (e) => (e.is_active ? 'Active' : 'Inactive'),
+    options: [
+      ['active', 'Active'],
+      ['inactive', 'Inactive'],
+    ],
+    match: (e, v) => (e.is_active ? 'active' : 'inactive') === v,
+  },
+  { key: 'active_at', w: 112, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
+  { key: 'inactive_at', w: 112, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
+  { key: 'count', w: 64, label: 'Số điểm', type: 'number', get: (e, counts) => counts.get(e.code) || 0 },
+]
+
+const SORT_HINT = {
+  text: 'Sắp xếp A → Z / Z → A',
+  date: 'Sắp xếp cũ → mới / mới → cũ',
+  number: 'Sắp xếp tăng dần / giảm dần',
+}
+
+function sortValue(col, emp, counts) {
+  const raw = col.get(emp, counts)
+  if (col.type === 'date') return raw ? Date.parse(raw) : null
+  if (col.type === 'number') return raw
+  return raw ? String(raw) : null
+}
+
 export default function Employees({ employees, rows, onSaved, onAdded, onDeleted }) {
   const [error, setError] = useState('')
   const [code, setCode] = useState('')
@@ -298,7 +346,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   const [role, setRole] = useState('staff')
   const [status, setStatus] = useState('active')
   const [adding, setAdding] = useState(false)
-  const [q, setQ] = useState('')
+  const [filters, setFilters] = useState({})
+  const [sort, setSort] = useState({ key: null, dir: 'asc' })
   const [secret, setSecret] = useState(null)
 
   const counts = useMemo(() => {
@@ -307,10 +356,41 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
     return m
   }, [rows])
 
-  const shown = employees.filter((e) => {
-    const s = fold(q.trim())
-    return !s || fold(`${e.code} ${e.full_name || ''} ${e.email || ''} ${e.phone || ''}`).includes(s)
-  })
+  const visible = useMemo(() => {
+    let list = employees.filter((e) =>
+      COLUMNS.every((c) => {
+        const f = (filters[c.key] || '').trim()
+        if (!f) return true
+        if (c.match) return c.match(e, f)
+        const raw = c.get(e, counts)
+        const text = c.type === 'date' ? (raw ? formatTime(raw) : '') : String(raw)
+        return fold(text).includes(fold(f))
+      }),
+    )
+    const col = COLUMNS.find((c) => c.key === sort.key)
+    if (col) {
+      const dir = sort.dir === 'asc' ? 1 : -1
+      list = [...list].sort((a, b) => {
+        const va = sortValue(col, a, counts)
+        const vb = sortValue(col, b, counts)
+        if (va === null && vb === null) return 0
+        if (va === null) return 1 // ô trống luôn nằm cuối
+        if (vb === null) return -1
+        return (typeof va === 'number' ? va - vb : va.localeCompare(vb, 'vi')) * dir
+      })
+    }
+    return list
+  }, [employees, filters, sort, counts])
+
+  const hasFilter = Object.values(filters).some((v) => (v || '').trim() !== '') || sort.key !== null
+
+  function toggleSort(key) {
+    setSort((s) => {
+      if (s.key !== key) return { key, dir: 'asc' }
+      if (s.dir === 'asc') return { key, dir: 'desc' }
+      return { key: null, dir: 'asc' }
+    })
+  }
 
   function saved(emp) {
     if (employees.some((e) => e.code === emp.code)) onSaved(emp)
@@ -369,15 +449,15 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   return (
     <div className="stack">
       <form className="card ad-addform" onSubmit={add} noValidate>
-        <label className="field field-sm">
+        <label className="field field-sm ad-col-2">
           <span>Mã nhân viên</span>
           <input value={code} maxLength={20} onChange={(e) => setCode(e.target.value)} placeholder="Ví dụ: NV002" />
         </label>
-        <label className="field field-sm">
+        <label className="field field-sm ad-col-3">
           <span>Tên nhân viên</span>
           <input value={fullName} maxLength={100} onChange={(e) => setFullName(e.target.value)} />
         </label>
-        <label className="field field-sm">
+        <label className="field field-sm ad-col-4">
           <span>Email công ty</span>
           <input
             type="email"
@@ -386,7 +466,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
             placeholder={`ten@${COMPANY_DOMAINS[0]}`}
           />
         </label>
-        <label className="field field-sm">
+        <label className="field field-sm ad-col-3">
           <span>Số điện thoại</span>
           <input
             type="tel"
@@ -397,27 +477,28 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
             placeholder="0901234567"
           />
         </label>
-        <label className="field field-sm">
+        <label className="field field-sm ad-col-3">
           <span>Vai trò</span>
           <select value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="staff">Nhân viên</option>
             <option value="manager">Quản lý</option>
           </select>
         </label>
-        <label className="field field-sm">
+        <label className="field field-sm ad-col-3">
           <span>Trạng thái</span>
           <select value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
         </label>
-        <button type="submit" className="btn btn-primary btn-sm" disabled={adding || !code.trim() || !email.trim()}>
-          {adding ? 'Đang tạo...' : 'Tạo nhân viên'}
-        </button>
-        <p className="small muted ad-addform-note">
-          Email thuộc tên miền {DOMAIN_HINT}. Hệ thống tạo mật khẩu tạm thời và hiển thị một lần; nhân viên phải
-          đổi mật khẩu khi đăng nhập lần đầu. Ngày Active và Inactive tự ghi nhận khi đổi trạng thái.
-        </p>
+        <div className="ad-addform-actions ad-col-6">
+          <button type="submit" className="btn btn-primary btn-sm" disabled={adding || !code.trim() || !email.trim()}>
+            {adding ? 'Đang tạo...' : 'Tạo nhân viên'}
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setImporting(true)}>
+            Import từ Excel
+          </button>
+        </div>
       </form>
 
       {error && (
@@ -427,38 +508,70 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       )}
 
       <div className="row between wrap-row">
-        <label className="field field-sm ad-search">
-          <span>Tìm nhân viên</span>
-          <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Mã, tên hoặc email" />
-        </label>
-        <div className="row wrap-row">
-          <span className="small muted">
-            {shown.length} / {employees.length} nhân viên. Chỉ nhân viên Active có email mới đăng nhập được.
-          </span>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setImporting(true)}>
-            Import từ Excel
+        <span className="small muted">
+          {visible.length} / {employees.length} nhân viên. Chỉ nhân viên Active có email mới đăng nhập được.
+        </span>
+        {hasFilter && (
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            onClick={() => {
+              setFilters({})
+              setSort({ key: null, dir: 'asc' })
+            }}
+          >
+            Xóa lọc và sắp xếp
           </button>
-        </div>
+        )}
       </div>
 
       <div className="card ad-tablewrap">
-        <table className="ad-table">
+        <table className="ad-table ad-table-fixed">
           <thead>
             <tr>
-              <th>Mã NV</th>
-              <th>Tên nhân viên</th>
-              <th>Email</th>
-              <th>Số điện thoại</th>
-              <th>Vai trò</th>
-              <th>Trạng thái</th>
-              <th>Ngày Active</th>
-              <th>Ngày Inactive</th>
-              <th>Số điểm</th>
-              <th>Thao tác</th>
+              {COLUMNS.map((c) => (
+                <th
+                  key={c.key}
+                  style={{ width: `${c.w}px` }}
+                  aria-sort={sort.key === c.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+                >
+                  <button type="button" className="ad-sort" onClick={() => toggleSort(c.key)} title={SORT_HINT[c.type]}>
+                    <span>{c.label}</span>
+                    <span className="ad-sort-ico" aria-hidden="true">
+                      {sort.key === c.key ? (sort.dir === 'asc' ? '▲' : '▼') : '↕'}
+                    </span>
+                  </button>
+                  {c.options ? (
+                    <select
+                      className="ad-colfilter"
+                      value={filters[c.key] || ''}
+                      onChange={(e) => setFilters((f) => ({ ...f, [c.key]: e.target.value }))}
+                      aria-label={`Lọc theo ${c.label}`}
+                    >
+                      <option value="">Tất cả</option>
+                      {c.options.map(([v, l]) => (
+                        <option key={v} value={v}>
+                          {l}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input
+                      className="ad-colfilter"
+                      type="search"
+                      value={filters[c.key] || ''}
+                      placeholder="Lọc..."
+                      onChange={(e) => setFilters((f) => ({ ...f, [c.key]: e.target.value }))}
+                      aria-label={`Lọc theo ${c.label}`}
+                    />
+                  )}
+                </th>
+              ))}
+              <th style={{ width: '160px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {shown.map((emp) => (
+            {visible.map((emp) => (
               <EmployeeRow
                 key={emp.code}
                 emp={emp}
@@ -469,10 +582,10 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                 onSecret={setSecret}
               />
             ))}
-            {shown.length === 0 && (
+            {visible.length === 0 && (
               <tr>
-                <td colSpan={10} className="center muted">
-                  Chưa có nhân viên nào.
+                <td colSpan={COLUMNS.length + 1} className="center muted">
+                  {employees.length === 0 ? 'Chưa có nhân viên nào.' : 'Không có nhân viên nào khớp bộ lọc.'}
                 </td>
               </tr>
             )}
