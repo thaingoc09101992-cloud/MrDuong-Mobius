@@ -90,6 +90,11 @@ export default function App() {
           </span>
         </div>
         <div className="topbar-actions">
+          {isManager && (
+            <a className="btn btn-primary btn-sm" href="/admin">
+              Trang admin
+            </a>
+          )}
           <button
             type="button"
             className="btn btn-ghost btn-sm"
