@@ -1212,3 +1212,69 @@
   padding: 0 8px;
   font-size: 0.62rem;
 }
+
+/* ==========================================================
+   Form tạo nhân viên: ô nhập bên trái, nút chức năng bên phải
+   ========================================================== */
+.ad-shell .ad-addform {
+  grid-template-columns: minmax(0, 1fr) 208px;
+  gap: 40px;
+  align-items: stretch;
+}
+.ad-addform-fields {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px 20px;
+  align-items: end;
+}
+.ad-addform-fields .ad-col-3 {
+  grid-column: span 3;
+}
+.ad-addform-fields .ad-col-4 {
+  grid-column: span 4;
+}
+.ad-addform-fields .ad-col-5 {
+  grid-column: span 5;
+}
+.ad-shell .ad-addform-actions {
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-3);
+  padding-left: 40px;
+  border-left: 1px solid var(--border);
+}
+.ad-shell .ad-addform-actions .btn {
+  flex: none;
+  width: 100%;
+  min-height: 46px;
+}
+@media (max-width: 1280px) {
+  .ad-shell .ad-addform {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+  .ad-shell .ad-addform-actions {
+    flex-direction: row;
+    padding-left: 0;
+    border-left: 0;
+  }
+  .ad-shell .ad-addform-actions .btn {
+    flex: 1 1 0;
+    width: auto;
+  }
+  .ad-addform-fields .ad-col-3,
+  .ad-addform-fields .ad-col-4,
+  .ad-addform-fields .ad-col-5 {
+    grid-column: span 6;
+  }
+}
+@media (max-width: 700px) {
+  .ad-addform-fields .ad-col-3,
+  .ad-addform-fields .ad-col-4,
+  .ad-addform-fields .ad-col-5 {
+    grid-column: span 12;
+  }
+  .ad-shell .ad-addform-actions {
+    flex-direction: column;
+  }
+}

@@ -480,49 +480,51 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   return (
     <div className="stack">
       <form className="card ad-addform" onSubmit={add} noValidate>
-        <label className="field field-sm ad-col-2">
-          <span>Mã nhân viên</span>
-          <input value={code} maxLength={20} onChange={(e) => setCode(e.target.value)} placeholder="Ví dụ: NV002" />
-        </label>
-        <label className="field field-sm ad-col-3">
-          <span>Tên nhân viên</span>
-          <input value={fullName} maxLength={100} onChange={(e) => setFullName(e.target.value)} />
-        </label>
-        <label className="field field-sm ad-col-4">
-          <span>Email công ty</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={`ten@${COMPANY_DOMAINS[0]}`}
-          />
-        </label>
-        <label className="field field-sm ad-col-3">
-          <span>Số điện thoại</span>
-          <input
-            type="tel"
-            inputMode="tel"
-            maxLength={16}
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="0901234567"
-          />
-        </label>
-        <label className="field field-sm ad-col-3">
-          <span>Vai trò</span>
-          <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="staff">Nhân viên</option>
-            <option value="manager">Quản lý</option>
-          </select>
-        </label>
-        <label className="field field-sm ad-col-3">
-          <span>Trạng thái</span>
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </label>
-        <div className="ad-addform-actions ad-col-6">
+        <div className="ad-addform-fields">
+          <label className="field field-sm ad-col-3">
+            <span>Mã nhân viên</span>
+            <input value={code} maxLength={20} onChange={(e) => setCode(e.target.value)} placeholder="Ví dụ: NV002" />
+          </label>
+          <label className="field field-sm ad-col-5">
+            <span>Tên nhân viên</span>
+            <input value={fullName} maxLength={100} onChange={(e) => setFullName(e.target.value)} />
+          </label>
+          <label className="field field-sm ad-col-4">
+            <span>Email công ty</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={`ten@${COMPANY_DOMAINS[0]}`}
+            />
+          </label>
+          <label className="field field-sm ad-col-4">
+            <span>Số điện thoại</span>
+            <input
+              type="tel"
+              inputMode="tel"
+              maxLength={16}
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="0901234567"
+            />
+          </label>
+          <label className="field field-sm ad-col-4">
+            <span>Vai trò</span>
+            <select value={role} onChange={(e) => setRole(e.target.value)}>
+              <option value="staff">Nhân viên</option>
+              <option value="manager">Quản lý</option>
+            </select>
+          </label>
+          <label className="field field-sm ad-col-4">
+            <span>Trạng thái</span>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </label>
+        </div>
+        <div className="ad-addform-actions">
           <button type="submit" className="btn btn-primary btn-sm" disabled={adding || !code.trim() || !email.trim()}>
             {adding ? 'Đang tạo...' : 'Tạo nhân viên'}
           </button>
