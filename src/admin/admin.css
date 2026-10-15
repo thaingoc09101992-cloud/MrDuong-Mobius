@@ -1358,3 +1358,46 @@
   color: color-mix(in srgb, var(--text) 30%, transparent);
   opacity: 1;
 }
+
+/* ==========================================================
+   Nền màu nhẹ để các khối nổi bật: nền trang ngà, khối tạo nhân viên
+   tông kem, bảng và thẻ số liệu màu trắng
+   ========================================================== */
+:root {
+  --page-bg: #f6f5f1;
+  --tint: #f1eee6;
+  --tint-border: #e4ded1;
+}
+:root[data-theme='dark'] {
+  --page-bg: #0b0b0b;
+  --tint: #1f1e1b;
+  --tint-border: #2e2c28;
+}
+.ad-content {
+  background: var(--page-bg);
+}
+.ad-shell .ad-addform {
+  background: var(--tint);
+  border-color: var(--tint-border);
+}
+.ad-shell .ad-addform-actions {
+  border-left-color: var(--tint-border);
+}
+.ad-shell .ad-tablewrap,
+.ad-shell .ad-main > .stack > .card:not(.ad-addform),
+.ad-shell .ad-two .card {
+  background: var(--surface);
+}
+.ad-shell .ad-modal-box {
+  background: var(--surface);
+}
+.ad-shell .ad-filters {
+  background: var(--tint);
+  border-color: var(--tint-border);
+}
+.ad-shell .ad-kpis {
+  background: transparent;
+}
+.ad-shell .ad-addform-actions .btn-ghost {
+  background: var(--surface);
+}

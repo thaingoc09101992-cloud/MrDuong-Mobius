@@ -398,9 +398,13 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       }),
     )
     const col = COLUMNS.find((c) => c.key === sort.key)
-    if (col) {
+    // Nhân viên Active luôn xếp trên Inactive; cột đang sắp xếp quyết định thứ tự trong từng nhóm
+    const activeFirst = sort.key !== 'status'
+    if (col || activeFirst) {
       const dir = sort.dir === 'asc' ? 1 : -1
       list = [...list].sort((a, b) => {
+        if (activeFirst && a.is_active !== b.is_active) return a.is_active ? -1 : 1
+        if (!col) return 0
         const va = sortValue(col, a, counts)
         const vb = sortValue(col, b, counts)
         if (va === null && vb === null) return 0
@@ -426,6 +430,18 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   function saved(emp) {
     if (employees.some((e) => e.code === emp.code)) onSaved(emp)
     else onAdded(emp)
+  }
+
+  const dirty = Boolean(code || fullName || email || phone || role || status)
+
+  function clearForm() {
+    setCode('')
+    setFullName('')
+    setEmail('')
+    setPhone('')
+    setRole('')
+    setStatus('')
+    setError('')
   }
 
   async function add(e) {
@@ -546,6 +562,9 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
         <div className="ad-addform-actions">
           <button type="submit" className="btn btn-primary btn-sm" disabled={adding || !code.trim() || !email.trim()}>
             {adding ? 'Đang tạo...' : 'Tạo nhân viên'}
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm" disabled={!dirty || adding} onClick={clearForm}>
+            Xóa nội dung
           </button>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => setImporting(true)}>
             Import từ Excel
