@@ -1278,3 +1278,42 @@
     flex-direction: column;
   }
 }
+
+/* Các ô nhập của form tạo nhân viên: 3 cột bằng nhau, tiêu đề căn trái, mép trái thẳng hàng giữa hai hàng */
+.ad-addform-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px 24px;
+  align-items: start;
+}
+.ad-addform-fields .ad-col-3,
+.ad-addform-fields .ad-col-4,
+.ad-addform-fields .ad-col-5 {
+  grid-column: span 1;
+}
+.ad-addform-fields .field {
+  align-items: stretch;
+  text-align: left;
+}
+.ad-addform-fields .field > span {
+  text-align: left;
+}
+.ad-addform-fields .field input,
+.ad-addform-fields .field select {
+  width: 100%;
+  min-height: 44px;
+}
+@media (max-width: 900px) {
+  .ad-addform-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ad-addform-fields .ad-col-3,
+  .ad-addform-fields .ad-col-4,
+  .ad-addform-fields .ad-col-5 {
+    grid-column: span 1;
+  }
+}
+@media (max-width: 700px) {
+  .ad-addform-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
