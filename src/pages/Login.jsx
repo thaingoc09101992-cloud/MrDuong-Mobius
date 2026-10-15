@@ -38,10 +38,18 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
       >
         {theme === 'dark' ? 'Sáng' : 'Tối'}
       </button>
+      <aside className="login-aside">
+        <span className="eyebrow">Công cụ nội bộ</span>
+        <h1 className="login-display">
+          Thu thập
+          <br />
+          điểm bán
+        </h1>
+        <p className="login-lead">Ảnh, định vị và thông tin điểm bán, ghi nhận ngay tại thị trường.</p>
+      </aside>
       <form className="card login-card" onSubmit={submit} noValidate>
-        <img src="/icon.svg" alt="" width="56" height="56" className="login-logo" />
-        <h1>Thu thập điểm bán</h1>
-        <p className="muted">Đăng nhập bằng mã nhân viên để bắt đầu.</p>
+        <h2 className="login-title">Đăng nhập</h2>
+        <p className="muted small">Nhập mã nhân viên để bắt đầu.</p>
 
         <label className="field">
           <span>Mã nhân viên</span>

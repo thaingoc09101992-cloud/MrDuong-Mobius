@@ -18,10 +18,18 @@ export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
       <button type="button" className="btn btn-ghost btn-sm login-theme" onClick={onToggleTheme}>
         {theme === 'dark' ? 'Sáng' : 'Tối'}
       </button>
+      <aside className="login-aside">
+        <span className="eyebrow">Quản trị</span>
+        <h1 className="login-display">
+          Quản trị
+          <br />
+          điểm bán
+        </h1>
+        <p className="login-lead">Theo dõi dữ liệu, nhân viên và bản đồ điểm bán.</p>
+      </aside>
       <form className="card login-card" onSubmit={submit} noValidate>
-        <img src="/icon.svg" alt="" width="56" height="56" className="login-logo" />
-        <h1>Quản trị điểm bán</h1>
-        <p className="muted">Đăng nhập bằng tài khoản admin.</p>
+        <h2 className="login-title">Đăng nhập</h2>
+        <p className="muted small">Dùng tài khoản email của quản trị viên.</p>
 
         <label className="field">
           <span>Email</span>

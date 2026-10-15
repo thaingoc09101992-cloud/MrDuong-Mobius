@@ -12,6 +12,24 @@ const TABS = [
   { id: 'map', label: 'Bản đồ', icon: 'map' },
 ]
 
+const PAGES = {
+  capture: {
+    eyebrow: '01 / Thu thập',
+    title: 'Chụp điểm bán',
+    sub: 'Chụp ảnh tại cửa hàng, hệ thống tự gắn định vị và thời gian.',
+  },
+  history: {
+    eyebrow: '02 / Lưu trữ',
+    title: (m) => (m ? 'Tất cả điểm bán' : 'Điểm bán của tôi'),
+    sub: 'Danh sách các điểm bán đã ghi nhận, mới nhất ở trên cùng.',
+  },
+  map: {
+    eyebrow: '03 / Bản đồ',
+    title: 'Bản đồ điểm bán',
+    sub: 'Xem vị trí các điểm bán và lọc theo loại hình, thời gian.',
+  },
+}
+
 function readUser() {
   try {
     const raw = safeGet('user')
@@ -122,6 +140,13 @@ export default function App() {
             </button>
           </div>
         )}
+        <header className="page-head" key={tab}>
+          <span className="eyebrow">{PAGES[tab].eyebrow}</span>
+          <h1 className="page-title">
+            {typeof PAGES[tab].title === 'function' ? PAGES[tab].title(isManager) : PAGES[tab].title}
+          </h1>
+          <p className="page-sub">{PAGES[tab].sub}</p>
+        </header>
         {tab === 'capture' && <Capture user={user} onSaved={refresh} />}
         {tab === 'history' && (
           <History outlets={outlets} loading={loading} isManager={isManager} onRefresh={refresh} />

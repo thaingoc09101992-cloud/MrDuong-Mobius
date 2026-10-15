@@ -4,7 +4,7 @@ export default function History({ outlets, loading, isManager, onRefresh }) {
   return (
     <section className="stack">
       <div className="row between">
-        <h2>{isManager ? 'Tất cả điểm bán' : 'Điểm bán của tôi'}</h2>
+        <span className="small muted">{outlets.length} điểm bán</span>
         <button type="button" className="btn btn-ghost btn-sm" onClick={onRefresh} disabled={loading}>
           {loading ? 'Đang tải...' : 'Tải lại'}
         </button>
