@@ -3,6 +3,7 @@ import { sb, callEmployeesFn } from './adminClient.js'
 import { formatTime, CODE_PATTERN, COMPANY_DOMAINS, isCompanyEmail, normalizePhone, isPhone } from '../supabase.js'
 import { fold } from './util.js'
 import BulkImport from './BulkImport.jsx'
+import Icon from '../icons.jsx'
 
 const DOMAIN_HINT = COMPANY_DOMAINS.map((d) => `@${d}`).join(' hoặc ')
 
@@ -82,93 +83,174 @@ function AccountDot({ emp }) {
   return <i className={`ad-dot ad-dot-${st}`} title={ACCOUNT_STATES[st]} aria-label={ACCOUNT_STATES[st]} />
 }
 
-function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
+function IconBtn({ icon, label, onClick, disabled, tone }) {
+  return (
+    <button
+      type="button"
+      className={`ad-iconbtn ${tone ? `is-${tone}` : ''}`}
+      title={label}
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <Icon name={icon} size={16} />
+    </button>
+  )
+}
+
+/** Xem chi tiết một nhân viên (chỉ đọc). */
+function EmployeeDetail({ emp, count, onClose }) {
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onClose])
+
+  const st = accountState(emp)
+  const items = [
+    ['Mã nhân viên', emp.code],
+    ['Tên nhân viên', emp.full_name || '-'],
+    ['Email', emp.email || '-'],
+    ['Số điện thoại', emp.phone || '-'],
+    ['Vai trò', emp.role === 'manager' ? 'Quản lý' : 'Nhân viên'],
+    ['Trạng thái', emp.is_active ? 'Active' : 'Inactive'],
+    ['Ngày Active', emp.active_at ? formatTime(emp.active_at) : '-'],
+    ['Ngày Inactive', emp.inactive_at ? formatTime(emp.inactive_at) : '-'],
+    ['Tài khoản', ACCOUNT_STATES[st]],
+    ['Điểm bán đã ghi nhận', String(count)],
+    ['Ngày tạo', emp.created_at ? formatTime(emp.created_at) : '-'],
+  ]
+
+  return (
+    <div className="ad-modal" role="dialog" aria-modal="true" aria-label="Chi tiết nhân viên" onClick={onClose}>
+      <div className="ad-modal-box card" onClick={(e) => e.stopPropagation()}>
+        <div className="row between">
+          <div>
+            <span className="eyebrow">Chi tiết nhân viên</span>
+            <h2>{emp.full_name || emp.code}</h2>
+          </div>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
+            Đóng
+          </button>
+        </div>
+        <dl className="ad-secret">
+          {items.map(([k, v]) => (
+            <div className="ad-detail-row" key={k}>
+              <dt>{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  )
+}
+
+function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret, onView }) {
+  const [editing, setEditing] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [name, setName] = useState(emp.full_name || '')
   const [email, setEmail] = useState(emp.email || '')
   const [phone, setPhone] = useState(emp.phone || '')
-  const [editingEmail, setEditingEmail] = useState(false)
-  const [busy, setBusy] = useState(false)
+  const [role, setRole] = useState(emp.role)
+  const [active, setActive] = useState(emp.is_active)
 
   const hasAccount = Boolean(emp.user_id)
 
-  useEffect(() => {
+  function startEdit() {
     setName(emp.full_name || '')
     setEmail(emp.email || '')
     setPhone(emp.phone || '')
-  }, [emp.full_name, emp.email, emp.phone])
-
-  async function patch(changes) {
-    setBusy(true)
+    setRole(emp.role)
+    setActive(emp.is_active)
     onError('')
-    const { data, error } = await sb.from('employees').update(changes).eq('code', emp.code).select().single()
-    setBusy(false)
-    if (error) {
-      onError('Không lưu được thay đổi. Vui lòng thử lại.')
-      setName(emp.full_name || '')
-      return
-    }
-    onSaved(data)
+    setEditing(true)
   }
 
-  async function run(body, title) {
+  function cancel() {
+    setEditing(false)
+    onError('')
+  }
+
+  function secretFor(res, title) {
+    return {
+      title,
+      code: res.employee.code,
+      name: res.employee.full_name || res.employee.code,
+      email: res.employee.email,
+      password: res.temp_password,
+    }
+  }
+
+  async function save() {
+    const mail = email.trim().toLowerCase()
+    const ph = normalizePhone(phone)
+    if (ph && !isPhone(ph)) {
+      onError('Số điện thoại gồm 9 đến 12 chữ số.')
+      return
+    }
+    if (mail && !isCompanyEmail(mail)) {
+      onError(`Email phải thuộc tên miền công ty (${DOMAIN_HINT}).`)
+      return
+    }
     setBusy(true)
     onError('')
     try {
-      const res = await callEmployeesFn(body)
-      if (res.employee) onSaved(res.employee)
-      if (res.temp_password) {
-        onSecret({
-          title,
-          code: res.employee.code,
-          name: res.employee.full_name || res.employee.code,
-          email: res.employee.email,
-          password: res.temp_password,
-        })
+      // 1. Thông tin thường: họ tên, số điện thoại, vai trò, trạng thái
+      const changes = {}
+      const nm = name.trim() || null
+      if (nm !== (emp.full_name || null)) changes.full_name = nm
+      if ((ph || null) !== (emp.phone || null)) changes.phone = ph || null
+      if (role !== emp.role) changes.role = role
+      if (active !== emp.is_active) changes.is_active = active
+      let latest = emp
+      if (Object.keys(changes).length > 0) {
+        const { data, error } = await sb.from('employees').update(changes).eq('code', emp.code).select().single()
+        if (error) throw new Error('Không lưu được thay đổi. Vui lòng thử lại.')
+        latest = data
+        onSaved(data)
       }
-      setEditingEmail(false)
+
+      // 2. Email: đổi email của tài khoản hiện có, hoặc cấp tài khoản mới nếu chưa có
+      if (mail && mail !== (emp.email || '')) {
+        if (hasAccount) {
+          const res = await callEmployeesFn({ action: 'change_email', code: emp.code, email: mail })
+          if (res.employee) onSaved(res.employee)
+        } else {
+          const res = await callEmployeesFn({
+            action: 'create',
+            code: emp.code,
+            email: mail,
+            full_name: latest.full_name,
+            phone: latest.phone,
+            role: latest.role,
+            is_active: latest.is_active,
+          })
+          if (res.employee) onSaved(res.employee)
+          if (res.temp_password) onSecret(secretFor(res, 'Đã cấp tài khoản'))
+        }
+      }
+      setEditing(false)
     } catch (err) {
       onError(err.message)
     }
     setBusy(false)
   }
 
-  function submitEmail() {
-    const mail = email.trim().toLowerCase()
-    if (!isCompanyEmail(mail)) {
-      onError(`Email phải thuộc tên miền công ty (${DOMAIN_HINT}).`)
-      return
+  async function resetPassword() {
+    if (!window.confirm(`Reset mật khẩu cho ${emp.email}? Mật khẩu cũ sẽ không dùng được nữa.`)) return
+    setBusy(true)
+    onError('')
+    try {
+      const res = await callEmployeesFn({ action: 'reset_password', code: emp.code })
+      if (res.employee) onSaved(res.employee)
+      if (res.temp_password) onSecret(secretFor(res, 'Đã reset mật khẩu'))
+    } catch (err) {
+      onError(err.message)
     }
-    if (hasAccount) {
-      if (mail === emp.email) {
-        setEditingEmail(false)
-        return
-      }
-      run({ action: 'change_email', code: emp.code, email: mail }, 'Đã đổi email')
-    } else {
-      run(
-        { action: 'create', code: emp.code, email: mail, full_name: name.trim() || null, role: emp.role },
-        'Đã cấp tài khoản',
-      )
-    }
-  }
-
-  function resetPassword() {
-    if (!window.confirm(`Đặt lại mật khẩu cho ${emp.email}? Mật khẩu cũ sẽ không dùng được nữa.`)) return
-    run({ action: 'reset_password', code: emp.code }, 'Đã đặt lại mật khẩu')
-  }
-
-  function savePhone() {
-    const v = normalizePhone(phone)
-    if (v === (emp.phone || '')) {
-      setPhone(emp.phone || '')
-      return
-    }
-    if (v && !isPhone(v)) {
-      onError('Số điện thoại gồm 9 đến 12 chữ số.')
-      setPhone(emp.phone || '')
-      return
-    }
-    patch({ phone: v || null })
+    setBusy(false)
   }
 
   async function remove() {
@@ -190,128 +272,138 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
     }
   }
 
+  const dash = <span className="muted">-</span>
+
   return (
-    <tr className={emp.is_active ? '' : 'ad-inactive'}>
+    <tr className={`${emp.is_active ? '' : 'ad-inactive'} ${editing ? 'ad-editing' : ''}`}>
       <td>
         <strong>{emp.code}</strong>
       </td>
+
       <td>
-        <input
-          className="ad-input"
-          value={name}
-          maxLength={100}
-          placeholder="Nhập họ tên"
-          disabled={busy}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={() => {
-            const v = name.trim()
-            if (v !== (emp.full_name || '')) patch({ full_name: v || null })
-          }}
-          aria-label={`Họ tên của ${emp.code}`}
-        />
+        {editing ? (
+          <input
+            className="ad-input is-edit"
+            value={name}
+            maxLength={100}
+            placeholder="Tên nhân viên"
+            disabled={busy}
+            onChange={(e) => setName(e.target.value)}
+            aria-label={`Họ tên của ${emp.code}`}
+          />
+        ) : (
+          <span className="ad-cell-text" title={emp.full_name || undefined}>
+            {emp.full_name || dash}
+          </span>
+        )}
       </td>
+
       <td>
-        {hasAccount && !editingEmail ? (
+        {editing ? (
           <div className="ad-emailcell">
             <AccountDot emp={emp} />
-            <span className="ad-wrap ad-email-text" title={emp.email}>
-              {emp.email}
-            </span>
-            <button type="button" className="link small" disabled={busy} onClick={() => setEditingEmail(true)}>
-              Đổi
-            </button>
+            <input
+              className="ad-input is-edit"
+              type="email"
+              value={email}
+              placeholder={hasAccount ? 'Email công ty' : 'Nhập email để cấp tài khoản'}
+              disabled={busy}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-label={`Email của ${emp.code}`}
+            />
           </div>
         ) : (
           <div className="ad-emailcell">
             <AccountDot emp={emp} />
-            <input
-              className="ad-input"
-              type="email"
-              value={email}
-              placeholder={`ten${COMPANY_DOMAINS[0] ? `@${COMPANY_DOMAINS[0]}` : ''}`}
-              disabled={busy}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && submitEmail()}
-              aria-label={`Email của ${emp.code}`}
-            />
-            <button type="button" className="btn btn-primary btn-sm" disabled={busy || !email.trim()} onClick={submitEmail}>
-              {hasAccount ? 'Lưu' : 'Cấp TK'}
-            </button>
-            {hasAccount && (
-              <button
-                type="button"
-                className="link small"
-                onClick={() => {
-                  setEditingEmail(false)
-                  setEmail(emp.email || '')
-                }}
-              >
-                Hủy
+            {emp.email ? (
+              <span className="ad-email-text" title={emp.email}>
+                {emp.email}
+              </span>
+            ) : (
+              <button type="button" className="link small" disabled={busy} onClick={startEdit}>
+                + Cấp tài khoản
               </button>
             )}
           </div>
         )}
       </td>
+
       <td>
-        <input
-          className="ad-input"
-          type="tel"
-          inputMode="tel"
-          maxLength={16}
-          value={phone}
-          placeholder="Số điện thoại"
-          disabled={busy}
-          onChange={(e) => setPhone(e.target.value)}
-          onBlur={savePhone}
-          aria-label={`Số điện thoại của ${emp.code}`}
-        />
+        {editing ? (
+          <input
+            className="ad-input is-edit"
+            type="tel"
+            inputMode="tel"
+            maxLength={16}
+            value={phone}
+            placeholder="Số điện thoại"
+            disabled={busy}
+            onChange={(e) => setPhone(e.target.value)}
+            aria-label={`Số điện thoại của ${emp.code}`}
+          />
+        ) : (
+          <span className="ad-cell-text">{emp.phone || dash}</span>
+        )}
       </td>
+
       <td>
-        <select
-          className="ad-input"
-          value={emp.role}
-          disabled={busy}
-          onChange={(e) => patch({ role: e.target.value })}
-          aria-label={`Vai trò của ${emp.code}`}
-        >
-          <option value="staff">Nhân viên</option>
-          <option value="manager">Quản lý</option>
-        </select>
+        {editing ? (
+          <select
+            className="ad-input is-edit"
+            value={role}
+            disabled={busy}
+            onChange={(e) => setRole(e.target.value)}
+            aria-label={`Vai trò của ${emp.code}`}
+          >
+            <option value="staff">Nhân viên</option>
+            <option value="manager">Quản lý</option>
+          </select>
+        ) : (
+          <span className="ad-cell-text">{ROLE_LABEL[emp.role] || emp.role}</span>
+        )}
       </td>
+
       <td>
-        <select
-          className="ad-input"
-          value={emp.is_active ? 'active' : 'inactive'}
-          disabled={busy}
-          onChange={(e) => patch({ is_active: e.target.value === 'active' })}
-          aria-label={`Trạng thái của ${emp.code}`}
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+        {editing ? (
+          <select
+            className="ad-input is-edit"
+            value={active ? 'active' : 'inactive'}
+            disabled={busy}
+            onChange={(e) => setActive(e.target.value === 'active')}
+            aria-label={`Trạng thái của ${emp.code}`}
+          >
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        ) : (
+          <span className="ad-cell-text">{emp.is_active ? 'Active' : 'Inactive'}</span>
+        )}
       </td>
+
       <td className="ad-nowrap small muted" title={emp.active_at ? formatTime(emp.active_at) : undefined}>
         {emp.active_at ? formatDay(emp.active_at) : '-'}
       </td>
       <td className="ad-nowrap small muted" title={emp.inactive_at ? formatTime(emp.inactive_at) : undefined}>
         {emp.inactive_at ? formatDay(emp.inactive_at) : '-'}
       </td>
+
       <td>
-        <div className="ad-actions">
-          {hasAccount && (
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={busy}
-              onClick={resetPassword}
-              title="Tạo lại mật khẩu ngẫu nhiên, nhân viên phải đổi khi đăng nhập lần đầu"
-            >
-              Reset MK
-            </button>
+        <div className="ad-iconbtns">
+          {editing ? (
+            <>
+              <IconBtn icon="check" label="Lưu thay đổi" tone="ok" disabled={busy} onClick={save} />
+              <IconBtn icon="x" label="Hủy" disabled={busy} onClick={cancel} />
+            </>
+          ) : (
+            <>
+              <IconBtn icon="eye" label="Xem chi tiết" disabled={busy} onClick={() => onView(emp.code)} />
+              <IconBtn icon="edit" label="Sửa thông tin" disabled={busy} onClick={startEdit} />
+              {hasAccount && (
+                <IconBtn icon="key" label="Reset mật khẩu (tạo mật khẩu ngẫu nhiên)" disabled={busy} onClick={resetPassword} />
+              )}
+              <IconBtn icon="trash" label="Xóa nhân viên" tone="danger" disabled={busy} onClick={remove} />
+            </>
           )}
-          <button type="button" className="btn btn-ghost btn-sm ad-danger" disabled={busy} onClick={remove}>
-            Xóa
-          </button>
         </div>
       </td>
     </tr>
@@ -379,6 +471,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   const [showFilters, setShowFilters] = useState(false)
   const [sort, setSort] = useState({ key: null, dir: 'asc' })
   const [secret, setSecret] = useState(null)
+  const [viewing, setViewing] = useState(null)
 
   const counts = useMemo(() => {
     const m = new Map()
@@ -651,7 +744,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                   )}
                 </th>
               ))}
-              <th style={{ width: '146px' }}>Thao tác</th>
+              <th style={{ width: '150px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -664,6 +757,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                 onDeleted={onDeleted}
                 onError={setError}
                 onSecret={setSecret}
+                onView={setViewing}
               />
             ))}
             {visible.length === 0 && (
@@ -678,6 +772,13 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       </div>
 
       {secret && <SecretModal secret={secret} onClose={() => setSecret(null)} />}
+      {viewing && employees.find((e) => e.code === viewing) && (
+        <EmployeeDetail
+          emp={employees.find((e) => e.code === viewing)}
+          count={counts.get(viewing) || 0}
+          onClose={() => setViewing(null)}
+        />
+      )}
       {importing && <BulkImport employees={employees} onCreated={saved} onClose={() => setImporting(false)} />}
     </div>
   )
