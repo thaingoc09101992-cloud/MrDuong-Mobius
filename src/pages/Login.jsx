@@ -1,30 +1,35 @@
 import { useState } from 'react'
-import { supabase, CODE_PATTERN } from '../supabase.js'
+import { supabase } from '../supabase.js'
 
 export default function Login({ onLogin, theme, onToggleTheme }) {
-  const [code, setCode] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
-    const normalized = code.trim().toUpperCase()
-    if (!CODE_PATTERN.test(normalized)) {
-      setError('Mã nhân viên gồm 3 đến 20 ký tự: chữ không dấu, số, gạch ngang hoặc gạch dưới.')
-      return
-    }
+    const mail = email.trim().toLowerCase()
+    if (!mail || !password) return
     setBusy(true)
     setError('')
-    const { data, error: err } = await supabase.rpc('app_login', { p_code: normalized })
-    setBusy(false)
-    if (err) {
-      setError(
-        err.message && err.message.includes('khoa')
-          ? 'Tài khoản đã bị khóa. Vui lòng liên hệ quản lý.'
-          : 'Không đăng nhập được. Vui lòng kiểm tra mã nhân viên và kết nối mạng.',
-      )
+
+    const { error: authErr } = await supabase.auth.signInWithPassword({ email: mail, password })
+    if (authErr) {
+      setBusy(false)
+      setError('Email hoặc mật khẩu không đúng.')
       return
     }
+
+    // Chỉ nhân viên đang Active và có email mới được dùng ứng dụng
+    const { data, error: meErr } = await supabase.rpc('app_me')
+    if (meErr || !data) {
+      await supabase.auth.signOut()
+      setBusy(false)
+      setError('Tài khoản chưa được cấp quyền hoặc đã ngừng hoạt động. Vui lòng liên hệ quản lý.')
+      return
+    }
+    setBusy(false)
     onLogin(data)
   }
 
@@ -49,22 +54,30 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
       </aside>
       <form className="card login-card" onSubmit={submit} noValidate>
         <h2 className="login-title">Đăng nhập</h2>
-        <p className="muted small">Nhập mã nhân viên để bắt đầu.</p>
+        <p className="muted small">Dùng email công ty và mật khẩu được cấp.</p>
 
         <label className="field">
-          <span>Mã nhân viên</span>
+          <span>Email công ty</span>
           <input
-            type="text"
-            inputMode="text"
-            autoCapitalize="characters"
+            type="email"
+            inputMode="email"
+            autoCapitalize="none"
             autoComplete="username"
             autoCorrect="off"
             spellCheck="false"
-            maxLength={20}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Ví dụ: NV001"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="ten@thophat.vn"
             autoFocus
+          />
+        </label>
+        <label className="field">
+          <span>Mật khẩu</span>
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </label>
 
@@ -74,12 +87,16 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
           </div>
         )}
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy || !code.trim()}>
+        <button
+          type="submit"
+          className="btn btn-primary btn-block"
+          disabled={busy || !email.trim() || !password}
+        >
           {busy ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
         <p className="center-text small">
           <a className="link" href="/admin">
-            Đăng nhập quản trị (email)
+            Đăng nhập quản trị
           </a>
         </p>
       </form>

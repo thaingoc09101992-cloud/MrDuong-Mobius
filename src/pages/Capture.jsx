@@ -240,7 +240,6 @@ export default function Capture({ user, onSaved }) {
     }
 
     const { error } = await supabase.rpc('app_save_outlet', {
-      p_code: user.code,
       p_name: trimmed,
       p_address: address.trim() || null,
       p_channel: channel || null,

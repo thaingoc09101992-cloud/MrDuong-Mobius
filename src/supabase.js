@@ -3,7 +3,14 @@ import { createClient } from '@supabase/supabase-js'
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY,
-  { auth: { persistSession: false, autoRefreshToken: false } },
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      storageKey: 'app-auth',
+    },
+  },
 )
 
 export const BUCKET = 'outlet-photos'
@@ -20,6 +27,14 @@ export const CHANNELS = [
 ]
 
 export const CODE_PATTERN = /^[A-Z0-9_-]{3,20}$/
+
+// Chỉ email thuộc các tên miền công ty mới được tạo tài khoản (cũng được kiểm tra ở cơ sở dữ liệu)
+export const COMPANY_DOMAINS = ['thophat.vn', 'kdc.vn']
+
+export function isCompanyEmail(email) {
+  const m = /^[a-z0-9._%+-]+@([a-z0-9.-]+)$/i.exec(String(email || '').trim())
+  return Boolean(m) && COMPANY_DOMAINS.includes(m[1].toLowerCase())
+}
 
 export function photoUrl(path) {
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl

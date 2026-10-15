@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase, safeGet, safeSet } from './supabase.js'
+import { supabase, safeSet } from './supabase.js'
 import Login from './pages/Login.jsx'
+import ChangePassword from './pages/ChangePassword.jsx'
 import Capture from './pages/Capture.jsx'
 import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
@@ -30,19 +31,9 @@ const PAGES = {
   },
 }
 
-function readUser() {
-  try {
-    const raw = safeGet('user')
-    if (!raw) return null
-    const u = JSON.parse(raw)
-    return u && typeof u.code === 'string' ? u : null
-  } catch {
-    return null
-  }
-}
-
 export default function App() {
-  const [user, setUser] = useState(readUser)
+  const [user, setUser] = useState(null)
+  const [booting, setBooting] = useState(true)
   const [tab, setTab] = useState('capture')
   const [theme, setTheme] = useState(
     () => document.documentElement.getAttribute('data-theme') || 'light',
@@ -56,41 +47,82 @@ export default function App() {
     safeSet('theme', theme)
   }, [theme])
 
+  // Khôi phục phiên đăng nhập: chỉ giữ lại nếu tài khoản vẫn Active và có email
+  useEffect(() => {
+    let alive = true
+    safeSet('user', null) // dọn dữ liệu đăng nhập bằng mã của phiên bản cũ
+
+    async function restore() {
+      const { data: s } = await supabase.auth.getSession()
+      if (!s.session) return
+      const { data, error } = await supabase.rpc('app_me')
+      if (!alive) return
+      if (error || !data) {
+        await supabase.auth.signOut()
+        return
+      }
+      setUser(data)
+    }
+    restore().finally(() => alive && setBooting(false))
+
+    const { data: sub } = supabase.auth.onAuthStateChange((evt) => {
+      if (evt === 'SIGNED_OUT') {
+        setUser(null)
+        setOutlets([])
+      }
+    })
+    return () => {
+      alive = false
+      sub.subscription.unsubscribe()
+    }
+  }, [])
+
+  const ready = Boolean(user) && !user.must_change_password
+
   const refresh = useCallback(async () => {
-    if (!user) return
+    if (!ready) return
     setLoading(true)
     setLoadError('')
-    const { data, error } = await supabase.rpc('app_list_outlets', { p_code: user.code })
+    const { data, error } = await supabase.rpc('app_list_outlets')
     if (error) {
       setLoadError('Không tải được dữ liệu. Vui lòng kiểm tra mạng và thử lại.')
     } else {
       setOutlets(Array.isArray(data) ? data : [])
     }
     setLoading(false)
-  }, [user])
+  }, [ready])
 
   useEffect(() => {
     refresh()
   }, [refresh])
 
   function handleLogin(u) {
-    safeSet('user', JSON.stringify(u))
     setUser(u)
     setTab('capture')
   }
 
-  function handleLogout() {
-    safeSet('user', null)
+  async function handleLogout() {
+    await supabase.auth.signOut()
     setUser(null)
     setOutlets([])
   }
 
+  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
+
+  if (booting) return <div className="boot">Đang tải...</div>
+
   if (!user) {
+    return <Login onLogin={handleLogin} theme={theme} onToggleTheme={toggleTheme} />
+  }
+
+  if (user.must_change_password) {
     return (
-      <Login
-        onLogin={handleLogin}
+      <ChangePassword
+        user={user}
+        onDone={handleLogin}
+        onLogout={handleLogout}
         theme={theme}
-        onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        onToggleTheme={toggleTheme}
       />
     )
   }
@@ -119,7 +151,7 @@ export default function App() {
           <button
             type="button"
             className="btn btn-ghost btn-sm btn-icon"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={toggleTheme}
             aria-label="Đổi giao diện sáng hoặc tối"
           >
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />

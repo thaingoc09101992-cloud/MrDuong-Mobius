@@ -38,3 +38,20 @@ export async function fetchEmployees() {
   if (error) throw error
   return data
 }
+
+/** Gọi Edge Function admin-employees (tạo nhân viên, đặt lại mật khẩu, đổi email). */
+export async function callEmployeesFn(body) {
+  const { data, error } = await sb.functions.invoke('admin-employees', { body })
+  if (error) {
+    let msg = 'Không thực hiện được. Vui lòng thử lại.'
+    try {
+      const j = await error.context.json()
+      if (j && j.error) msg = j.error
+    } catch {
+      /* giữ thông báo mặc định */
+    }
+    throw new Error(msg)
+  }
+  if (data && data.error) throw new Error(data.error)
+  return data
+}
