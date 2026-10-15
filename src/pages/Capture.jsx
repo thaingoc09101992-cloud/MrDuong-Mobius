@@ -134,6 +134,28 @@ export default function Capture({ user, onSaved }) {
     }
   }, [shot])
 
+  // Camera luôn tự chạy: nếu trình duyệt chặn tự phát, lần chạm đầu tiên ở bất kỳ đâu sẽ bật lại
+  useEffect(() => {
+    if (stage !== 'camera') return undefined
+    const play = () => {
+      const v = videoRef.current
+      if (v && v.srcObject && v.paused) v.play().catch(() => {})
+    }
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') play()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    if (needTap) {
+      document.addEventListener('touchstart', play, { once: true, passive: true })
+      document.addEventListener('pointerdown', play, { once: true })
+    }
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      document.removeEventListener('touchstart', play)
+      document.removeEventListener('pointerdown', play)
+    }
+  }, [stage, needTap])
+
   function resumeVideo() {
     const v = videoRef.current
     if (!v) return
@@ -337,6 +359,10 @@ export default function Capture({ user, onSaved }) {
           autoPlay
           disablePictureInPicture
           controlsList="nofullscreen noremoteplayback"
+          webkit-playsinline="true"
+          x-webkit-airplay="deny"
+          controls={false}
+          onLoadedMetadata={(e) => e.currentTarget.play().catch(() => {})}
           onPlaying={() => setNeedTap(false)}
           onPause={() => camReady && setNeedTap(true)}
         />
