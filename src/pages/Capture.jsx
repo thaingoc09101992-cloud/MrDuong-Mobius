@@ -59,6 +59,7 @@ export default function Capture({ user, onSaved }) {
   const [shot, setShot] = useState(null) // { blob, url, gps, takenAt }
   const [camError, setCamError] = useState('')
   const [camReady, setCamReady] = useState(false)
+  const [needTap, setNeedTap] = useState(false) // trình duyệt chặn tự phát video
 
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
@@ -69,17 +70,22 @@ export default function Capture({ user, onSaved }) {
 
   const videoRef = useRef(null)
   const streamRef = useRef(null)
+  const startId = useRef(0)
 
   const stopCamera = useCallback(() => {
+    startId.current += 1
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop())
       streamRef.current = null
     }
     setCamReady(false)
+    setNeedTap(false)
   }, [])
 
   const startCamera = useCallback(async () => {
     setCamError('')
+    setNeedTap(false)
+    const id = (startId.current += 1)
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setCamError('Trình duyệt không hỗ trợ camera hoặc trang chưa chạy bằng HTTPS.')
       return
@@ -89,11 +95,23 @@ export default function Capture({ user, onSaved }) {
         video: { facingMode: { ideal: 'environment' }, width: { ideal: 1600 } },
         audio: false,
       })
+      if (id !== startId.current) {
+        // Lần mở này đã bị thay thế hoặc hủy trong lúc chờ cấp quyền
+        stream.getTracks().forEach((t) => t.stop())
+        return
+      }
       streamRef.current = stream
       const v = videoRef.current
       if (v) {
+        v.muted = true
+        v.setAttribute('playsinline', '')
         v.srcObject = stream
-        await v.play().catch(() => {})
+        try {
+          await v.play()
+        } catch {
+          // iOS hoặc trình duyệt trong ứng dụng có thể chặn tự phát: chờ người dùng chạm
+          setNeedTap(true)
+        }
       }
       setCamReady(true)
     } catch (err) {
@@ -115,6 +133,12 @@ export default function Capture({ user, onSaved }) {
       if (shot && shot.url) URL.revokeObjectURL(shot.url)
     }
   }, [shot])
+
+  function resumeVideo() {
+    const v = videoRef.current
+    if (!v) return
+    v.play().then(() => setNeedTap(false)).catch(() => {})
+  }
 
   const gpsOk = pos && pos.accuracy <= MAX_ACCURACY_M
   const canShoot = camReady && gpsOk
@@ -294,7 +318,7 @@ export default function Capture({ user, onSaved }) {
   }
 
   return (
-    <section className="stack">
+    <section className="stack capture">
       <div className={`gps-chip ${gpsOk ? 'gps-ok' : 'gps-wait'}`} role="status" aria-live="polite">
         {gpsError
           ? gpsError
@@ -306,8 +330,25 @@ export default function Capture({ user, onSaved }) {
       </div>
 
       <div className="camera">
-        <video ref={videoRef} playsInline muted autoPlay />
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          disablePictureInPicture
+          controlsList="nofullscreen noremoteplayback"
+          onPlaying={() => setNeedTap(false)}
+          onPause={() => camReady && setNeedTap(true)}
+        />
         {!camReady && !camError && <div className="camera-msg">Đang mở camera...</div>}
+        {camReady && needTap && !camError && (
+          <div className="camera-msg">
+            Camera đang tạm dừng
+            <button type="button" className="btn btn-primary btn-sm" onClick={resumeVideo}>
+              Chạm để bật camera
+            </button>
+          </div>
+        )}
         {camError && (
           <div className="camera-msg">
             {camError}
