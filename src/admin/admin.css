@@ -1493,3 +1493,72 @@
 .ad-nw {
   white-space: nowrap;
 }
+
+/* ==========================================================
+   Nút mũi tên thu/mở sidebar: nằm trên mép phải của sidebar
+   ========================================================== */
+.ad-edge-toggle {
+  position: fixed;
+  top: 30px;
+  left: calc(var(--ad-sb) - 14px);
+  z-index: 45;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: left var(--motion-normal) var(--ease), color var(--motion-fast) var(--ease),
+    border-color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+}
+.ad-edge-toggle:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+.ad-edge-toggle:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.ad-edge-toggle .ico-l,
+.ad-edge-toggle .ico-r {
+  display: grid;
+  place-items: center;
+}
+.ad-edge-toggle .ico-r {
+  display: none;
+}
+.ad-shell.is-collapsed .ad-edge-toggle .ico-l {
+  display: none;
+}
+.ad-shell.is-collapsed .ad-edge-toggle .ico-r {
+  display: grid;
+}
+/* Nút menu trong thanh tiêu đề chỉ dùng trên điện thoại */
+.ad-bar .ad-bar-menu {
+  display: none;
+}
+@media (max-width: 900px) {
+  .ad-bar .ad-bar-menu {
+    display: inline-flex;
+  }
+  .ad-edge-toggle {
+    display: none;
+  }
+  .ad-shell.is-open .ad-edge-toggle {
+    display: grid;
+    left: 266px;
+  }
+  .ad-shell.is-collapsed .ad-edge-toggle .ico-l,
+  .ad-edge-toggle .ico-l {
+    display: grid;
+  }
+  .ad-shell.is-collapsed .ad-edge-toggle .ico-r,
+  .ad-edge-toggle .ico-r {
+    display: none;
+  }
+}

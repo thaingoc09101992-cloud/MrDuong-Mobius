@@ -220,15 +220,30 @@ export default function AdminApp() {
         </div>
       </aside>
       <div className="ad-backdrop" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+      <button
+        type="button"
+        className="ad-edge-toggle"
+        onClick={toggleSidebar}
+        aria-label={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+        aria-expanded={!collapsed}
+        title={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+      >
+        <span className="ico-l">
+          <Icon name="chevron-left" size={16} />
+        </span>
+        <span className="ico-r">
+          <Icon name="chevron-right" size={16} />
+        </span>
+      </button>
 
       <div className="ad-content">
         <header className="ad-bar">
           <button
             type="button"
-            className="btn btn-ghost btn-sm btn-icon"
+            className="btn btn-ghost btn-sm btn-icon ad-bar-menu"
             onClick={toggleSidebar}
-            aria-label="Ẩn hoặc hiện menu"
-            aria-expanded={!collapsed}
+            aria-label="Mở menu"
+            aria-expanded={mobileOpen}
           >
             <Icon name="panel" size={20} />
           </button>
