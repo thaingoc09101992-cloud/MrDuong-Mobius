@@ -521,7 +521,9 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <option value="">Mặc định: Nhân viên</option>
+              <option value="" disabled hidden>
+                Mặc định: Nhân viên
+              </option>
               <option value="staff">Nhân viên</option>
               <option value="manager">Quản lý</option>
             </select>
@@ -533,7 +535,9 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
-              <option value="">Mặc định: Active</option>
+              <option value="" disabled hidden>
+                Mặc định: Active
+              </option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
