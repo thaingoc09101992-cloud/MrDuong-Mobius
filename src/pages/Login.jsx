@@ -69,6 +69,11 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
         <button type="submit" className="btn btn-primary btn-block" disabled={busy || !code.trim()}>
           {busy ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
+        <p className="center-text small">
+          <a className="link" href="/admin">
+            Đăng nhập quản trị (email)
+          </a>
+        </p>
       </form>
     </div>
   )
