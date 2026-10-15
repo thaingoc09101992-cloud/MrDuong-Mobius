@@ -85,6 +85,12 @@ export default function App() {
     setLoadError('')
     const { data, error } = await supabase.rpc('app_list_outlets')
     if (error) {
+      // Tài khoản bị reset mật khẩu, chuyển Inactive hoặc xóa trong lúc đang đăng nhập: buộc đăng nhập lại
+      if (/khong duoc phep/i.test(error.message || '')) {
+        await supabase.auth.signOut()
+        setLoading(false)
+        return
+      }
       setLoadError('Không tải được dữ liệu. Vui lòng kiểm tra mạng và thử lại.')
     } else {
       setOutlets(Array.isArray(data) ? data : [])

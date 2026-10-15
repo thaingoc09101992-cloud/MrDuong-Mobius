@@ -276,7 +276,7 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
         <div className="ad-actions">
           {hasAccount && (
             <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={resetPassword}>
-              Đặt lại MK
+              Reset mật khẩu
             </button>
           )}
           <button type="button" className="btn btn-ghost btn-sm ad-danger" disabled={busy} onClick={remove}>
