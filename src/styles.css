@@ -1,10 +1,10 @@
 /* Neumorphism - màu chủ đạo #0284C7 */
 :root {
-  --bg: #e4ecf4;
-  --surface: #e4ecf4;
-  --surface-2: #e4ecf4;
-  --text: #1c2b3a;
-  --muted: #576b7e;
+  --bg: #e9ecf1;
+  --surface: #e9ecf1;
+  --surface-2: #e9ecf1;
+  --text: #1f2937;
+  --muted: #7b8794;
   --border: rgba(110, 135, 160, 0.22);
   --primary: #0284c7;
   --primary-text: #ffffff;
@@ -14,14 +14,14 @@
   --ok-text: #0b6b48;
   --warn-bg: #f8edd6;
   --warn-text: #8a5a00;
-  --neu-dark: #b4c3d3;
+  --neu-dark: #c8cfdb;
   --neu-light: #ffffff;
-  --raised: 7px 7px 15px var(--neu-dark), -7px -7px 15px var(--neu-light);
-  --raised-sm: 4px 4px 9px var(--neu-dark), -4px -4px 9px var(--neu-light);
-  --inset: inset 4px 4px 8px var(--neu-dark), inset -4px -4px 8px var(--neu-light);
+  --raised: 10px 10px 24px var(--neu-dark), -10px -10px 24px var(--neu-light);
+  --raised-sm: 6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
+  --inset: inset 5px 5px 10px var(--neu-dark), inset -5px -5px 10px var(--neu-light);
   --shadow: var(--raised);
-  --radius: 20px;
-  --tabbar-h: 70px;
+  --radius: 28px;
+  --tabbar-h: 72px;
   --topbar-h: 60px;
 }
 
@@ -40,8 +40,8 @@
   --ok-text: #7ee2b8;
   --warn-bg: #382f1b;
   --warn-text: #ffd27a;
-  --neu-dark: #141b22;
-  --neu-light: #28343f;
+  --neu-dark: #12181e;
+  --neu-light: #2a3641;
 }
 
 * {
@@ -597,4 +597,82 @@ h2 {
 }
 .thumb {
   border-radius: 14px;
+}
+
+/* ===== Neumorphism v2: bo tròn lớn, bóng mềm, thanh điều hướng nổi ===== */
+.topbar {
+  top: 10px;
+  margin: 10px 12px 0;
+  border-radius: 999px;
+  padding: 0 14px 0 20px;
+  box-shadow: var(--raised-sm);
+}
+.tabbar {
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  height: var(--tabbar-h);
+  padding: 0 8px;
+  border-radius: 999px;
+  box-shadow: var(--raised);
+}
+.content {
+  padding-bottom: calc(var(--tabbar-h) + 40px + env(safe-area-inset-bottom));
+}
+.tab {
+  margin: 10px 4px;
+  border-radius: 999px;
+}
+.tab-active {
+  background: var(--primary);
+  color: var(--primary-text);
+  box-shadow: 5px 5px 12px var(--neu-dark), -4px -4px 10px var(--neu-light);
+}
+.tab-active .badge {
+  background: var(--primary-text);
+  color: var(--primary);
+}
+.card {
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.field input,
+.field select {
+  border-radius: 18px;
+  padding: 10px 16px;
+}
+.btn {
+  border-radius: 999px;
+}
+.btn-sm {
+  padding: 0 16px;
+}
+.btn-ghost {
+  box-shadow: var(--raised-sm);
+}
+.alert,
+.gps-chip {
+  border-radius: 20px;
+}
+.camera,
+.map-canvas {
+  border-radius: var(--radius);
+}
+.preview {
+  border-radius: 20px;
+}
+.item {
+  padding: 16px;
+  gap: 16px;
+}
+.thumb {
+  border-radius: 20px;
+  box-shadow: var(--raised-sm);
+}
+.brand-title {
+  letter-spacing: 0.01em;
+}
+.login-logo {
+  border-radius: 50%;
+  box-shadow: var(--raised);
 }

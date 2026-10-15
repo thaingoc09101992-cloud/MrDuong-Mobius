@@ -374,3 +374,56 @@
 .ad-input {
   min-height: 38px;
 }
+
+/* ===== Neumorphism v2 (admin) ===== */
+.ad-topbar {
+  top: 10px;
+  margin: 10px 12px 0;
+  border-radius: 28px;
+  padding: 10px 20px;
+  box-shadow: var(--raised-sm);
+}
+.ad-tab {
+  border-radius: 999px;
+}
+.ad-tab-active,
+.ad-tab-active:hover {
+  background: var(--primary);
+  color: var(--primary-text);
+  box-shadow: 5px 5px 12px var(--neu-dark), -4px -4px 10px var(--neu-light);
+}
+.ad-hbar-track {
+  height: 16px;
+  border-radius: 999px;
+  padding: 3px;
+}
+.ad-hbar-fill {
+  border-radius: 999px;
+  box-shadow: 2px 2px 5px var(--neu-dark);
+}
+.ad-daycol-track {
+  border-radius: 999px;
+  padding: 3px;
+  max-width: 24px;
+}
+.ad-daycol-bar {
+  border-radius: 999px;
+  box-shadow: 2px 2px 5px var(--neu-dark);
+}
+.ad-thumb {
+  border-radius: 16px;
+}
+.ad-map {
+  border-radius: var(--radius);
+}
+.ad-input {
+  border-radius: 14px;
+}
+.ad-modal-box {
+  border-radius: var(--radius);
+}
+@media (max-width: 900px) {
+  .ad-topbar {
+    padding: 10px 14px;
+  }
+}
