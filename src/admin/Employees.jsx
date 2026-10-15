@@ -64,6 +64,14 @@ const ACCOUNT_STATES = {
   none: 'Chưa có tài khoản',
 }
 
+function formatDay(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  } catch {
+    return iso
+  }
+}
+
 function accountState(emp) {
   if (!emp.user_id || !emp.email) return 'none'
   return emp.must_change_password ? 'pending' : 'ok'
@@ -282,9 +290,12 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
           <option value="inactive">Inactive</option>
         </select>
       </td>
-      <td className="ad-nowrap small muted">{emp.active_at ? formatTime(emp.active_at) : '-'}</td>
-      <td className="ad-nowrap small muted">{emp.inactive_at ? formatTime(emp.inactive_at) : '-'}</td>
-      <td className="center">{count}</td>
+      <td className="ad-nowrap small muted" title={emp.active_at ? formatTime(emp.active_at) : undefined}>
+        {emp.active_at ? formatDay(emp.active_at) : '-'}
+      </td>
+      <td className="ad-nowrap small muted" title={emp.inactive_at ? formatTime(emp.inactive_at) : undefined}>
+        {emp.inactive_at ? formatDay(emp.inactive_at) : '-'}
+      </td>
       <td>
         <div className="ad-actions">
           {hasAccount && (
@@ -311,12 +322,12 @@ const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
 
 // Cấu hình các cột của bảng: kiểu dữ liệu quyết định cách sắp xếp (chữ A-Z, ngày cũ/mới, số tăng/giảm)
 const COLUMNS = [
-  { key: 'code', w: 76, label: 'Mã NV', type: 'text', get: (e) => e.code },
+  { key: 'code', w: 72, label: 'Mã NV', type: 'text', get: (e) => e.code },
   { key: 'full_name', w: 140, label: 'Tên nhân viên', type: 'text', get: (e) => e.full_name || '' },
-  { key: 'email', w: 210, label: 'Email', type: 'text', get: (e) => e.email || '' },
-  { key: 'phone', w: 120, label: 'Số điện thoại', type: 'text', get: (e) => e.phone || '' },
+  { key: 'email', w: 190, label: 'Email', type: 'text', get: (e) => e.email || '' },
+  { key: 'phone', w: 124, label: 'Số điện thoại', type: 'text', get: (e) => e.phone || '' },
   {
-    key: 'role', w: 110,
+    key: 'role', w: 120,
     label: 'Vai trò',
     type: 'text',
     get: (e) => ROLE_LABEL[e.role] || e.role,
@@ -327,7 +338,7 @@ const COLUMNS = [
     match: (e, v) => e.role === v,
   },
   {
-    key: 'status', w: 110,
+    key: 'status', w: 120,
     label: 'Trạng thái',
     type: 'text',
     get: (e) => (e.is_active ? 'Active' : 'Inactive'),
@@ -337,9 +348,8 @@ const COLUMNS = [
     ],
     match: (e, v) => (e.is_active ? 'active' : 'inactive') === v,
   },
-  { key: 'active_at', w: 128, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
-  { key: 'inactive_at', w: 128, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
-  { key: 'count', w: 60, label: 'Số điểm', type: 'number', get: (e, counts) => counts.get(e.code) || 0 },
+  { key: 'active_at', w: 100, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
+  { key: 'inactive_at', w: 100, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
 ]
 
 const SORT_HINT = {
@@ -366,6 +376,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   const [status, setStatus] = useState('active')
   const [adding, setAdding] = useState(false)
   const [filters, setFilters] = useState({})
+  const [showFilters, setShowFilters] = useState(false)
   const [sort, setSort] = useState({ key: null, dir: 'asc' })
   const [secret, setSecret] = useState(null)
 
@@ -382,7 +393,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
         if (!f) return true
         if (c.match) return c.match(e, f)
         const raw = c.get(e, counts)
-        const text = c.type === 'date' ? (raw ? formatTime(raw) : '') : String(raw)
+        const text = c.type === 'date' ? (raw ? formatDay(raw) : '') : String(raw)
         return fold(text).includes(fold(f))
       }),
     )
@@ -401,7 +412,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
     return list
   }, [employees, filters, sort, counts])
 
-  const hasFilter = Object.values(filters).some((v) => (v || '').trim() !== '') || sort.key !== null
+  const activeFilters = Object.values(filters).filter((v) => (v || '').trim() !== '').length
+  const hasFilter = activeFilters > 0 || sort.key !== null
 
   function toggleSort(key) {
     setSort((s) => {
@@ -526,27 +538,34 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
         </div>
       )}
 
-      <div className="row between wrap-row">
-        <span className="small muted">
-          {visible.length} / {employees.length} nhân viên. Chỉ nhân viên Active có email mới đăng nhập được.
-        </span>
+      <div className="ad-toolbar">
+        <div className="row wrap-row">
+          <button
+            type="button"
+            className={`btn btn-ghost btn-sm ${showFilters ? 'is-on' : ''}`}
+            aria-pressed={showFilters}
+            onClick={() => setShowFilters((v) => !v)}
+          >
+            Lọc theo cột{activeFilters > 0 ? ` (${activeFilters})` : ''}
+          </button>
+          {hasFilter && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setFilters({})
+                setSort({ key: null, dir: 'asc' })
+              }}
+            >
+              Xóa lọc và sắp xếp
+            </button>
+          )}
+        </div>
         <span className="ad-legend small muted">
           <i className="ad-dot ad-dot-ok" /> Đã kích hoạt
           <i className="ad-dot ad-dot-pending" /> Chờ đổi mật khẩu
           <i className="ad-dot ad-dot-none" /> Chưa có tài khoản
         </span>
-        {hasFilter && (
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={() => {
-              setFilters({})
-              setSort({ key: null, dir: 'asc' })
-            }}
-          >
-            Xóa lọc và sắp xếp
-          </button>
-        )}
       </div>
 
       <div className="card ad-tablewrap">
@@ -565,7 +584,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                       {sort.key === c.key ? (sort.dir === 'asc' ? '▲' : '▼') : '↕'}
                     </span>
                   </button>
-                  {c.options ? (
+                  {showFilters && c.options && (
                     <select
                       className="ad-colfilter"
                       value={filters[c.key] || ''}
@@ -579,7 +598,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                         </option>
                       ))}
                     </select>
-                  ) : (
+                  )}
+                  {showFilters && !c.options && (
                     <input
                       className="ad-colfilter"
                       type="search"
@@ -591,7 +611,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                   )}
                 </th>
               ))}
-              <th style={{ width: '150px' }}>Thao tác</th>
+              <th style={{ width: '146px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
