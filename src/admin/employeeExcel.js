@@ -227,3 +227,60 @@ export async function exportAccounts(results) {
   note.height = 8
   await saveWorkbook(wb, `tai-khoan-nhan-vien-${stamp()}.xlsx`)
 }
+
+function toLocalExcelDate(iso) {
+  const d = new Date(iso)
+  // Excel lưu ngày giờ không kèm múi giờ: dịch để hiển thị đúng giờ địa phương
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+}
+
+function accountLabel(emp) {
+  if (!emp.user_id || !emp.email) return 'Chưa có tài khoản'
+  return emp.must_change_password ? 'Chờ đổi mật khẩu' : 'Đã kích hoạt'
+}
+
+/** Xuất danh sách nhân viên đang hiển thị (đã lọc và sắp xếp) ra file .xlsx. Không chứa mật khẩu. */
+export async function exportEmployees(list, counts) {
+  const ExcelJS = await loadExcel()
+  const wb = new ExcelJS.Workbook()
+  wb.creator = 'Thu thập điểm bán'
+  const ws = wb.addWorksheet('Nhân viên', { views: [{ state: 'frozen', ySplit: 1 }] })
+  ws.columns = [
+    { header: 'STT', key: 'stt', width: 6 },
+    { header: 'Mã nhân viên', key: 'code', width: 16 },
+    { header: 'Tên nhân viên', key: 'name', width: 28 },
+    { header: 'Email', key: 'email', width: 34 },
+    { header: 'Số điện thoại', key: 'phone', width: 16 },
+    { header: 'Vai trò', key: 'role', width: 14 },
+    { header: 'Trạng thái', key: 'status', width: 12 },
+    { header: 'Ngày Active', key: 'activeAt', width: 18 },
+    { header: 'Ngày Inactive', key: 'inactiveAt', width: 18 },
+    { header: 'Tài khoản', key: 'account', width: 20 },
+    { header: 'Số điểm bán', key: 'count', width: 13 },
+    { header: 'Ngày tạo', key: 'createdAt', width: 18 },
+  ]
+  styleHeader(ws.getRow(1))
+  list.forEach((e, i) => {
+    const row = ws.addRow({
+      stt: i + 1,
+      code: e.code,
+      name: e.full_name || '',
+      email: e.email || '',
+      phone: e.phone || '',
+      role: e.role === 'manager' ? 'Quản lý' : 'Nhân viên',
+      status: e.is_active ? 'Active' : 'Inactive',
+      activeAt: e.active_at ? toLocalExcelDate(e.active_at) : '',
+      inactiveAt: e.inactive_at ? toLocalExcelDate(e.inactive_at) : '',
+      account: accountLabel(e),
+      count: counts.get(e.code) || 0,
+      createdAt: e.created_at ? toLocalExcelDate(e.created_at) : '',
+    })
+    row.getCell('phone').numFmt = '@'
+    ;['activeAt', 'inactiveAt', 'createdAt'].forEach((k) => {
+      row.getCell(k).numFmt = 'dd/mm/yyyy hh:mm'
+    })
+    row.getCell('count').alignment = { horizontal: 'center' }
+  })
+  ws.autoFilter = { from: 'A1', to: 'L1' }
+  await saveWorkbook(wb, `danh-sach-nhan-vien-${stamp()}.xlsx`)
+}

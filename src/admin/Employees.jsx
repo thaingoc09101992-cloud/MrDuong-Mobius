@@ -3,6 +3,7 @@ import { sb, callEmployeesFn } from './adminClient.js'
 import { formatTime, CODE_PATTERN, COMPANY_DOMAINS, isCompanyEmail, normalizePhone, isPhone } from '../supabase.js'
 import { fold } from './util.js'
 import BulkImport from './BulkImport.jsx'
+import { exportEmployees } from './employeeExcel.js'
 import Icon from '../icons.jsx'
 
 const DOMAIN_HINT = COMPANY_DOMAINS.map((d) => `@${d}`).join(' hoặc ')
@@ -414,9 +415,9 @@ const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
 
 // Cấu hình các cột của bảng: kiểu dữ liệu quyết định cách sắp xếp (chữ A-Z, ngày cũ/mới, số tăng/giảm)
 const COLUMNS = [
-  { key: 'code', w: 72, label: 'Mã NV', type: 'text', get: (e) => e.code },
+  { key: 'code', w: 86, label: 'Mã NV', type: 'text', get: (e) => e.code },
   { key: 'full_name', w: 140, label: 'Tên nhân viên', type: 'text', get: (e) => e.full_name || '' },
-  { key: 'email', w: 190, label: 'Email', type: 'text', get: (e) => e.email || '' },
+  { key: 'email', w: 176, label: 'Email', type: 'text', get: (e) => e.email || '' },
   { key: 'phone', w: 124, label: 'Số điện thoại', type: 'text', get: (e) => e.phone || '' },
   {
     key: 'role', w: 120,
@@ -472,6 +473,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   const [sort, setSort] = useState({ key: null, dir: 'asc' })
   const [secret, setSecret] = useState(null)
   const [viewing, setViewing] = useState(null)
+  const [exporting, setExporting] = useState(false)
 
   const counts = useMemo(() => {
     const m = new Map()
@@ -518,6 +520,17 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       if (s.dir === 'asc') return { key, dir: 'desc' }
       return { key: null, dir: 'asc' }
     })
+  }
+
+  async function doExport() {
+    setExporting(true)
+    setError('')
+    try {
+      await exportEmployees(visible, counts)
+    } catch {
+      setError('Xuất danh sách thất bại. Vui lòng thử lại.')
+    }
+    setExporting(false)
   }
 
   function saved(emp) {
@@ -681,6 +694,15 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
           >
             Lọc theo cột{activeFilters > 0 ? ` (${activeFilters})` : ''}
           </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            disabled={exporting || visible.length === 0}
+            onClick={doExport}
+            title="Xuất file Excel danh sách nhân viên đang hiển thị (theo bộ lọc và sắp xếp hiện tại)"
+          >
+            {exporting ? 'Đang xuất...' : 'Xuất danh sách'}
+          </button>
           {hasFilter && (
             <button
               type="button"
@@ -702,7 +724,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       </div>
 
       <div className="card ad-tablewrap">
-        <table className="ad-table ad-table-fixed">
+        <table className={`ad-table ad-table-fixed ${showFilters ? 'is-filtering' : ''}`}>
           <thead>
             <tr>
               {COLUMNS.map((c) => (

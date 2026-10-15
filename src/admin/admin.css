@@ -1471,3 +1471,21 @@
 .ad-detail-row {
   display: contents;
 }
+
+/* Tiêu đề cột: căn giữa theo chiều dọc; mũi tên sắp xếp nằm sát chữ */
+.ad-table-fixed th {
+  vertical-align: middle;
+}
+.ad-table-fixed.is-filtering th {
+  vertical-align: bottom;
+}
+.ad-table-fixed .ad-sort {
+  display: inline;
+  text-align: left;
+  line-height: 1.5;
+}
+.ad-table-fixed .ad-sort-ico {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: baseline;
+}
