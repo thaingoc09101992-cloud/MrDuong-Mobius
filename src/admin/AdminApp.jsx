@@ -9,13 +9,14 @@ import Employees from './Employees.jsx'
 import FilterBar from './FilterBar.jsx'
 import { exportExcel } from './exportExcel.js'
 import { applyFilters, EMPTY_FILTERS } from './util.js'
+import Icon from '../icons.jsx'
 import './admin.css'
 
 const TABS = [
-  { id: 'overview', label: 'Tổng quan' },
-  { id: 'list', label: 'Danh sách' },
-  { id: 'map', label: 'Bản đồ' },
-  { id: 'employees', label: 'Nhân viên' },
+  { id: 'overview', label: 'Tổng quan', icon: 'chart' },
+  { id: 'list', label: 'Danh sách', icon: 'list' },
+  { id: 'map', label: 'Bản đồ', icon: 'map' },
+  { id: 'employees', label: 'Nhân viên', icon: 'users' },
 ]
 
 export default function AdminApp() {
@@ -162,6 +163,7 @@ export default function AdminApp() {
               aria-current={tab === t.id ? 'page' : undefined}
               onClick={() => setTab(t.id)}
             >
+              <Icon name={t.icon} size={18} />
               {t.label}
             </button>
           ))}

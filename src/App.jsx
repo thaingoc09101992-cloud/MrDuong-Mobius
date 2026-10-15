@@ -4,11 +4,12 @@ import Login from './pages/Login.jsx'
 import Capture from './pages/Capture.jsx'
 import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
+import Icon from './icons.jsx'
 
 const TABS = [
-  { id: 'capture', label: 'Chụp điểm bán' },
-  { id: 'history', label: 'Lịch sử' },
-  { id: 'map', label: 'Bản đồ' },
+  { id: 'capture', label: 'Chụp ảnh', icon: 'camera' },
+  { id: 'history', label: 'Lịch sử', icon: 'history' },
+  { id: 'map', label: 'Bản đồ', icon: 'map' },
 ]
 
 function readUser() {
@@ -81,6 +82,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
+        <img src="/icon.svg" alt="" width="36" height="36" className="brand-mark" />
         <div className="brand">
           <span className="brand-title">Thu thập điểm bán</span>
           <span className="brand-sub">
@@ -91,20 +93,22 @@ export default function App() {
         </div>
         <div className="topbar-actions">
           {isManager && (
-            <a className="btn btn-primary btn-sm" href="/admin">
-              Trang admin
+            <a className="btn btn-soft btn-sm" href="/admin">
+              <Icon name="shield" size={18} />
+              <span className="hide-xs">Trang admin</span>
             </a>
           )}
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm btn-icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             aria-label="Đổi giao diện sáng hoặc tối"
           >
-            {theme === 'dark' ? 'Sáng' : 'Tối'}
+            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
           </button>
           <button type="button" className="btn btn-ghost btn-sm" onClick={handleLogout}>
-            Thoát
+            <Icon name="logout" size={18} />
+            <span className="hide-xs">Thoát</span>
           </button>
         </div>
       </header>
@@ -136,10 +140,13 @@ export default function App() {
             aria-current={tab === t.id ? 'page' : undefined}
             onClick={() => setTab(t.id)}
           >
-            {t.label}
-            {t.id === 'history' && outlets.length > 0 && (
-              <span className="badge">{outlets.length}</span>
-            )}
+            <span className="tab-icon">
+              <Icon name={t.icon} />
+              {t.id === 'history' && outlets.length > 0 && (
+                <span className="badge">{outlets.length > 99 ? '99+' : outlets.length}</span>
+              )}
+            </span>
+            <span className="tab-label">{t.label}</span>
           </button>
         ))}
       </nav>

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase, BUCKET, CHANNELS, MAX_ACCURACY_M } from '../supabase.js'
+import Icon from '../icons.jsx'
 
 const MAX_WIDTH = 1280
 
@@ -318,6 +319,7 @@ export default function Capture({ user, onSaved }) {
       </div>
 
       <button type="button" className="btn btn-primary btn-block btn-lg" onClick={takePhoto} disabled={!canShoot}>
+        <Icon name="camera" size={22} />
         Chụp ảnh điểm bán
       </button>
       {!canShoot && (

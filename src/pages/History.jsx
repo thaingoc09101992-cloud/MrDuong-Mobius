@@ -20,9 +20,10 @@ export default function History({ outlets, loading, isManager, onRefresh }) {
             <img src={photoUrl(o.photo_path)} alt={`Ảnh ${o.name}`} loading="lazy" className="thumb" />
             <div className="item-body">
               <strong className="item-title">{o.name}</strong>
-              {o.address && <span className="small">{o.address}</span>}
-              <span className="small muted">
-                {o.channel || 'Chưa chọn loại hình'} - {formatTime(o.captured_at)}
+              {o.address && <span className="small muted">{o.address}</span>}
+              <span className="item-meta">
+                <span className="chip">{o.channel || 'Chưa chọn loại hình'}</span>
+                <span className="small muted">{formatTime(o.captured_at)}</span>
               </span>
               {isManager && (
                 <span className="small muted">
