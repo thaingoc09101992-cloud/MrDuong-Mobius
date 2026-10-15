@@ -1,0 +1,14 @@
+{
+  "name": "Thu thập điểm bán",
+  "short_name": "Điểm bán",
+  "description": "Chụp ảnh, lấy định vị và nhập thông tin điểm bán",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0284C7",
+  "theme_color": "#0284C7",
+  "lang": "vi",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

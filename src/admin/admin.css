@@ -1,0 +1,376 @@
+.boot {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+}
+
+.ad-app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.ad-brand {
+  display: flex;
+  flex-direction: column;
+  margin-right: 8px;
+}
+.ad-email {
+  overflow-wrap: anywhere;
+}
+.ad-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.ad-tab {
+  font: inherit;
+  font-weight: 600;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.ad-tab:hover {
+  background: var(--surface-2);
+}
+.ad-tab-active {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+.ad-tab-active:hover {
+  background: var(--primary);
+}
+
+.ad-main {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ad-notice {
+  background: var(--ok-bg);
+  color: var(--ok-text);
+}
+
+/* Bộ lọc */
+.ad-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ad-filter-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(4, 1fr);
+  gap: 10px;
+  align-items: end;
+}
+
+/* KPI */
+.ad-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.ad-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ad-kpi-value {
+  font-size: 2rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.ad-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Cột theo ngày */
+.ad-daybars {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 6px;
+  align-items: end;
+}
+.ad-daycol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.ad-daycol-val {
+  font-size: 0.78rem;
+  color: var(--text);
+  min-height: 1em;
+  font-variant-numeric: tabular-nums;
+}
+.ad-daycol-track {
+  height: 140px;
+  width: 100%;
+  max-width: 28px;
+  display: flex;
+  align-items: flex-end;
+  border-bottom: 1px solid var(--border);
+}
+.ad-daycol-bar {
+  width: 100%;
+  background: var(--primary);
+  border-radius: 4px 4px 0 0;
+  min-height: 0;
+}
+.ad-daycol-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+/* Thanh ngang */
+.ad-hbars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ad-hbar {
+  display: grid;
+  grid-template-columns: minmax(90px, 38%) 1fr 36px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+.ad-hbar-label {
+  overflow-wrap: anywhere;
+}
+.ad-hbar-track {
+  height: 12px;
+  display: block;
+  border-left: 1px solid var(--border);
+}
+.ad-hbar-fill {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+.ad-hbar-val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bảng */
+.ad-tablewrap {
+  padding: 0;
+  overflow-x: auto;
+}
+.ad-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.ad-table th,
+.ad-table td {
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+}
+.ad-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  font-size: 0.8rem;
+  text-transform: none;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.ad-table td.center {
+  text-align: center;
+}
+.ad-wrap {
+  overflow-wrap: anywhere;
+  max-width: 280px;
+}
+.ad-nowrap {
+  white-space: nowrap;
+}
+.ad-block {
+  display: block;
+}
+.ad-inactive td {
+  opacity: 0.6;
+}
+.ad-thumb-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.ad-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--surface-2);
+  display: block;
+}
+.ad-input {
+  font: inherit;
+  min-height: 36px;
+  padding: 4px 8px;
+  width: 100%;
+  min-width: 140px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.ad-addform {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+.ad-search {
+  min-width: 220px;
+}
+
+/* Bản đồ */
+.ad-map {
+  height: 68vh;
+  min-height: 380px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Cửa sổ xem ảnh */
+.ad-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.ad-modal-box {
+  max-width: 520px;
+  width: 100%;
+  max-height: 92vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ad-modal-img {
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  background: #000;
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .ad-filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ad-search {
+    grid-column: 1 / -1;
+  }
+  .ad-kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ad-two {
+    grid-template-columns: 1fr;
+  }
+  .ad-addform {
+    grid-template-columns: 1fr;
+  }
+  .ad-topbar {
+    padding: 10px 12px;
+  }
+  .ad-main {
+    padding: 12px;
+  }
+}
+
+/* ===== Neumorphism (admin) ===== */
+.ad-topbar {
+  border-bottom: 0;
+  box-shadow: 0 6px 14px -6px var(--neu-dark);
+}
+.ad-tab {
+  border-radius: 14px;
+  transition: box-shadow 0.15s;
+}
+.ad-tab:hover {
+  background: transparent;
+  box-shadow: var(--raised-sm);
+}
+.ad-tab-active,
+.ad-tab-active:hover {
+  background: var(--bg);
+  color: var(--primary);
+  box-shadow: var(--inset);
+}
+.ad-table th {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.ad-table td {
+  border-bottom: 1px solid var(--border);
+}
+.ad-hbar-track,
+.ad-daycol-track {
+  border: 0;
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: var(--inset);
+}
+.ad-hbar-fill {
+  border-radius: 8px;
+}
+.ad-daycol-bar {
+  border-radius: 6px;
+}
+.ad-thumb {
+  border-radius: 12px;
+  box-shadow: var(--raised-sm);
+}
+.ad-map {
+  border: 0;
+  box-shadow: var(--raised);
+}
+.ad-modal-img {
+  border-radius: 14px;
+}
+.ad-input {
+  min-height: 38px;
+}
