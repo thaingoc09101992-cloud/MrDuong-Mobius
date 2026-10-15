@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { photoUrl, formatTime } from '../supabase.js'
-import { mapsUrl } from './util.js'
+import { mapsUrl, fold } from './util.js'
+import { SortLabel, SORT_HINT, compareValues } from './tableKit.jsx'
 
 const PAGE_SIZE = 50
 
@@ -39,29 +40,122 @@ function PhotoModal({ outlet, onClose }) {
   )
 }
 
+const COLUMNS = [
+  { key: 'name', label: 'Tên điểm bán', type: 'text', get: (o) => o.name },
+  { key: 'address', label: 'Địa chỉ', type: 'text', get: (o) => o.address || '' },
+  { key: 'channel', label: 'Loại hình', type: 'text', get: (o) => o.channel || '' },
+  { key: 'employee', label: 'Nhân viên', type: 'text', get: (o) => `${o.employee_name || ''} ${o.employee_code}`.trim() },
+  { key: 'captured_at', label: 'Thời gian', type: 'date', get: (o) => o.captured_at },
+]
+
+function sortValue(col, o) {
+  const raw = col.get(o)
+  if (col.type === 'date') return raw ? Date.parse(raw) : null
+  return raw ? String(raw) : null
+}
+
+function ColumnHead({ col, sort, onSort, filters, setFilters, showFilters }) {
+  return (
+    <th aria-sort={sort.key === col.key ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'}>
+      <button type="button" className="ad-sort" onClick={() => onSort(col.key)} title={SORT_HINT[col.type]}>
+        <SortLabel label={col.label} state={sort.key === col.key ? sort.dir : null} />
+      </button>
+      {showFilters && (
+        <input
+          className="ad-colfilter"
+          type="search"
+          value={filters[col.key] || ''}
+          placeholder="Lọc..."
+          onChange={(e) => setFilters((f) => ({ ...f, [col.key]: e.target.value }))}
+          aria-label={`Lọc theo ${col.label}`}
+        />
+      )}
+    </th>
+  )
+}
+
 export default function OutletTable({ rows }) {
   const [page, setPage] = useState(0)
   const [open, setOpen] = useState(null)
+  const [filters, setFilters] = useState({})
+  const [showFilters, setShowFilters] = useState(false)
+  const [sort, setSort] = useState({ key: null, dir: 'asc' })
+
+  const list = useMemo(() => {
+    let out = rows.filter((o) =>
+      COLUMNS.every((c) => {
+        const f = (filters[c.key] || '').trim()
+        if (!f) return true
+        const raw = c.get(o)
+        const text = c.type === 'date' ? formatTime(raw) : String(raw)
+        return fold(text).includes(fold(f))
+      }),
+    )
+    const col = COLUMNS.find((c) => c.key === sort.key)
+    if (col) {
+      const dir = sort.dir === 'asc' ? 1 : -1
+      out = [...out].sort((a, b) => compareValues(sortValue(col, a), sortValue(col, b), dir))
+    }
+    return out
+  }, [rows, filters, sort])
 
   useEffect(() => {
     setPage(0)
-  }, [rows])
+  }, [list])
 
-  const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
-  const slice = rows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+  const activeFilters = Object.values(filters).filter((v) => (v || '').trim() !== '').length
+  const hasFilter = activeFilters > 0 || sort.key !== null
+
+  function toggleSort(key) {
+    setSort((s) => {
+      if (s.key !== key) return { key, dir: 'asc' }
+      if (s.dir === 'asc') return { key, dir: 'desc' }
+      return { key: null, dir: 'asc' }
+    })
+  }
+
+  const pages = Math.max(1, Math.ceil(list.length / PAGE_SIZE))
+  const slice = list.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
+  const headProps = { sort, onSort: toggleSort, filters, setFilters, showFilters }
+  const col = (k) => COLUMNS.find((c) => c.key === k)
 
   return (
     <div className="stack">
+      <div className="ad-toolbar">
+        <div className="row wrap-row">
+          <button
+            type="button"
+            className={`btn btn-ghost btn-sm ${showFilters ? 'is-on' : ''}`}
+            aria-pressed={showFilters}
+            onClick={() => setShowFilters((v) => !v)}
+          >
+            Lọc theo cột{activeFilters > 0 ? ` (${activeFilters})` : ''}
+          </button>
+          {hasFilter && (
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={() => {
+                setFilters({})
+                setSort({ key: null, dir: 'asc' })
+              }}
+            >
+              Xóa lọc và sắp xếp
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="card ad-tablewrap">
-        <table className="ad-table">
+        <table className={`ad-table ad-table-compact ${showFilters ? 'is-filtering' : ''}`}>
           <thead>
             <tr>
               <th>Ảnh</th>
-              <th>Tên điểm bán</th>
-              <th>Địa chỉ</th>
-              <th>Loại hình</th>
-              <th>Nhân viên</th>
-              <th>Thời gian</th>
+              <ColumnHead col={col('name')} {...headProps} />
+              <ColumnHead col={col('address')} {...headProps} />
+              <ColumnHead col={col('channel')} {...headProps} />
+              <ColumnHead col={col('employee')} {...headProps} />
+              <ColumnHead col={col('captured_at')} {...headProps} />
               <th>Vị trí</th>
             </tr>
           </thead>

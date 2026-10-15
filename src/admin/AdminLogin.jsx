@@ -36,6 +36,7 @@ export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
           <input
             type="email"
             autoComplete="username"
+            placeholder="Ví dụ: ten@thophat.vn"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoFocus
@@ -46,6 +47,7 @@ export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
           <input
             type="password"
             autoComplete="current-password"
+            placeholder="Nhập mật khẩu"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

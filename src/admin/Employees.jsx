@@ -5,6 +5,7 @@ import { fold } from './util.js'
 import BulkImport from './BulkImport.jsx'
 import { exportEmployees } from './employeeExcel.js'
 import Icon from '../icons.jsx'
+import { SortLabel, SORT_HINT } from './tableKit.jsx'
 
 const DOMAIN_HINT = COMPANY_DOMAINS.map((d) => `@${d}`).join(' hoặc ')
 
@@ -411,23 +412,6 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret, onView
   )
 }
 
-/** Nhãn cột kèm mũi tên sắp xếp: mũi tên dính liền với từ cuối nên không bao giờ rơi xuống dòng riêng. */
-function SortLabel({ label, state }) {
-  const words = label.split(' ')
-  const last = words.pop()
-  return (
-    <>
-      {words.length > 0 ? `${words.join(' ')} ` : ''}
-      <span className="ad-nw">
-        {last}
-        <span className="ad-sort-ico" aria-hidden="true">
-          {state === 'asc' ? '▲' : state === 'desc' ? '▼' : '↕'}
-        </span>
-      </span>
-    </>
-  )
-}
-
 const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
 
 // Cấu hình các cột của bảng: kiểu dữ liệu quyết định cách sắp xếp (chữ A-Z, ngày cũ/mới, số tăng/giảm)
@@ -461,12 +445,6 @@ const COLUMNS = [
   { key: 'active_at', w: 100, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
   { key: 'inactive_at', w: 100, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
 ]
-
-const SORT_HINT = {
-  text: 'Sắp xếp A → Z / Z → A',
-  date: 'Sắp xếp cũ → mới / mới → cũ',
-  number: 'Sắp xếp tăng dần / giảm dần',
-}
 
 function sortValue(col, emp, counts) {
   const raw = col.get(emp, counts)

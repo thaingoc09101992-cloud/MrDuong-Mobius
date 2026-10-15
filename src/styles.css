@@ -876,3 +876,68 @@ h2 {
   color: var(--warn-text);
   border-color: transparent;
 }
+
+/* ==========================================================
+   Cùng nguyên tắc với trang quản trị: nền ngà, khối tạo tông kem,
+   gợi ý mờ, khoảng thở rộng
+   ========================================================== */
+:root {
+  --page-bg: #f6f5f1;
+  --tint: #f1eee6;
+  --tint-border: #e4ded1;
+}
+:root[data-theme='dark'] {
+  --page-bg: #0b0b0b;
+  --tint: #1f1e1b;
+  --tint-border: #2e2c28;
+}
+.field input::placeholder {
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+  opacity: 1;
+}
+.app {
+  background: var(--page-bg);
+}
+.content .stack {
+  gap: 20px;
+}
+/* Biểu mẫu nhập liệu: khối tông kem, ô nhập màu trắng nổi trên nền */
+.content > form.card {
+  background: var(--tint);
+  border-color: var(--tint-border);
+  padding: 28px;
+}
+/* Lịch sử: danh sách nằm trong một khối trắng, các dòng ngăn bằng đường kẻ mảnh */
+.list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-6);
+}
+.list > .item.card:first-child {
+  border-top: 0;
+}
+.list > .item.card:last-child {
+  border-bottom: 0;
+}
+/* Bản đồ: khối bộ lọc tông kem */
+.map-wrap {
+  background: var(--page-bg);
+}
+.map-toolbar {
+  background: var(--tint);
+  border: 1px solid var(--tint-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  gap: var(--space-4);
+}
+
+/* Ô chưa điền hoặc chưa chọn: chữ mờ (gợi ý), điền xong hiển thị bình thường */
+.field select.is-empty,
+.field input.is-empty {
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+}
+.field select option {
+  color: var(--text);
+  background: var(--surface);
+}

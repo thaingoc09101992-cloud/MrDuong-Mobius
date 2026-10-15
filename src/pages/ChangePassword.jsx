@@ -77,6 +77,7 @@ export default function ChangePassword({ user, onDone, onLogout, theme, onToggle
           <input
             type="password"
             autoComplete="new-password"
+            placeholder="Ví dụ: ít nhất 8 ký tự, gồm chữ và số"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoFocus
@@ -87,11 +88,11 @@ export default function ChangePassword({ user, onDone, onLogout, theme, onToggle
           <input
             type="password"
             autoComplete="new-password"
+            placeholder="Nhập lại mật khẩu vừa đặt"
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
           />
         </label>
-        <p className="muted small">Tối thiểu {MIN_LENGTH} ký tự, gồm cả chữ và số.</p>
 
         {error && (
           <div className="alert alert-error" role="alert">

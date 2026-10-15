@@ -172,8 +172,8 @@ export default function MapReport({ outlets, loading, isManager, onRefresh }) {
           {isManager && (
             <label className="field field-sm">
               <span>Nhân viên</span>
-              <select value={employee} onChange={(e) => setEmployee(e.target.value)}>
-                <option value="">Tất cả</option>
+              <select className={employee ? '' : 'is-empty'} value={employee} onChange={(e) => setEmployee(e.target.value)}>
+                <option value="">Tất cả nhân viên</option>
                 {employees.map(([code, label]) => (
                   <option key={code} value={code}>
                     {label === code ? code : `${label} (${code})`}
@@ -184,8 +184,8 @@ export default function MapReport({ outlets, loading, isManager, onRefresh }) {
           )}
           <label className="field field-sm">
             <span>Loại hình</span>
-            <select value={channel} onChange={(e) => setChannel(e.target.value)}>
-              <option value="">Tất cả</option>
+            <select className={channel ? '' : 'is-empty'} value={channel} onChange={(e) => setChannel(e.target.value)}>
+              <option value="">Tất cả loại hình</option>
               {channels.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -195,11 +195,11 @@ export default function MapReport({ outlets, loading, isManager, onRefresh }) {
           </label>
           <label className="field field-sm">
             <span>Từ ngày</span>
-            <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+            <input className={from ? '' : 'is-empty'} type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
           </label>
           <label className="field field-sm">
             <span>Đến ngày</span>
-            <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+            <input className={to ? '' : 'is-empty'} type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
           </label>
           {hasFilter && (
             <button type="button" className="btn btn-ghost btn-sm" onClick={clearFilters}>

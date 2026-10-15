@@ -304,14 +304,20 @@ export default function Capture({ user, onSaved }) {
             value={address}
             maxLength={500}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Số nhà, đường, phường/xã"
+            placeholder="Ví dụ: 12 Lê Lợi, phường Bến Nghé"
           />
         </label>
 
         <label className="field">
           <span>Loại hình / kênh</span>
-          <select value={channel} onChange={(e) => setChannel(e.target.value)}>
-            <option value="">Chọn loại hình</option>
+          <select
+            className={channel ? '' : 'is-empty'}
+            value={channel}
+            onChange={(e) => setChannel(e.target.value)}
+          >
+            <option value="" disabled hidden>
+              Chọn loại hình
+            </option>
             {CHANNELS.map((c) => (
               <option key={c} value={c}>
                 {c}

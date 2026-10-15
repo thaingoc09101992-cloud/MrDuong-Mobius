@@ -67,7 +67,7 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
             spellCheck="false"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="ten@thophat.vn"
+            placeholder="Ví dụ: ten@thophat.vn"
             autoFocus
           />
         </label>
@@ -76,6 +76,7 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
           <input
             type="password"
             autoComplete="current-password"
+            placeholder="Nhập mật khẩu"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />

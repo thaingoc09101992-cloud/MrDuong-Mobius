@@ -1363,16 +1363,6 @@
    Nền màu nhẹ để các khối nổi bật: nền trang ngà, khối tạo nhân viên
    tông kem, bảng và thẻ số liệu màu trắng
    ========================================================== */
-:root {
-  --page-bg: #f6f5f1;
-  --tint: #f1eee6;
-  --tint-border: #e4ded1;
-}
-:root[data-theme='dark'] {
-  --page-bg: #0b0b0b;
-  --tint: #1f1e1b;
-  --tint-border: #2e2c28;
-}
 .ad-content {
   background: var(--page-bg);
 }
@@ -1567,4 +1557,73 @@
 .ad-edge-toggle {
   top: auto;
   bottom: 25px;
+}
+
+/* ==========================================================
+   Bộ lọc điểm bán: 4 cột đều nhau, ô tìm kiếm dài trọn hàng
+   ========================================================== */
+.ad-fields-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.ad-addform-fields .ad-span-all {
+  grid-column: 1 / -1;
+}
+.ad-addform .field input.is-empty {
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+}
+@media (max-width: 900px) {
+  .ad-fields-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .ad-fields-4 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================
+   Bảng điểm bán gọn: chữ nhỏ vừa đọc, dòng thoáng, tiêu đề căn giữa
+   ========================================================== */
+.ad-table-compact {
+  font-size: 0.88rem;
+}
+.ad-table-compact th,
+.ad-table-compact td {
+  padding: 12px;
+}
+.ad-table-compact th:first-child,
+.ad-table-compact td:first-child {
+  padding-left: 24px;
+}
+.ad-table-compact th:last-child,
+.ad-table-compact td:last-child {
+  padding-right: 24px;
+}
+.ad-table-compact th {
+  padding-top: 18px;
+  padding-bottom: 14px;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+.ad-table-compact.is-filtering th {
+  vertical-align: bottom;
+}
+.ad-table-compact .ad-sort {
+  display: inline;
+  text-align: left;
+  line-height: 1.5;
+}
+.ad-table-compact .ad-sort-ico {
+  display: inline-block;
+  margin-left: 6px;
+}
+.ad-table-compact .ad-thumb {
+  width: 44px;
+  height: 56px;
+}
+.ad-table-compact .ad-wrap {
+  max-width: 260px;
 }
