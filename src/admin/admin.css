@@ -897,7 +897,7 @@
 /* ---------- Bảng nhân viên: cố định độ rộng cột để vừa khung ---------- */
 .ad-table-fixed {
   table-layout: fixed;
-  min-width: 1246px;
+  min-width: 1232px;
 }
 .ad-table-fixed th,
 .ad-table-fixed td {
@@ -940,4 +940,108 @@
 
 .ad-table-fixed th {
   vertical-align: bottom;
+}
+
+/* ==========================================================
+   Bảng nhân viên gọn: mỗi nhân viên một dòng thấp, chữ nhỏ vừa đọc
+   ========================================================== */
+.ad-table-fixed {
+  font-size: 0.84rem;
+}
+.ad-table-fixed th,
+.ad-table-fixed td {
+  padding: 6px var(--space-2);
+}
+.ad-table-fixed th {
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+}
+.ad-table-fixed .ad-sort-ico {
+  font-size: 0.6rem;
+}
+.ad-table-fixed .ad-colfilter {
+  min-height: 28px;
+  margin-top: 6px;
+  padding: 2px 8px;
+  font-size: 0.76rem;
+}
+/* Ô nhập trong bảng trông như chữ thường, chỉ hiện khung khi rê chuột hoặc đang sửa */
+.ad-table-fixed .ad-input {
+  min-height: 30px;
+  padding: 2px 8px;
+  font-size: 0.84rem;
+  background: transparent;
+  border-color: transparent;
+  border-radius: var(--radius-sm);
+}
+.ad-table-fixed tbody tr:hover .ad-input,
+.ad-table-fixed .ad-input:focus {
+  background: var(--surface);
+  border-color: var(--border);
+}
+.ad-table-fixed .ad-input::placeholder {
+  color: var(--color-taupe);
+}
+.ad-table-fixed .btn-sm {
+  min-height: 28px;
+  padding: 0 var(--space-3);
+  font-size: 0.64rem;
+}
+.ad-table-fixed .ad-nowrap {
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+.ad-table-fixed .ad-actions {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+.ad-table-fixed .ad-actions .btn {
+  width: auto;
+  flex: 0 0 auto;
+}
+.ad-table-fixed .ad-emailcell {
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+}
+.ad-table-fixed .ad-email-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ad-table-fixed .ad-emailcell .ad-input {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.ad-dot {
+  flex: none;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.ad-dot-ok {
+  background: var(--ok-text);
+}
+.ad-dot-pending {
+  background: var(--warn-text);
+}
+.ad-dot-none {
+  background: transparent;
+  border: 1.5px solid var(--color-taupe);
+}
+.ad-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ad-legend .ad-dot {
+  margin-left: var(--space-3);
 }

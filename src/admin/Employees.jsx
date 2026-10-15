@@ -58,10 +58,20 @@ function SecretModal({ secret, onClose }) {
   )
 }
 
-function AccountState({ emp }) {
-  if (!emp.user_id || !emp.email) return <span className="chip chip-warn">Chưa có tài khoản</span>
-  if (emp.must_change_password) return <span className="chip chip-warn">Chờ đổi mật khẩu</span>
-  return <span className="chip">Đã kích hoạt</span>
+const ACCOUNT_STATES = {
+  ok: 'Đã kích hoạt',
+  pending: 'Chờ đổi mật khẩu',
+  none: 'Chưa có tài khoản',
+}
+
+function accountState(emp) {
+  if (!emp.user_id || !emp.email) return 'none'
+  return emp.must_change_password ? 'pending' : 'ok'
+}
+
+function AccountDot({ emp }) {
+  const st = accountState(emp)
+  return <i className={`ad-dot ad-dot-${st}`} title={ACCOUNT_STATES[st]} aria-label={ACCOUNT_STATES[st]} />
 }
 
 function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
@@ -195,13 +205,17 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
       <td>
         {hasAccount && !editingEmail ? (
           <div className="ad-emailcell">
-            <span className="ad-wrap">{emp.email}</span>
+            <AccountDot emp={emp} />
+            <span className="ad-wrap ad-email-text" title={emp.email}>
+              {emp.email}
+            </span>
             <button type="button" className="link small" disabled={busy} onClick={() => setEditingEmail(true)}>
               Đổi
             </button>
           </div>
         ) : (
           <div className="ad-emailcell">
+            <AccountDot emp={emp} />
             <input
               className="ad-input"
               type="email"
@@ -229,7 +243,6 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
             )}
           </div>
         )}
-        <AccountState emp={emp} />
       </td>
       <td>
         <input
@@ -275,8 +288,14 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret }) {
       <td>
         <div className="ad-actions">
           {hasAccount && (
-            <button type="button" className="btn btn-ghost btn-sm" disabled={busy} onClick={resetPassword}>
-              Reset mật khẩu
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              disabled={busy}
+              onClick={resetPassword}
+              title="Tạo lại mật khẩu ngẫu nhiên, nhân viên phải đổi khi đăng nhập lần đầu"
+            >
+              Reset MK
             </button>
           )}
           <button type="button" className="btn btn-ghost btn-sm ad-danger" disabled={busy} onClick={remove}>
@@ -293,11 +312,11 @@ const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
 // Cấu hình các cột của bảng: kiểu dữ liệu quyết định cách sắp xếp (chữ A-Z, ngày cũ/mới, số tăng/giảm)
 const COLUMNS = [
   { key: 'code', w: 76, label: 'Mã NV', type: 'text', get: (e) => e.code },
-  { key: 'full_name', w: 150, label: 'Tên nhân viên', type: 'text', get: (e) => e.full_name || '' },
-  { key: 'email', w: 220, label: 'Email', type: 'text', get: (e) => e.email || '' },
+  { key: 'full_name', w: 140, label: 'Tên nhân viên', type: 'text', get: (e) => e.full_name || '' },
+  { key: 'email', w: 210, label: 'Email', type: 'text', get: (e) => e.email || '' },
   { key: 'phone', w: 120, label: 'Số điện thoại', type: 'text', get: (e) => e.phone || '' },
   {
-    key: 'role', w: 116,
+    key: 'role', w: 110,
     label: 'Vai trò',
     type: 'text',
     get: (e) => ROLE_LABEL[e.role] || e.role,
@@ -308,7 +327,7 @@ const COLUMNS = [
     match: (e, v) => e.role === v,
   },
   {
-    key: 'status', w: 116,
+    key: 'status', w: 110,
     label: 'Trạng thái',
     type: 'text',
     get: (e) => (e.is_active ? 'Active' : 'Inactive'),
@@ -318,9 +337,9 @@ const COLUMNS = [
     ],
     match: (e, v) => (e.is_active ? 'active' : 'inactive') === v,
   },
-  { key: 'active_at', w: 112, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
-  { key: 'inactive_at', w: 112, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
-  { key: 'count', w: 64, label: 'Số điểm', type: 'number', get: (e, counts) => counts.get(e.code) || 0 },
+  { key: 'active_at', w: 128, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
+  { key: 'inactive_at', w: 128, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
+  { key: 'count', w: 60, label: 'Số điểm', type: 'number', get: (e, counts) => counts.get(e.code) || 0 },
 ]
 
 const SORT_HINT = {
@@ -511,6 +530,11 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
         <span className="small muted">
           {visible.length} / {employees.length} nhân viên. Chỉ nhân viên Active có email mới đăng nhập được.
         </span>
+        <span className="ad-legend small muted">
+          <i className="ad-dot ad-dot-ok" /> Đã kích hoạt
+          <i className="ad-dot ad-dot-pending" /> Chờ đổi mật khẩu
+          <i className="ad-dot ad-dot-none" /> Chưa có tài khoản
+        </span>
         {hasFilter && (
           <button
             type="button"
@@ -567,7 +591,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                   )}
                 </th>
               ))}
-              <th style={{ width: '160px' }}>Thao tác</th>
+              <th style={{ width: '150px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
