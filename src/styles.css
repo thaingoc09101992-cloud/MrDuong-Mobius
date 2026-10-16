@@ -1030,3 +1030,37 @@ h2 {
   padding: 0;
   accent-color: var(--ink-solid);
 }
+
+/* ==========================================================
+   Logo MOBIUS
+   ========================================================== */
+.logo {
+  display: inline-block;
+  flex: none;
+  line-height: 0;
+}
+.logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.logo .logo-on-dark {
+  display: none;
+}
+:root[data-theme='dark'] .logo .logo-on-light {
+  display: none;
+}
+:root[data-theme='dark'] .logo .logo-on-dark {
+  display: block;
+}
+/* Khung đăng nhập luôn nền đen: dùng bản logo cho nền tối */
+.login-aside .logo .logo-on-light {
+  display: none;
+}
+.login-aside .logo .logo-on-dark {
+  display: block;
+}
+.login-logo {
+  margin-bottom: var(--space-4);
+}

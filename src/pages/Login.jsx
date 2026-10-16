@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase.js'
+import Logo from '../Logo.jsx'
 
 export default function Login({ onLogin, theme, onToggleTheme }) {
   const [email, setEmail] = useState('')
@@ -44,6 +45,7 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
         {theme === 'dark' ? 'Sáng' : 'Tối'}
       </button>
       <aside className="login-aside">
+        <Logo size={60} className="login-logo" />
         <span className="eyebrow">Nền tảng nội bộ</span>
         <h1 className="login-display">MOBIUS</h1>
         <p className="login-lead">Nơi tập hợp các chức năng làm việc dành cho nhân viên, từ định vị điểm bán và nhiều hơn nữa.</p>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Logo from '../Logo.jsx'
 
 export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
   const [email, setEmail] = useState('')
@@ -19,6 +20,7 @@ export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
         {theme === 'dark' ? 'Sáng' : 'Tối'}
       </button>
       <aside className="login-aside">
+        <Logo size={60} className="login-logo" />
         <span className="eyebrow">Quản trị</span>
         <h1 className="login-display">MOBIUS</h1>
         <p className="login-lead">Quản lý nhân viên, phân quyền và các chức năng của nền tảng.</p>

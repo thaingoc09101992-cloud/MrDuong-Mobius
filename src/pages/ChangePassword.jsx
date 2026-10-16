@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase.js'
+import Logo from '../Logo.jsx'
 
 const MIN_LENGTH = 8
 
@@ -58,6 +59,7 @@ export default function ChangePassword({ user, onDone, onLogout, theme, onToggle
         {theme === 'dark' ? 'Sáng' : 'Tối'}
       </button>
       <aside className="login-aside">
+        <Logo size={60} className="login-logo" />
         <span className="eyebrow">Lần đăng nhập đầu tiên</span>
         <h1 className="login-display">
           Đặt mật khẩu

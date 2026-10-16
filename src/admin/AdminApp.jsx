@@ -10,6 +10,7 @@ import FilterBar from './FilterBar.jsx'
 import { exportExcel } from './exportExcel.js'
 import { applyFilters, EMPTY_FILTERS } from './util.js'
 import Icon from '../icons.jsx'
+import Logo from '../Logo.jsx'
 import './admin.css'
 
 // Mục "Nhân viên" (kèm phân quyền) dùng chung cho cả MOBIUS; các mục còn lại thuộc chức năng Định vị điểm bán
@@ -258,6 +259,7 @@ export default function AdminApp() {
           >
             <Icon name="panel" size={20} />
           </button>
+          <Logo size={40} />
           <div className="ad-bar-title">
             <span className="eyebrow">
               Quản trị MOBIUS{current && current.group === 'locate' ? ' · Định vị điểm bán' : ''}

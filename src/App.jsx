@@ -8,6 +8,7 @@ import Capture from './pages/Capture.jsx'
 import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
 import Icon from './icons.jsx'
+import Logo from './Logo.jsx'
 
 const HOME = 'home'
 
@@ -154,7 +155,7 @@ export default function App() {
     <div className="app">
       <header className="topbar">
         <button type="button" className="brand-home" onClick={() => setView(HOME)} aria-label="Về trang chủ MOBIUS">
-          <img src="/icon.svg" alt="" width="36" height="36" className="brand-mark" />
+          <Logo size={38} />
           <span className="brand">
             <span className="brand-title">{PLATFORM_NAME}</span>
             <span className="brand-sub">
