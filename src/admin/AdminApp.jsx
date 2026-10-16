@@ -11,6 +11,7 @@ import { exportExcel } from './exportExcel.js'
 import { applyFilters, EMPTY_FILTERS } from './util.js'
 import Icon from '../icons.jsx'
 import Logo from '../Logo.jsx'
+import useReveal from '../useReveal.js'
 import '../shell.css'
 import './admin.css'
 
@@ -29,6 +30,7 @@ const TABS = [
 ]
 
 export default function AdminApp() {
+  useReveal()
   const [phase, setPhase] = useState('loading') // loading | out (chưa đăng nhập) | denied (không phải admin) | in
   const [email, setEmail] = useState('')
   const [theme, setTheme] = useState(

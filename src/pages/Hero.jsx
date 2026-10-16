@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { bannerUrl } from '../banners.js'
 import Icon from '../icons.jsx'
 
-const INTERVAL_MS = 6000
+const INTERVAL_MS = 6500
 
-function Slide({ banner, active }) {
+function Slide({ banner, state }) {
   const external = /^https?:\/\//i.test(banner.link_url || '')
+  const active = state === 'active'
   const body = (
     <>
       <span className="hero-img" style={{ backgroundImage: `url("${bannerUrl(banner.image_path)}")` }} />
@@ -18,7 +19,7 @@ function Slide({ banner, active }) {
     </>
   )
   const common = {
-    className: `hero-slide ${active ? 'is-active' : ''}`,
+    className: `hero-slide ${state === 'active' ? 'is-active' : state === 'leaving' ? 'is-leaving' : ''}`,
     'aria-hidden': !active,
     tabIndex: active ? 0 : -1,
   }
@@ -32,23 +33,44 @@ function Slide({ banner, active }) {
   return <div {...common}>{body}</div>
 }
 
-/** Banner trang chủ: tối đa 5 ảnh do admin đăng; chưa có ảnh nào thì hiện banner mặc định của MOBIUS. */
+/**
+ * Banner trang chủ: tối đa 5 ảnh do admin đăng. Chuyển banner bằng hiệu ứng trượt ngang theo chiều chuyển,
+ * ảnh phóng nhẹ và chữ hiện dần. Chưa có ảnh nào thì hiện banner mặc định của MOBIUS.
+ */
 export default function Hero({ banners }) {
   const [index, setIndex] = useState(0)
+  const [prev, setPrev] = useState(-1)
+  const [dir, setDir] = useState(1) // 1: sang banner kế tiếp, -1: quay lại banner trước
   const [paused, setPaused] = useState(false)
   const touch = useRef(null)
   const count = banners.length
 
   useEffect(() => {
-    if (index >= count) setIndex(0)
+    if (index >= count) {
+      setIndex(0)
+      setPrev(-1)
+    }
   }, [count, index])
+
+  // Đổi chiều trước, khung hình kế tiếp mới đổi banner để các banner đang chờ đứng đúng phía trước khi trượt vào
+  function go(target, d) {
+    if (count < 2 || target === index) return
+    setDir(d)
+    requestAnimationFrame(() => {
+      setPrev(index)
+      setIndex(target)
+    })
+  }
+  const next = () => go((index + 1) % count, 1)
+  const back = () => go((index - 1 + count) % count, -1)
 
   useEffect(() => {
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (count < 2 || paused || reduce) return undefined
-    const t = setInterval(() => setIndex((i) => (i + 1) % count), INTERVAL_MS)
+    const t = setInterval(() => go((index + 1) % count, 1), INTERVAL_MS)
     return () => clearInterval(t)
-  }, [count, paused])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [count, paused, index])
 
   if (count === 0) {
     return (
@@ -62,8 +84,6 @@ export default function Hero({ banners }) {
     )
   }
 
-  const go = (i) => setIndex(((i % count) + count) % count)
-
   function onTouchStart(e) {
     touch.current = e.touches[0].clientX
   }
@@ -71,12 +91,13 @@ export default function Hero({ banners }) {
     if (touch.current === null) return
     const dx = e.changedTouches[0].clientX - touch.current
     touch.current = null
-    if (Math.abs(dx) > 40) go(index + (dx < 0 ? 1 : -1))
+    if (Math.abs(dx) > 40) (dx < 0 ? next : back)()
   }
 
   return (
     <div
       className="hero"
+      style={{ '--dir': dir }}
       role="region"
       aria-roledescription="carousel"
       aria-label="Banner"
@@ -88,15 +109,15 @@ export default function Hero({ banners }) {
       onTouchEnd={onTouchEnd}
     >
       {banners.map((b, i) => (
-        <Slide key={b.slot} banner={b} active={i === index} />
+        <Slide key={b.slot} banner={b} state={i === index ? 'active' : i === prev ? 'leaving' : 'hidden'} />
       ))}
 
       {count > 1 && (
         <>
-          <button type="button" className="hero-nav hero-prev" aria-label="Banner trước" onClick={() => go(index - 1)}>
+          <button type="button" className="hero-nav hero-prev" aria-label="Banner trước" onClick={back}>
             <Icon name="chevron-left" size={20} />
           </button>
-          <button type="button" className="hero-nav hero-next" aria-label="Banner sau" onClick={() => go(index + 1)}>
+          <button type="button" className="hero-nav hero-next" aria-label="Banner sau" onClick={next}>
             <Icon name="chevron-right" size={20} />
           </button>
           <div className="hero-dots" role="tablist" aria-label="Chọn banner">
@@ -108,7 +129,7 @@ export default function Hero({ banners }) {
                 aria-selected={i === index}
                 aria-label={`Banner ${i + 1}`}
                 className={`hero-dot ${i === index ? 'is-active' : ''}`}
-                onClick={() => go(i)}
+                onClick={() => go(i, i > index ? 1 : -1)}
               />
             ))}
           </div>

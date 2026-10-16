@@ -807,6 +807,16 @@ h2 {
 .content > section:not(.capture) {
   animation: rise var(--motion-slow) var(--ease) both;
 }
+/* Các khối trượt nhẹ vào khi lăn chuột (useReveal.js) */
+.reveal {
+  opacity: 0;
+  transform: translateY(var(--ry, 22px));
+  transition: opacity 0.7s var(--ease) var(--rd, 0ms), transform 0.7s var(--ease) var(--rd, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1420,11 +1430,40 @@ a.ad-navbtn {
   text-decoration: none;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.7s var(--ease);
+  visibility: hidden;
+  /* Banner chờ đứng sẵn phía trước theo chiều chuyển (--dir: 1 tiến, -1 lùi) */
+  transform: translateX(calc(var(--dir, 1) * 14%));
+}
+.hero-slide.is-active,
+.hero-slide.is-leaving {
+  visibility: visible;
+  transition: transform 0.9s var(--ease), opacity 0.9s var(--ease);
 }
 .hero-slide.is-active {
   opacity: 1;
+  transform: none;
   pointer-events: auto;
+}
+.hero-slide.is-leaving {
+  opacity: 0;
+  transform: translateX(calc(var(--dir, 1) * -14%));
+}
+.hero-slide.is-active .hero-img {
+  animation: hero-zoom 7.5s ease-out both;
+}
+.hero-slide.is-active .hero-caption > * {
+  animation: hero-text 0.8s var(--ease) 0.25s both;
+}
+.hero-slide.is-active .hero-caption > * + * {
+  animation-delay: 0.4s;
+}
+@keyframes hero-zoom {
+  from { transform: scale(1.08); }
+  to { transform: scale(1); }
+}
+@keyframes hero-text {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
 }
 .hero-slide:focus-visible {
   outline: 2px solid var(--gold);

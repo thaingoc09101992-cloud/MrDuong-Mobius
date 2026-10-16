@@ -3,6 +3,7 @@ import Icon from './icons.jsx'
 import Logo from './Logo.jsx'
 import { safeGet, safeSet } from './supabase.js'
 import { PLATFORM_NAME } from './modules.js'
+import useReveal from './useReveal.js'
 import './shell.css'
 
 /**
@@ -10,6 +11,7 @@ import './shell.css'
  * thông tin tài khoản ở góc trái trên, menu chính, mục Trang quản trị (chỉ admin), đổi giao diện và đăng xuất.
  */
 export default function AppShell({ user, nav, active, onNavigate, theme, onToggleTheme, onLogout, eyebrow, title, hasTabbar, bottomBar, children }) {
+  useReveal()
   const [collapsed, setCollapsed] = useState(() => safeGet('mb-collapsed') === '1')
   const [mobileOpen, setMobileOpen] = useState(false)
 
