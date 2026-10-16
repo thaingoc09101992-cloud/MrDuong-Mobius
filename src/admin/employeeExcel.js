@@ -1,10 +1,19 @@
 import { CODE_PATTERN, COMPANY_DOMAINS, isCompanyEmail, normalizePhone, isPhone } from '../supabase.js'
 import { fold, pad } from './util.js'
+import { moduleNames } from '../modules.js'
 
 export const MAX_IMPORT_ROWS = 300
 
 const INK = 'FF111111'
-const HEADERS = ['Mã nhân viên', 'Tên nhân viên', 'Email công ty', 'Số điện thoại', 'Vai trò', 'Trạng thái']
+const HEADERS = [
+  'Mã nhân viên',
+  'Tên nhân viên',
+  'Email công ty',
+  'Số điện thoại',
+  'Vai trò',
+  'Trạng thái',
+  'Quản lý trực tiếp (mã NV)',
+]
 const SHEET = 'Nhân viên'
 
 async function loadExcel() {
@@ -53,6 +62,7 @@ export async function downloadTemplate() {
     { header: HEADERS[3], key: 'phone', width: 18 },
     { header: HEADERS[4], key: 'role', width: 16 },
     { header: HEADERS[5], key: 'status', width: 16 },
+    { header: HEADERS[6], key: 'manager', width: 26 },
   ]
   styleHeader(ws.getRow(1))
 
@@ -60,6 +70,7 @@ export async function downloadTemplate() {
   for (let r = 2; r <= MAX_IMPORT_ROWS + 1; r += 1) {
     ws.getCell(`A${r}`).numFmt = '@'
     ws.getCell(`D${r}`).numFmt = '@'
+    ws.getCell(`G${r}`).numFmt = '@'
     ws.getCell(`E${r}`).dataValidation = {
       type: 'list',
       allowBlank: true,
@@ -85,6 +96,7 @@ export async function downloadTemplate() {
     ['Số điện thoại', 'Từ 9 đến 12 chữ số, có thể bắt đầu bằng dấu +. Ví dụ: 0901234567. Có thể để trống.'],
     ['Vai trò', 'Nhân viên hoặc Quản lý. Để trống sẽ hiểu là Nhân viên.'],
     ['Trạng thái', 'Active hoặc Inactive. Để trống sẽ hiểu là Active.'],
+    ['Quản lý trực tiếp (mã NV)', 'Mã nhân viên của người quản lý trực tiếp, người đó phải có vai trò Quản lý (có thể cũng nằm trong file này). Quản lý chỉ xem được dữ liệu của chính mình và của cấp dưới trực tiếp. Có thể để trống.'],
     ['', ''],
     ['Sau khi import', 'Hệ thống tạo tài khoản và mật khẩu tạm cho từng nhân viên, hiển thị một lần và cho tải về file danh sách. Nhân viên phải đổi mật khẩu ở lần đăng nhập đầu tiên.'],
   ]
@@ -162,6 +174,7 @@ export async function parseEmployeeFile(file) {
       phone,
       role: role || 'staff',
       is_active: active === null ? true : active,
+      manager_code: raw[6].toUpperCase(),
       errors: [],
     }
     if (!CODE_PATTERN.test(item.code)) item.errors.push('Mã nhân viên không hợp lệ')
@@ -170,6 +183,8 @@ export async function parseEmployeeFile(file) {
     if (item.phone && !isPhone(item.phone)) item.errors.push('Số điện thoại không hợp lệ')
     if (role === null) item.errors.push('Vai trò chỉ nhận Nhân viên hoặc Quản lý')
     if (active === null) item.errors.push('Trạng thái chỉ nhận Active hoặc Inactive')
+    if (item.manager_code && !CODE_PATTERN.test(item.manager_code)) item.errors.push('Mã quản lý trực tiếp không hợp lệ')
+    if (item.manager_code && item.manager_code === item.code) item.errors.push('Không thể tự làm quản lý của chính mình')
     rows.push(item)
     if (rows.length > MAX_IMPORT_ROWS) {
       throw new Error(`File có quá ${MAX_IMPORT_ROWS} dòng. Vui lòng chia nhỏ file.`)
@@ -240,7 +255,8 @@ function accountLabel(emp) {
 }
 
 /** Xuất danh sách nhân viên đang hiển thị (đã lọc và sắp xếp) ra file .xlsx. Không chứa mật khẩu. */
-export async function exportEmployees(list, counts) {
+export async function exportEmployees(list, counts, employees = []) {
+  const byCode = new Map(employees.map((e) => [e.code, e]))
   const ExcelJS = await loadExcel()
   const wb = new ExcelJS.Workbook()
   wb.creator = 'Thu thập điểm bán'
@@ -252,6 +268,8 @@ export async function exportEmployees(list, counts) {
     { header: 'Email', key: 'email', width: 34 },
     { header: 'Số điện thoại', key: 'phone', width: 16 },
     { header: 'Vai trò', key: 'role', width: 14 },
+    { header: 'Quản lý trực tiếp', key: 'manager', width: 24 },
+    { header: 'Chức năng được dùng', key: 'modules', width: 26 },
     { header: 'Trạng thái', key: 'status', width: 12 },
     { header: 'Ngày Active', key: 'activeAt', width: 18 },
     { header: 'Ngày Inactive', key: 'inactiveAt', width: 18 },
@@ -268,6 +286,8 @@ export async function exportEmployees(list, counts) {
       email: e.email || '',
       phone: e.phone || '',
       role: e.role === 'manager' ? 'Quản lý' : 'Nhân viên',
+      manager: e.manager_code ? `${(byCode.get(e.manager_code) || {}).full_name || e.manager_code} (${e.manager_code})` : '',
+      modules: moduleNames(e.modules),
       status: e.is_active ? 'Active' : 'Inactive',
       activeAt: e.active_at ? toLocalExcelDate(e.active_at) : '',
       inactiveAt: e.inactive_at ? toLocalExcelDate(e.inactive_at) : '',
@@ -281,6 +301,6 @@ export async function exportEmployees(list, counts) {
     })
     row.getCell('count').alignment = { horizontal: 'center' }
   })
-  ws.autoFilter = { from: 'A1', to: 'L1' }
+  ws.autoFilter = { from: 'A1', to: 'N1' }
   await saveWorkbook(wb, `danh-sach-nhan-vien-${stamp()}.xlsx`)
 }

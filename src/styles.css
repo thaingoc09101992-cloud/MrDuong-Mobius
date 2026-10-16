@@ -941,3 +941,92 @@ h2 {
   color: var(--text);
   background: var(--surface);
 }
+
+/* ==========================================================
+   MOBIUS: trang chủ chức năng và thương hiệu
+   ========================================================== */
+.brand-home {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.brand-home:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.content.no-tabbar {
+  padding-bottom: var(--space-12);
+}
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+.module-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--motion-normal) var(--ease), transform var(--motion-normal) var(--ease);
+}
+.module-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+.module-card:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.module-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.module-name {
+  font-family: var(--font-editorial);
+  font-size: 1.7rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+.module-desc {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.module-go {
+  margin-top: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.field .ad-check input {
+  width: 18px;
+  min-height: 0;
+  height: 18px;
+  padding: 0;
+  accent-color: var(--ink-solid);
+}

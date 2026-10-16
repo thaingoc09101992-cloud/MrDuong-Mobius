@@ -12,11 +12,17 @@ import { applyFilters, EMPTY_FILTERS } from './util.js'
 import Icon from '../icons.jsx'
 import './admin.css'
 
+// Mục "Nhân viên" (kèm phân quyền) dùng chung cho cả MOBIUS; các mục còn lại thuộc chức năng Định vị điểm bán
+const NAV_GROUPS = [
+  { id: 'system', label: 'Hệ thống' },
+  { id: 'locate', label: 'Định vị điểm bán' },
+]
+
 const TABS = [
-  { id: 'overview', label: 'Tổng quan', icon: 'chart' },
-  { id: 'list', label: 'Danh sách', icon: 'list' },
-  { id: 'map', label: 'Bản đồ', icon: 'map' },
-  { id: 'employees', label: 'Nhân viên', icon: 'users' },
+  { id: 'employees', label: 'Nhân viên', title: 'Nhân viên và phân quyền', icon: 'users', group: 'system' },
+  { id: 'overview', label: 'Tổng quan', icon: 'chart', group: 'locate' },
+  { id: 'list', label: 'Danh sách', icon: 'list', group: 'locate' },
+  { id: 'map', label: 'Bản đồ', icon: 'map', group: 'locate' },
 ]
 
 export default function AdminApp() {
@@ -40,7 +46,7 @@ export default function AdminApp() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    document.title = 'Quản trị - Thu thập điểm bán'
+    document.title = 'Quản trị - MOBIUS'
   }, [])
 
   useEffect(() => {
@@ -183,18 +189,23 @@ export default function AdminApp() {
         </div>
 
         <nav className="ad-nav" aria-label="Điều hướng admin">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={`ad-navbtn ${tab === t.id ? 'is-active' : ''}`}
-              aria-current={tab === t.id ? 'page' : undefined}
-              title={t.label}
-              onClick={() => go(t.id)}
-            >
-              <Icon name={t.icon} size={20} />
-              <span className="ad-label">{t.label}</span>
-            </button>
+          {NAV_GROUPS.map((g) => (
+            <div className="ad-navgroup" key={g.id} role="group" aria-label={g.label}>
+              <span className="ad-navlabel">{g.label}</span>
+              {TABS.filter((t) => t.group === g.id).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`ad-navbtn ${tab === t.id ? 'is-active' : ''}`}
+                  aria-current={tab === t.id ? 'page' : undefined}
+                  title={t.label}
+                  onClick={() => go(t.id)}
+                >
+                  <Icon name={t.icon} size={20} />
+                  <span className="ad-label">{t.label}</span>
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
 
@@ -248,8 +259,10 @@ export default function AdminApp() {
             <Icon name="panel" size={20} />
           </button>
           <div className="ad-bar-title">
-            <span className="eyebrow">Quản trị điểm bán</span>
-            <h1 className="ad-pagetitle">{current ? current.label : ''}</h1>
+            <span className="eyebrow">
+              Quản trị MOBIUS{current && current.group === 'locate' ? ' · Định vị điểm bán' : ''}
+            </span>
+            <h1 className="ad-pagetitle">{current ? current.title || current.label : ''}</h1>
           </div>
         </header>
 

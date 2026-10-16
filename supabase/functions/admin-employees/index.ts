@@ -8,6 +8,8 @@ const ALLOWED_DOMAINS = ['thophat.vn', 'kdc.vn']
 const CODE_PATTERN = /^[A-Z0-9_-]{3,20}$/
 const PHONE_PATTERN = /^\+?[0-9]{9,12}$/
 const ROLES = ['staff', 'manager']
+// Các chức năng của MOBIUS (khớp ràng buộc employees_modules_known ở cơ sở dữ liệu)
+const KNOWN_MODULES = ['dinh-vi-diem-ban']
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -84,6 +86,23 @@ Deno.serve(async (req) => {
     if (phone && !PHONE_PATTERN.test(phone)) return fail('Số điện thoại gồm 9 đến 12 chữ số.')
     const isActive = body.is_active === undefined ? true : Boolean(body.is_active)
 
+    // Quản lý trực tiếp: phải là nhân viên có vai trò Quản lý
+    const managerCode = body.manager_code ? String(body.manager_code).trim().toUpperCase() : null
+    if (managerCode) {
+      if (managerCode === code) return fail('Nhân viên không thể tự làm quản lý của chính mình.')
+      const { data: mgr } = await admin.from('employees').select('role').eq('code', managerCode).maybeSingle()
+      if (!mgr || mgr.role !== 'manager') return fail('Quản lý trực tiếp phải là nhân viên có vai trò Quản lý.')
+    }
+
+    // Quyền sử dụng chức năng (không gửi lên thì dùng mặc định của cơ sở dữ liệu)
+    let modules: string[] | undefined
+    if (body.modules !== undefined) {
+      if (!Array.isArray(body.modules) || body.modules.some((m) => !KNOWN_MODULES.includes(String(m)))) {
+        return fail('Chức năng không hợp lệ.')
+      }
+      modules = body.modules.map((m) => String(m))
+    }
+
     if (existing && existing.user_id) return fail('Mã nhân viên này đã có tài khoản.', 409)
 
     const password = tempPassword()
@@ -105,6 +124,8 @@ Deno.serve(async (req) => {
       phone,
       role,
       is_active: isActive,
+      manager_code: managerCode,
+      ...(modules ? { modules } : {}),
       user_id: created.user.id,
       must_change_password: true,
     }

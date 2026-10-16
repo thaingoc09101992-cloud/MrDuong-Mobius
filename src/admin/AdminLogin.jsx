@@ -20,12 +20,8 @@ export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
       </button>
       <aside className="login-aside">
         <span className="eyebrow">Quản trị</span>
-        <h1 className="login-display">
-          Quản trị
-          <br />
-          điểm bán
-        </h1>
-        <p className="login-lead">Theo dõi dữ liệu, nhân viên và bản đồ điểm bán.</p>
+        <h1 className="login-display">MOBIUS</h1>
+        <p className="login-lead">Quản lý nhân viên, phân quyền và các chức năng của nền tảng.</p>
       </aside>
       <form className="card login-card" onSubmit={submit} noValidate>
         <h2 className="login-title">Đăng nhập</h2>

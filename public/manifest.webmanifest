@@ -1,7 +1,7 @@
 {
-  "name": "Thu thập điểm bán",
-  "short_name": "Điểm bán",
-  "description": "Chụp ảnh, lấy định vị và nhập thông tin điểm bán",
+  "name": "MOBIUS",
+  "short_name": "MOBIUS",
+  "description": "Nền tảng làm việc nội bộ MOBIUS",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

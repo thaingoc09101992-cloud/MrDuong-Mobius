@@ -27,15 +27,30 @@ export default function BulkImport({ employees, onCreated, onClose }) {
   }, [step, saved, results])
 
   const withAccount = useMemo(() => new Set(employees.filter((e) => e.user_id).map((e) => e.code)), [employees])
+  // Những mã có thể làm quản lý trực tiếp: đã là Quản lý trong hệ thống hoặc là Quản lý hợp lệ trong chính file này
+  const managerCodes = useMemo(
+    () =>
+      new Set([
+        ...employees.filter((e) => e.role === 'manager').map((e) => e.code),
+        ...rows.filter((r) => r.role === 'manager' && r.errors.length === 0).map((r) => r.code),
+      ]),
+    [employees, rows],
+  )
 
   // Thêm lỗi "đã có tài khoản" dựa trên dữ liệu hiện tại
   const checked = useMemo(
     () =>
       rows.map((r) => ({
         ...r,
-        problems: withAccount.has(r.code) ? [...r.errors, 'Mã này đã có tài khoản'] : r.errors,
+        problems: [
+          ...r.errors,
+          ...(withAccount.has(r.code) ? ['Mã này đã có tài khoản'] : []),
+          ...(r.manager_code && !managerCodes.has(r.manager_code)
+            ? ['Quản lý trực tiếp chưa có hoặc không phải vai trò Quản lý']
+            : []),
+        ],
       })),
-    [rows, withAccount],
+    [rows, withAccount, managerCodes],
   )
   const valid = checked.filter((r) => r.problems.length === 0)
   const invalid = checked.length - valid.length
@@ -82,36 +97,42 @@ export default function BulkImport({ employees, onCreated, onClose }) {
     if (list.length === 0) return
     setStep('running')
     setProgress(0)
-    const out = new Array(list.length)
-    let next = 0
+    const outMap = new Map()
     let done = 0
 
-    async function worker() {
-      while (next < list.length) {
-        const i = next
-        next += 1
-        const r = list[i]
-        try {
-          const res = await callEmployeesFn({
-            action: 'create',
-            code: r.code,
-            email: r.email,
-            full_name: r.full_name || null,
-            phone: r.phone || null,
-            role: r.role,
-            is_active: r.is_active,
-          })
-          out[i] = { ...r, ok: true, password: res.temp_password }
-          if (res.employee) onCreated(res.employee)
-        } catch (err) {
-          out[i] = { ...r, ok: false, error: err.message }
+    async function runBatch(items) {
+      let next = 0
+      async function worker() {
+        while (next < items.length) {
+          const r = items[next]
+          next += 1
+          try {
+            const res = await callEmployeesFn({
+              action: 'create',
+              code: r.code,
+              email: r.email,
+              full_name: r.full_name || null,
+              phone: r.phone || null,
+              role: r.role,
+              is_active: r.is_active,
+              manager_code: r.manager_code || null,
+            })
+            outMap.set(r.line, { ...r, ok: true, password: res.temp_password })
+            if (res.employee) onCreated(res.employee)
+          } catch (err) {
+            outMap.set(r.line, { ...r, ok: false, error: err.message })
+          }
+          done += 1
+          setProgress(done)
         }
-        done += 1
-        setProgress(done)
       }
+      await Promise.all(Array.from({ length: Math.min(CONCURRENCY, items.length) }, worker))
     }
-    await Promise.all(Array.from({ length: Math.min(CONCURRENCY, list.length) }, worker))
-    setResults(out)
+
+    // Người chưa có quản lý trực tiếp được tạo trước để làm quản lý cho những người sau
+    await runBatch(list.filter((r) => !r.manager_code))
+    await runBatch(list.filter((r) => r.manager_code))
+    setResults(list.map((r) => outMap.get(r.line)))
     setStep('done')
   }
 
@@ -195,6 +216,7 @@ export default function BulkImport({ employees, onCreated, onClose }) {
                     <th>SĐT</th>
                     <th>Vai trò</th>
                     <th>Trạng thái</th>
+                    <th>Quản lý</th>
                     <th>Kiểm tra</th>
                   </tr>
                 </thead>
@@ -210,6 +232,7 @@ export default function BulkImport({ employees, onCreated, onClose }) {
                       <td>{r.phone}</td>
                       <td>{ROLE_LABEL[r.role]}</td>
                       <td>{r.is_active ? 'Active' : 'Inactive'}</td>
+                      <td>{r.manager_code || '-'}</td>
                       <td className="small">{r.problems.length ? r.problems.join('; ') : 'Hợp lệ'}</td>
                     </tr>
                   ))}

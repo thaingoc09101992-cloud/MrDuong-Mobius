@@ -44,13 +44,9 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
         {theme === 'dark' ? 'Sáng' : 'Tối'}
       </button>
       <aside className="login-aside">
-        <span className="eyebrow">Công cụ nội bộ</span>
-        <h1 className="login-display">
-          Thu thập
-          <br />
-          điểm bán
-        </h1>
-        <p className="login-lead">Ảnh, định vị và thông tin điểm bán, ghi nhận ngay tại thị trường.</p>
+        <span className="eyebrow">Nền tảng nội bộ</span>
+        <h1 className="login-display">MOBIUS</h1>
+        <p className="login-lead">Nơi tập hợp các chức năng làm việc dành cho nhân viên, từ định vị điểm bán và nhiều hơn nữa.</p>
       </aside>
       <form className="card login-card" onSubmit={submit} noValidate>
         <h2 className="login-title">Đăng nhập</h2>

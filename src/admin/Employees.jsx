@@ -5,9 +5,11 @@ import { fold } from './util.js'
 import BulkImport from './BulkImport.jsx'
 import { exportEmployees } from './employeeExcel.js'
 import Icon from '../icons.jsx'
-import { SortLabel, SORT_HINT } from './tableKit.jsx'
+import { SortLabel, SORT_HINT, compareValues } from './tableKit.jsx'
+import { MODULES, ALL_MODULE_IDS, modulesOf, moduleNames } from '../modules.js'
 
 const DOMAIN_HINT = COMPANY_DOMAINS.map((d) => `@${d}`).join(' hoặc ')
+const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
 
 function SecretModal({ secret, onClose }) {
   const [copied, setCopied] = useState(false)
@@ -85,6 +87,11 @@ function AccountDot({ emp }) {
   return <i className={`ad-dot ad-dot-${st}`} title={ACCOUNT_STATES[st]} aria-label={ACCOUNT_STATES[st]} />
 }
 
+function personLabel(emp, code) {
+  if (!code) return ''
+  return emp && emp.full_name ? emp.full_name : code
+}
+
 function IconBtn({ icon, label, onClick, disabled, tone }) {
   return (
     <button
@@ -100,8 +107,45 @@ function IconBtn({ icon, label, onClick, disabled, tone }) {
   )
 }
 
+/** Chọn quản lý trực tiếp: chỉ những nhân viên có vai trò Quản lý. */
+function ManagerSelect({ value, onChange, employees, selfCode, disabled }) {
+  const options = employees.filter((e) => e.role === 'manager' && e.code !== selfCode && (e.is_active || e.code === value))
+  return (
+    <select
+      className={value ? '' : 'is-empty'}
+      value={value}
+      disabled={disabled}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      <option value="">Không có quản lý trực tiếp</option>
+      {options.map((m) => (
+        <option key={m.code} value={m.code}>
+          {m.full_name ? `${m.full_name} (${m.code})` : m.code}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+/** Quyền sử dụng từng chức năng của MOBIUS. */
+function ModulePicker({ value, onChange, disabled }) {
+  function toggle(id) {
+    onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id])
+  }
+  return (
+    <div className="ad-modules" role="group" aria-label="Chức năng được dùng">
+      {MODULES.map((m) => (
+        <label className="ad-check" key={m.id}>
+          <input type="checkbox" checked={value.includes(m.id)} disabled={disabled} onChange={() => toggle(m.id)} />
+          <span>{m.name}</span>
+        </label>
+      ))}
+    </div>
+  )
+}
+
 /** Xem chi tiết một nhân viên (chỉ đọc). */
-function EmployeeDetail({ emp, count, onClose }) {
+function EmployeeDetail({ emp, count, managerName, onClose }) {
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') onClose()
@@ -116,7 +160,9 @@ function EmployeeDetail({ emp, count, onClose }) {
     ['Tên nhân viên', emp.full_name || '-'],
     ['Email', emp.email || '-'],
     ['Số điện thoại', emp.phone || '-'],
-    ['Vai trò', emp.role === 'manager' ? 'Quản lý' : 'Nhân viên'],
+    ['Vai trò', ROLE_LABEL[emp.role] || emp.role],
+    ['Quản lý trực tiếp', managerName || '-'],
+    ['Chức năng được dùng', moduleNames(emp.modules)],
     ['Trạng thái', emp.is_active ? 'Active' : 'Inactive'],
     ['Ngày Active', emp.active_at ? formatTime(emp.active_at) : '-'],
     ['Ngày Inactive', emp.inactive_at ? formatTime(emp.inactive_at) : '-'],
@@ -150,67 +196,57 @@ function EmployeeDetail({ emp, count, onClose }) {
   )
 }
 
-function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret, onView }) {
-  const [editing, setEditing] = useState(false)
-  const [busy, setBusy] = useState(false)
+/** Sửa thông tin và phân quyền của một nhân viên. */
+function EmployeeEditDialog({ emp, employees, onSaved, onSecret, onClose }) {
   const [name, setName] = useState(emp.full_name || '')
   const [email, setEmail] = useState(emp.email || '')
   const [phone, setPhone] = useState(emp.phone || '')
   const [role, setRole] = useState(emp.role)
   const [active, setActive] = useState(emp.is_active)
+  const [manager, setManager] = useState(emp.manager_code || '')
+  const [modules, setModules] = useState(modulesOf(emp))
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
 
   const hasAccount = Boolean(emp.user_id)
 
-  function startEdit() {
-    setName(emp.full_name || '')
-    setEmail(emp.email || '')
-    setPhone(emp.phone || '')
-    setRole(emp.role)
-    setActive(emp.is_active)
-    onError('')
-    setEditing(true)
-  }
-
-  function cancel() {
-    setEditing(false)
-    onError('')
-  }
-
-  function secretFor(res, title) {
-    return {
-      title,
-      code: res.employee.code,
-      name: res.employee.full_name || res.employee.code,
-      email: res.employee.email,
-      password: res.temp_password,
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key === 'Escape' && !busy) onClose()
     }
-  }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [busy, onClose])
 
-  async function save() {
+  async function save(e) {
+    e.preventDefault()
     const mail = email.trim().toLowerCase()
     const ph = normalizePhone(phone)
     if (ph && !isPhone(ph)) {
-      onError('Số điện thoại gồm 9 đến 12 chữ số.')
+      setError('Số điện thoại gồm 9 đến 12 chữ số.')
       return
     }
     if (mail && !isCompanyEmail(mail)) {
-      onError(`Email phải thuộc tên miền công ty (${DOMAIN_HINT}).`)
+      setError(`Email phải thuộc tên miền công ty (${DOMAIN_HINT}).`)
       return
     }
     setBusy(true)
-    onError('')
+    setError('')
     try {
-      // 1. Thông tin thường: họ tên, số điện thoại, vai trò, trạng thái
+      // 1. Thông tin thường và phân quyền
       const changes = {}
       const nm = name.trim() || null
       if (nm !== (emp.full_name || null)) changes.full_name = nm
       if ((ph || null) !== (emp.phone || null)) changes.phone = ph || null
       if (role !== emp.role) changes.role = role
       if (active !== emp.is_active) changes.is_active = active
+      if ((manager || null) !== (emp.manager_code || null)) changes.manager_code = manager || null
+      const before = [...modulesOf(emp)].sort().join(',')
+      if ([...modules].sort().join(',') !== before) changes.modules = modules
       let latest = emp
       if (Object.keys(changes).length > 0) {
-        const { data, error } = await sb.from('employees').update(changes).eq('code', emp.code).select().single()
-        if (error) throw new Error('Không lưu được thay đổi. Vui lòng thử lại.')
+        const { data, error: err } = await sb.from('employees').update(changes).eq('code', emp.code).select().single()
+        if (err) throw new Error(err.code === 'P0001' ? err.message : 'Không lưu được thay đổi. Vui lòng thử lại.')
         latest = data
         onSaved(data)
       }
@@ -229,17 +265,118 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret, onView
             phone: latest.phone,
             role: latest.role,
             is_active: latest.is_active,
+            manager_code: latest.manager_code,
+            modules: modulesOf(latest),
           })
           if (res.employee) onSaved(res.employee)
-          if (res.temp_password) onSecret(secretFor(res, 'Đã cấp tài khoản'))
+          if (res.temp_password) {
+            onSecret({
+              title: 'Đã cấp tài khoản',
+              code: res.employee.code,
+              name: res.employee.full_name || res.employee.code,
+              email: res.employee.email,
+              password: res.temp_password,
+            })
+          }
         }
       }
-      setEditing(false)
+      onClose()
     } catch (err) {
-      onError(err.message)
+      setError(err.message)
+      setBusy(false)
     }
-    setBusy(false)
   }
+
+  return (
+    <div className="ad-modal" role="dialog" aria-modal="true" aria-label="Sửa nhân viên">
+      <form className="ad-modal-box ad-modal-form card" onSubmit={save} noValidate>
+        <div className="row between">
+          <div>
+            <span className="eyebrow">Sửa nhân viên</span>
+            <h2>{emp.full_name || emp.code}</h2>
+          </div>
+          <span className="small muted">Mã: {emp.code}</span>
+        </div>
+
+        {error && (
+          <div className="alert alert-error" role="alert">
+            {error}
+          </div>
+        )}
+
+        <div className="ad-addform-fields">
+          <label className="field field-sm">
+            <span>Tên nhân viên</span>
+            <input
+              value={name}
+              maxLength={100}
+              disabled={busy}
+              placeholder="Ví dụ: Nguyễn Văn An"
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+          <label className="field field-sm">
+            <span>Email công ty</span>
+            <input
+              type="email"
+              value={email}
+              disabled={busy}
+              placeholder={hasAccount ? `Ví dụ: ten@${COMPANY_DOMAINS[0]}` : 'Nhập email để cấp tài khoản'}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+          <label className="field field-sm">
+            <span>Số điện thoại</span>
+            <input
+              type="tel"
+              inputMode="tel"
+              maxLength={16}
+              value={phone}
+              disabled={busy}
+              placeholder="Ví dụ: 0901234567"
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </label>
+          <label className="field field-sm">
+            <span>Vai trò</span>
+            <select value={role} disabled={busy} onChange={(e) => setRole(e.target.value)}>
+              <option value="staff">Nhân viên</option>
+              <option value="manager">Quản lý</option>
+            </select>
+          </label>
+          <label className="field field-sm">
+            <span>Trạng thái</span>
+            <select value={active ? 'active' : 'inactive'} disabled={busy} onChange={(e) => setActive(e.target.value === 'active')}>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </label>
+          <label className="field field-sm">
+            <span>Quản lý trực tiếp</span>
+            <ManagerSelect value={manager} onChange={setManager} employees={employees} selfCode={emp.code} disabled={busy} />
+          </label>
+          <div className="field field-sm ad-span-all">
+            <span>Chức năng được dùng</span>
+            <ModulePicker value={modules} onChange={setModules} disabled={busy} />
+          </div>
+        </div>
+
+        <div className="row ad-dialog-actions">
+          <button type="button" className="btn btn-ghost" disabled={busy} onClick={onClose}>
+            Hủy
+          </button>
+          <button type="submit" className="btn btn-primary" disabled={busy}>
+            {busy ? 'Đang lưu...' : 'Lưu thay đổi'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+function EmployeeRow({ emp, count, managerName, onSaved, onDeleted, onError, onSecret, onView, onEdit }) {
+  const [busy, setBusy] = useState(false)
+  const hasAccount = Boolean(emp.user_id)
 
   async function resetPassword() {
     if (!window.confirm(`Reset mật khẩu cho ${emp.email}? Mật khẩu cũ sẽ không dùng được nữa.`)) return
@@ -248,7 +385,15 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret, onView
     try {
       const res = await callEmployeesFn({ action: 'reset_password', code: emp.code })
       if (res.employee) onSaved(res.employee)
-      if (res.temp_password) onSecret(secretFor(res, 'Đã reset mật khẩu'))
+      if (res.temp_password) {
+        onSecret({
+          title: 'Đã reset mật khẩu',
+          code: res.employee.code,
+          name: res.employee.full_name || res.employee.code,
+          email: res.employee.email,
+          password: res.temp_password,
+        })
+      }
     } catch (err) {
       onError(err.message)
     }
@@ -277,151 +422,72 @@ function EmployeeRow({ emp, count, onSaved, onDeleted, onError, onSecret, onView
   const dash = <span className="muted">-</span>
 
   return (
-    <tr className={`${emp.is_active ? '' : 'ad-inactive'} ${editing ? 'ad-editing' : ''}`}>
+    <tr className={emp.is_active ? '' : 'ad-inactive'}>
       <td>
         <strong>{emp.code}</strong>
       </td>
-
       <td>
-        {editing ? (
-          <input
-            className="ad-input is-edit"
-            value={name}
-            maxLength={100}
-            placeholder="Tên nhân viên"
-            disabled={busy}
-            onChange={(e) => setName(e.target.value)}
-            aria-label={`Họ tên của ${emp.code}`}
-          />
-        ) : (
-          <span className="ad-cell-text" title={emp.full_name || undefined}>
-            {emp.full_name || dash}
-          </span>
-        )}
+        <span className="ad-cell-text" title={emp.full_name || undefined}>
+          {emp.full_name || dash}
+        </span>
       </td>
-
       <td>
-        {editing ? (
-          <div className="ad-emailcell">
-            <AccountDot emp={emp} />
-            <input
-              className="ad-input is-edit"
-              type="email"
-              value={email}
-              placeholder={hasAccount ? 'Email công ty' : 'Nhập email để cấp tài khoản'}
-              disabled={busy}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-label={`Email của ${emp.code}`}
-            />
-          </div>
-        ) : (
-          <div className="ad-emailcell">
-            <AccountDot emp={emp} />
-            {emp.email ? (
-              <span className="ad-email-text" title={emp.email}>
-                {emp.email}
-              </span>
-            ) : (
-              <button type="button" className="link small" disabled={busy} onClick={startEdit}>
-                + Cấp tài khoản
-              </button>
-            )}
-          </div>
-        )}
+        <div className="ad-emailcell">
+          <AccountDot emp={emp} />
+          {emp.email ? (
+            <span className="ad-email-text" title={emp.email}>
+              {emp.email}
+            </span>
+          ) : (
+            <button type="button" className="link small" onClick={() => onEdit(emp.code)}>
+              + Cấp tài khoản
+            </button>
+          )}
+        </div>
       </td>
-
       <td>
-        {editing ? (
-          <input
-            className="ad-input is-edit"
-            type="tel"
-            inputMode="tel"
-            maxLength={16}
-            value={phone}
-            placeholder="Số điện thoại"
-            disabled={busy}
-            onChange={(e) => setPhone(e.target.value)}
-            aria-label={`Số điện thoại của ${emp.code}`}
-          />
-        ) : (
-          <span className="ad-cell-text">{emp.phone || dash}</span>
-        )}
+        <span className="ad-cell-text">{emp.phone || dash}</span>
       </td>
-
       <td>
-        {editing ? (
-          <select
-            className="ad-input is-edit"
-            value={role}
-            disabled={busy}
-            onChange={(e) => setRole(e.target.value)}
-            aria-label={`Vai trò của ${emp.code}`}
-          >
-            <option value="staff">Nhân viên</option>
-            <option value="manager">Quản lý</option>
-          </select>
-        ) : (
-          <span className="ad-cell-text">{ROLE_LABEL[emp.role] || emp.role}</span>
-        )}
+        <span className="ad-cell-text">{ROLE_LABEL[emp.role] || emp.role}</span>
       </td>
-
       <td>
-        {editing ? (
-          <select
-            className="ad-input is-edit"
-            value={active ? 'active' : 'inactive'}
-            disabled={busy}
-            onChange={(e) => setActive(e.target.value === 'active')}
-            aria-label={`Trạng thái của ${emp.code}`}
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        ) : (
-          <span className="ad-cell-text">{emp.is_active ? 'Active' : 'Inactive'}</span>
-        )}
+        <span className="ad-cell-text" title={emp.manager_code || undefined}>
+          {managerName || dash}
+        </span>
       </td>
-
+      <td>
+        <span className="ad-cell-text">{emp.is_active ? 'Active' : 'Inactive'}</span>
+      </td>
       <td className="ad-nowrap small muted" title={emp.active_at ? formatTime(emp.active_at) : undefined}>
         {emp.active_at ? formatDay(emp.active_at) : '-'}
       </td>
       <td className="ad-nowrap small muted" title={emp.inactive_at ? formatTime(emp.inactive_at) : undefined}>
         {emp.inactive_at ? formatDay(emp.inactive_at) : '-'}
       </td>
-
       <td>
         <div className="ad-iconbtns">
-          {editing ? (
-            <>
-              <IconBtn icon="check" label="Lưu thay đổi" tone="ok" disabled={busy} onClick={save} />
-              <IconBtn icon="x" label="Hủy" disabled={busy} onClick={cancel} />
-            </>
-          ) : (
-            <>
-              <IconBtn icon="eye" label="Xem chi tiết" disabled={busy} onClick={() => onView(emp.code)} />
-              <IconBtn icon="edit" label="Sửa thông tin" disabled={busy} onClick={startEdit} />
-              {hasAccount && (
-                <IconBtn icon="key" label="Reset mật khẩu (tạo mật khẩu ngẫu nhiên)" disabled={busy} onClick={resetPassword} />
-              )}
-              <IconBtn icon="trash" label="Xóa nhân viên" tone="danger" disabled={busy} onClick={remove} />
-            </>
+          <IconBtn icon="eye" label="Xem chi tiết" disabled={busy} onClick={() => onView(emp.code)} />
+          <IconBtn icon="edit" label="Sửa thông tin và phân quyền" disabled={busy} onClick={() => onEdit(emp.code)} />
+          {hasAccount && (
+            <IconBtn icon="key" label="Reset mật khẩu (tạo mật khẩu ngẫu nhiên)" disabled={busy} onClick={resetPassword} />
           )}
+          <IconBtn icon="trash" label="Xóa nhân viên" tone="danger" disabled={busy} onClick={remove} />
         </div>
       </td>
     </tr>
   )
 }
 
-const ROLE_LABEL = { staff: 'Nhân viên', manager: 'Quản lý' }
-
 // Cấu hình các cột của bảng: kiểu dữ liệu quyết định cách sắp xếp (chữ A-Z, ngày cũ/mới, số tăng/giảm)
 const COLUMNS = [
-  { key: 'code', w: 86, label: 'Mã NV', type: 'text', get: (e) => e.code },
-  { key: 'full_name', w: 140, label: 'Tên nhân viên', type: 'text', get: (e) => e.full_name || '' },
-  { key: 'email', w: 176, label: 'Email', type: 'text', get: (e) => e.email || '' },
-  { key: 'phone', w: 124, label: 'Số điện thoại', type: 'text', get: (e) => e.phone || '' },
+  { key: 'code', w: 76, label: 'Mã NV', type: 'text', get: (e) => e.code },
+  { key: 'full_name', w: 124, label: 'Tên nhân viên', type: 'text', get: (e) => e.full_name || '' },
+  { key: 'email', w: 152, label: 'Email', type: 'text', get: (e) => e.email || '' },
+  { key: 'phone', w: 110, label: 'Số điện thoại', type: 'text', get: (e) => e.phone || '' },
   {
-    key: 'role', w: 120,
+    key: 'role',
+    w: 92,
     label: 'Vai trò',
     type: 'text',
     get: (e) => ROLE_LABEL[e.role] || e.role,
@@ -432,7 +498,15 @@ const COLUMNS = [
     match: (e, v) => e.role === v,
   },
   {
-    key: 'status', w: 120,
+    key: 'manager',
+    w: 120,
+    label: 'Quản lý trực tiếp',
+    type: 'text',
+    get: (e, ctx) => personLabel(ctx.byCode.get(e.manager_code), e.manager_code),
+  },
+  {
+    key: 'status',
+    w: 92,
     label: 'Trạng thái',
     type: 'text',
     get: (e) => (e.is_active ? 'Active' : 'Inactive'),
@@ -442,12 +516,12 @@ const COLUMNS = [
     ],
     match: (e, v) => (e.is_active ? 'active' : 'inactive') === v,
   },
-  { key: 'active_at', w: 100, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
-  { key: 'inactive_at', w: 100, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
+  { key: 'active_at', w: 94, label: 'Ngày Active', type: 'date', get: (e) => e.active_at },
+  { key: 'inactive_at', w: 94, label: 'Ngày Inactive', type: 'date', get: (e) => e.inactive_at },
 ]
 
-function sortValue(col, emp, counts) {
-  const raw = col.get(emp, counts)
+function sortValue(col, emp, ctx) {
+  const raw = col.get(emp, ctx)
   if (col.type === 'date') return raw ? Date.parse(raw) : null
   if (col.type === 'number') return raw
   return raw ? String(raw) : null
@@ -462,12 +536,15 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
   const [importing, setImporting] = useState(false)
   const [role, setRole] = useState('')
   const [status, setStatus] = useState('')
+  const [managerCode, setManagerCode] = useState('')
+  const [modules, setModules] = useState(ALL_MODULE_IDS)
   const [adding, setAdding] = useState(false)
   const [filters, setFilters] = useState({})
   const [showFilters, setShowFilters] = useState(false)
   const [sort, setSort] = useState({ key: null, dir: 'asc' })
   const [secret, setSecret] = useState(null)
   const [viewing, setViewing] = useState(null)
+  const [editing, setEditing] = useState(null)
   const [exporting, setExporting] = useState(false)
 
   const counts = useMemo(() => {
@@ -476,13 +553,16 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
     return m
   }, [rows])
 
+  const byCode = useMemo(() => new Map(employees.map((e) => [e.code, e])), [employees])
+  const ctx = useMemo(() => ({ counts, byCode }), [counts, byCode])
+
   const visible = useMemo(() => {
     let list = employees.filter((e) =>
       COLUMNS.every((c) => {
         const f = (filters[c.key] || '').trim()
         if (!f) return true
         if (c.match) return c.match(e, f)
-        const raw = c.get(e, counts)
+        const raw = c.get(e, ctx)
         const text = c.type === 'date' ? (raw ? formatDay(raw) : '') : String(raw)
         return fold(text).includes(fold(f))
       }),
@@ -495,16 +575,11 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       list = [...list].sort((a, b) => {
         if (activeFirst && a.is_active !== b.is_active) return a.is_active ? -1 : 1
         if (!col) return 0
-        const va = sortValue(col, a, counts)
-        const vb = sortValue(col, b, counts)
-        if (va === null && vb === null) return 0
-        if (va === null) return 1 // ô trống luôn nằm cuối
-        if (vb === null) return -1
-        return (typeof va === 'number' ? va - vb : va.localeCompare(vb, 'vi')) * dir
+        return compareValues(sortValue(col, a, ctx), sortValue(col, b, ctx), dir)
       })
     }
     return list
-  }, [employees, filters, sort, counts])
+  }, [employees, filters, sort, ctx])
 
   const activeFilters = Object.values(filters).filter((v) => (v || '').trim() !== '').length
   const hasFilter = activeFilters > 0 || sort.key !== null
@@ -521,7 +596,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
     setExporting(true)
     setError('')
     try {
-      await exportEmployees(visible, counts)
+      await exportEmployees(visible, counts, employees)
     } catch {
       setError('Xuất danh sách thất bại. Vui lòng thử lại.')
     }
@@ -533,7 +608,9 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
     else onAdded(emp)
   }
 
-  const dirty = Boolean(code || fullName || email || phone || role || status)
+  const dirty = Boolean(
+    code || fullName || email || phone || role || status || managerCode || modules.length !== ALL_MODULE_IDS.length,
+  )
 
   function clearForm() {
     setCode('')
@@ -542,6 +619,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
     setPhone('')
     setRole('')
     setStatus('')
+    setManagerCode('')
+    setModules(ALL_MODULE_IDS)
     setError('')
   }
 
@@ -573,6 +652,8 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
         full_name: fullName.trim() || null,
         role: role || 'staff',
         is_active: status ? status === 'active' : true,
+        manager_code: managerCode || null,
+        modules,
       })
       saved(res.employee)
       setSecret({
@@ -582,17 +663,15 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
         email: res.employee.email,
         password: res.temp_password,
       })
-      setCode('')
-      setFullName('')
-      setEmail('')
-      setPhone('')
-      setRole('')
-      setStatus('')
+      clearForm()
     } catch (err) {
       setError(err.message)
     }
     setAdding(false)
   }
+
+  const editingEmp = editing ? byCode.get(editing) : null
+  const viewingEmp = viewing ? byCode.get(viewing) : null
 
   return (
     <div className="stack">
@@ -633,11 +712,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
           </label>
           <label className="field field-sm ad-col-4">
             <span>Vai trò</span>
-            <select
-              className={role ? '' : 'is-empty'}
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
+            <select className={role ? '' : 'is-empty'} value={role} onChange={(e) => setRole(e.target.value)}>
               <option value="" disabled hidden>
                 Mặc định: Nhân viên
               </option>
@@ -647,11 +722,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
           </label>
           <label className="field field-sm ad-col-4">
             <span>Trạng thái</span>
-            <select
-              className={status ? '' : 'is-empty'}
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
+            <select className={status ? '' : 'is-empty'} value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="" disabled hidden>
                 Mặc định: Active
               </option>
@@ -659,6 +730,14 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
               <option value="inactive">Inactive</option>
             </select>
           </label>
+          <label className="field field-sm ad-col-4">
+            <span>Quản lý trực tiếp</span>
+            <ManagerSelect value={managerCode} onChange={setManagerCode} employees={employees} selfCode="" />
+          </label>
+          <div className="field field-sm ad-span-2">
+            <span>Chức năng được dùng</span>
+            <ModulePicker value={modules} onChange={setModules} />
+          </div>
         </div>
         <div className="ad-addform-actions">
           <button type="submit" className="btn btn-primary btn-sm" disabled={adding || !code.trim() || !email.trim()}>
@@ -758,7 +837,7 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                   )}
                 </th>
               ))}
-              <th style={{ width: '150px' }}>Thao tác</th>
+              <th style={{ width: '140px' }}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -767,11 +846,13 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
                 key={emp.code}
                 emp={emp}
                 count={counts.get(emp.code) || 0}
+                managerName={personLabel(byCode.get(emp.manager_code), emp.manager_code)}
                 onSaved={saved}
                 onDeleted={onDeleted}
                 onError={setError}
                 onSecret={setSecret}
                 onView={setViewing}
+                onEdit={setEditing}
               />
             ))}
             {visible.length === 0 && (
@@ -786,11 +867,22 @@ export default function Employees({ employees, rows, onSaved, onAdded, onDeleted
       </div>
 
       {secret && <SecretModal secret={secret} onClose={() => setSecret(null)} />}
-      {viewing && employees.find((e) => e.code === viewing) && (
+      {viewingEmp && (
         <EmployeeDetail
-          emp={employees.find((e) => e.code === viewing)}
-          count={counts.get(viewing) || 0}
+          emp={viewingEmp}
+          count={counts.get(viewingEmp.code) || 0}
+          managerName={personLabel(byCode.get(viewingEmp.manager_code), viewingEmp.manager_code)}
           onClose={() => setViewing(null)}
+        />
+      )}
+      {editingEmp && (
+        <EmployeeEditDialog
+          key={editingEmp.code}
+          emp={editingEmp}
+          employees={employees}
+          onSaved={saved}
+          onSecret={setSecret}
+          onClose={() => setEditing(null)}
         />
       )}
       {importing && <BulkImport employees={employees} onCreated={saved} onClose={() => setImporting(false)} />}
