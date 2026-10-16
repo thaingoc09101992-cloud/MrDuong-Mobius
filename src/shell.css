@@ -556,3 +556,67 @@
     border-top: 0;
   }
 }
+
+/* ==========================================================
+   Đầu thanh bên: logo và chữ MOBIUS; tài khoản nằm ở góc phải thanh tiêu đề
+   ========================================================== */
+.ad-brandbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 96px;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+.ad-brandname {
+  font-family: var(--font-editorial);
+  font-size: 1.9rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text);
+}
+.ad-shell.is-collapsed .ad-brandname {
+  display: none;
+}
+.ad-shell.is-collapsed .ad-brandbar {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+.ad-bar-logo {
+  display: none;
+}
+.ad-bar-account {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.ad-bar-account .ad-account-info,
+.ad-shell.is-collapsed .ad-bar-account .ad-account-info {
+  display: flex;
+  text-align: right;
+  align-items: flex-end;
+  max-width: 280px;
+}
+@media (max-width: 900px) {
+  .ad-bar-logo {
+    display: inline-block;
+  }
+  .ad-shell.is-collapsed .ad-brandname {
+    display: inline;
+  }
+  .ad-shell.is-collapsed .ad-brandbar {
+    justify-content: flex-start;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+@media (max-width: 600px) {
+  .ad-bar-account .ad-account-info,
+  .ad-shell.is-collapsed .ad-bar-account .ad-account-info {
+    display: none;
+  }
+}

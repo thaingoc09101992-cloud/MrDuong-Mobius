@@ -5,11 +5,13 @@ import Overview from './Overview.jsx'
 import OutletTable from './OutletTable.jsx'
 import AdminMap from './AdminMap.jsx'
 import Employees from './Employees.jsx'
+import Banners from './Banners.jsx'
 import FilterBar from './FilterBar.jsx'
 import { exportExcel } from './exportExcel.js'
 import { applyFilters, EMPTY_FILTERS } from './util.js'
 import Icon from '../icons.jsx'
 import Logo from '../Logo.jsx'
+import '../shell.css'
 import './admin.css'
 
 // Mục "Nhân viên" (kèm phân quyền) dùng chung cho cả MOBIUS; các mục còn lại thuộc chức năng Định vị điểm bán
@@ -20,6 +22,7 @@ const NAV_GROUPS = [
 
 const TABS = [
   { id: 'employees', label: 'Nhân viên', title: 'Nhân viên và phân quyền', icon: 'users', group: 'system' },
+  { id: 'banners', label: 'Banner trang chủ', title: 'Banner trang chủ', icon: 'image', group: 'system' },
   { id: 'overview', label: 'Tổng quan', icon: 'chart', group: 'locate' },
   { id: 'list', label: 'Danh sách', icon: 'list', group: 'locate' },
   { id: 'map', label: 'Bản đồ', icon: 'map', group: 'locate' },
@@ -177,16 +180,9 @@ export default function AdminApp() {
   return (
     <div className={`ad-shell ${collapsed ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
       <aside className="ad-sidebar" aria-label="Menu quản trị">
-        <div className="ad-account">
-          <span className="ad-avatar" aria-hidden="true">
-            {initial}
-          </span>
-          <div className="ad-account-info">
-            <strong>Quản trị viên</strong>
-            <span className="small muted" title={email}>
-              {email}
-            </span>
-          </div>
+        <div className="ad-brandbar">
+          <Logo size={46} />
+          <span className="ad-brandname">MOBIUS</span>
         </div>
 
         <nav className="ad-nav" aria-label="Điều hướng admin">
@@ -263,12 +259,23 @@ export default function AdminApp() {
           >
             <Icon name="panel" size={20} />
           </button>
-          <Logo size={40} />
+          <Logo size={36} className="ad-bar-logo" />
           <div className="ad-bar-title">
             <span className="eyebrow">
               Quản trị MOBIUS{current && current.group === 'locate' ? ' · Định vị điểm bán' : ''}
             </span>
             <h1 className="ad-pagetitle">{current ? current.title || current.label : ''}</h1>
+          </div>
+          <div className="ad-bar-account">
+            <div className="ad-account-info">
+              <strong>Quản trị viên</strong>
+              <span className="small muted" title={email}>
+                {email}
+              </span>
+            </div>
+            <span className="ad-avatar" aria-hidden="true">
+              {initial}
+            </span>
           </div>
         </header>
 
@@ -296,6 +303,7 @@ export default function AdminApp() {
             />
           )}
 
+          {tab === 'banners' && <Banners />}
           {tab === 'overview' && <Overview rows={rows} employees={employees} />}
           {tab === 'list' && <OutletTable rows={filtered} />}
           {tab === 'map' && <AdminMap rows={filtered} />}

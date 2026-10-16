@@ -37,14 +37,9 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
   return (
     <div className={`ad-shell ${collapsed ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
       <aside className="ad-sidebar" aria-label="Menu">
-        <div className="ad-account">
-          <span className="ad-avatar" aria-hidden="true">
-            {initial}
-          </span>
-          <div className="ad-account-info">
-            <strong title={who}>{who}</strong>
-            <span className="small muted">{[user.code, roleLabel].filter(Boolean).join(' · ')}</span>
-          </div>
+        <div className="ad-brandbar">
+          <Logo size={46} />
+          <span className="ad-brandname">{PLATFORM_NAME}</span>
         </div>
 
         <nav className="ad-nav" aria-label="Điều hướng chính">
@@ -117,10 +112,19 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
           >
             <Icon name="panel" size={20} />
           </button>
-          <Logo size={40} />
+          <Logo size={36} className="ad-bar-logo" />
           <div className="ad-bar-title">
             <span className="eyebrow">{eyebrow || PLATFORM_NAME}</span>
             <h1 className="ad-pagetitle">{title}</h1>
+          </div>
+          <div className="ad-bar-account">
+            <div className="ad-account-info">
+              <strong title={who}>{who}</strong>
+              <span className="small muted">{[user.code, roleLabel].filter(Boolean).join(' · ')}</span>
+            </div>
+            <span className="ad-avatar" aria-hidden="true">
+              {initial}
+            </span>
           </div>
         </header>
         <main className={`ad-main ${hasTabbar ? 'has-tabbar' : ''}`}>{children}</main>

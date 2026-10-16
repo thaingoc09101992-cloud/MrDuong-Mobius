@@ -1,13 +1,28 @@
+import { useEffect, useState } from 'react'
 import { MODULES, moduleNames } from '../modules.js'
 import Icon from '../icons.jsx'
+import Hero from './Hero.jsx'
+import { fetchBanners } from '../banners.js'
 
 /** Home: lời chào và lối tắt tới các công cụ được phép dùng. */
 export function HomePage({ user, onOpenTool }) {
   const allowed = MODULES.filter((m) => user.modules.includes(m.id))
   const name = user.full_name || user.code || (user.isAdmin ? 'Quản trị viên' : 'bạn')
+  const [banners, setBanners] = useState([])
+
+  useEffect(() => {
+    let alive = true
+    fetchBanners(true)
+      .then((list) => alive && setBanners(list))
+      .catch(() => {}) // không tải được banner thì hiện banner mặc định
+    return () => {
+      alive = false
+    }
+  }, [])
 
   return (
     <section className="stack">
+      <Hero banners={banners} />
       <header className="page-head">
         <span className="eyebrow">Chào mừng trở lại</span>
         <h2 className="page-title">Xin chào, {name}</h2>
