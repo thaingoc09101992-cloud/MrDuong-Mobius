@@ -9,6 +9,7 @@ import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
 import Icon from './icons.jsx'
 import Logo from './Logo.jsx'
+import { loadProfile } from './profile.js'
 import ThemeToggle from './ThemeToggle.jsx'
 
 const HOME = 'home'
@@ -67,13 +68,13 @@ export default function App() {
     async function restore() {
       const { data: s } = await supabase.auth.getSession()
       if (!s.session) return
-      const { data, error } = await supabase.rpc('app_me')
+      const profile = await loadProfile()
       if (!alive) return
-      if (error || !data) {
+      if (!profile) {
         await supabase.auth.signOut()
         return
       }
-      setUser(normalizeUser(data))
+      setUser(normalizeUser(profile))
     }
     restore().finally(() => alive && setBooting(false))
 
@@ -94,7 +95,7 @@ export default function App() {
   const inLocate = view === 'dinh-vi-diem-ban'
 
   const refresh = useCallback(async () => {
-    if (!ready || !user.modules.includes('dinh-vi-diem-ban')) return
+    if (!ready || !user.hasEmployee || !user.modules.includes('dinh-vi-diem-ban')) return
     setLoading(true)
     setLoadError('')
     const { data, error } = await supabase.rpc('app_list_outlets')
@@ -160,17 +161,17 @@ export default function App() {
           <span className="brand">
             <span className="brand-title">{PLATFORM_NAME}</span>
             <span className="brand-sub">
-              {user.full_name ? `${user.full_name} - ` : ''}
-              {user.code}
-              {isManager ? ' - Quản lý' : ''}
+              {[user.full_name, user.code || user.email, user.isAdmin ? 'Quản trị' : isManager ? 'Quản lý' : '']
+                .filter(Boolean)
+                .join(' - ')}
             </span>
           </span>
         </button>
         <div className="topbar-actions">
-          {isManager && (
+          {user.isAdmin && (
             <a className="btn btn-soft btn-sm" href="/admin">
               <Icon name="shield" size={18} />
-              <span className="hide-xs">Trang admin</span>
+              <span className="hide-xs">Trang quản trị</span>
             </a>
           )}
           <ThemeToggle theme={theme} onToggle={toggleTheme} />

@@ -1,18 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '../supabase.js'
 
-// Client riêng cho admin: giữ phiên đăng nhập (email + mật khẩu), tách khỏi app nhân viên.
-export const sb = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: false,
-      storageKey: 'admin-auth',
-    },
-  },
-)
+// Trang quản trị dùng chung phiên đăng nhập với toàn MOBIUS (một trang đăng nhập duy nhất).
+export const sb = supabase
 
 const PAGE = 1000
 

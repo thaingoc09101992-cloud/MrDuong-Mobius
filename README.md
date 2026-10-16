@@ -1,6 +1,6 @@
 # MOBIUS
 
-Nền tảng làm việc nội bộ. Nhân viên đăng nhập bằng email công ty, vào trang chủ và chọn chức năng được phân quyền.
+Nền tảng làm việc nội bộ. Một trang đăng nhập duy nhất bằng email công ty. Sau khi đăng nhập, nhân viên vào trang chủ và chọn chức năng được phân quyền; riêng tài khoản admin có thêm mục **Trang quản trị** (`/admin`).
 
 ## Chức năng
 

@@ -1269,3 +1269,11 @@ h2 {
     #14100d;
   border-right: 1px solid rgba(201, 169, 110, 0.28);
 }
+
+/* Thẻ chức năng dạng liên kết (Trang quản trị) và mục thanh bên dạng liên kết */
+a.module-card {
+  text-decoration: none;
+}
+a.ad-navbtn {
+  text-decoration: none;
+}

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { sb, fetchAllOutlets, fetchEmployees } from './adminClient.js'
 import { safeGet, safeSet } from '../supabase.js'
-import AdminLogin from './AdminLogin.jsx'
 import Overview from './Overview.jsx'
 import OutletTable from './OutletTable.jsx'
 import AdminMap from './AdminMap.jsx'
@@ -27,9 +26,8 @@ const TABS = [
 ]
 
 export default function AdminApp() {
-  const [phase, setPhase] = useState('loading') // loading | out | in
+  const [phase, setPhase] = useState('loading') // loading | out (chưa đăng nhập) | denied (không phải admin) | in
   const [email, setEmail] = useState('')
-  const [authError, setAuthError] = useState('')
   const [theme, setTheme] = useState(
     () => document.documentElement.getAttribute('data-theme') || 'light',
   )
@@ -62,9 +60,7 @@ export default function AdminApp() {
     }
     const { data, error } = await sb.rpc('is_admin')
     if (error || data !== true) {
-      await sb.auth.signOut()
-      setAuthError('Tài khoản này không có quyền admin.')
-      setPhase('out')
+      setPhase('denied')
       return
     }
     setEmail(session.user.email || '')
@@ -102,22 +98,15 @@ export default function AdminApp() {
     return () => document.removeEventListener('fullscreenchange', f)
   }, [])
 
-  async function login(emailIn, password) {
-    setAuthError('')
-    const { data, error } = await sb.auth.signInWithPassword({ email: emailIn, password })
-    if (error) {
-      setAuthError('Email hoặc mật khẩu không đúng.')
-      return
-    }
-    await verify(data.session)
-  }
-
   async function logout() {
     await sb.auth.signOut()
-    setOutlets([])
-    setEmployees([])
-    setPhase('out')
+    window.location.assign('/')
   }
+
+  // Chưa đăng nhập: chuyển về trang đăng nhập duy nhất của MOBIUS
+  useEffect(() => {
+    if (phase === 'out') window.location.replace('/')
+  }, [phase])
 
   async function toggleFullscreen() {
     try {
@@ -150,8 +139,19 @@ export default function AdminApp() {
   const themeToggle = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
   if (phase === 'loading') return <div className="boot">Đang tải...</div>
-  if (phase === 'out') {
-    return <AdminLogin onSubmit={login} error={authError} theme={theme} onToggleTheme={themeToggle} />
+  if (phase === 'out') return <div className="boot">Đang chuyển về trang đăng nhập...</div>
+  if (phase === 'denied') {
+    return (
+      <div className="boot">
+        <div className="stack center">
+          <h2>Không có quyền quản trị</h2>
+          <p className="muted">Tài khoản này chưa được cấp quyền vào trang quản trị MOBIUS.</p>
+          <a className="btn btn-primary" href="/">
+            Về trang chủ MOBIUS
+          </a>
+        </div>
+      </div>
+    )
   }
 
   const showFilters = tab === 'list' || tab === 'map'
@@ -211,6 +211,10 @@ export default function AdminApp() {
         </nav>
 
         <div className="ad-sidebar-foot">
+          <a className="ad-navbtn" href="/" title="Về trang chủ MOBIUS">
+            <Icon name="home" size={20} />
+            <span className="ad-label">Trang chủ MOBIUS</span>
+          </a>
           <button type="button" className="ad-navbtn" onClick={load} disabled={loading} title="Tải lại dữ liệu">
             <Icon name="refresh" size={20} />
             <span className="ad-label">{loading ? 'Đang tải...' : 'Tải lại'}</span>

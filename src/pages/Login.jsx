@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase.js'
+import { loadProfile } from '../profile.js'
 import Logo from '../Logo.jsx'
 import ThemeToggle from '../ThemeToggle.jsx'
 
@@ -23,16 +24,16 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
       return
     }
 
-    // Chỉ nhân viên đang Active và có email mới được dùng ứng dụng
-    const { data, error: meErr } = await supabase.rpc('app_me')
-    if (meErr || !data) {
+    // Chỉ nhân viên đang Active có email hoặc tài khoản admin mới được vào
+    const profile = await loadProfile()
+    if (!profile) {
       await supabase.auth.signOut()
       setBusy(false)
       setError('Tài khoản chưa được cấp quyền hoặc đã ngừng hoạt động. Vui lòng liên hệ quản lý.')
       return
     }
     setBusy(false)
-    onLogin(data)
+    onLogin(profile)
   }
 
   return (
@@ -87,11 +88,6 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
         >
           {busy ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
-        <p className="center-text small">
-          <a className="link" href="/admin">
-            Đăng nhập quản trị
-          </a>
-        </p>
       </form>
     </div>
   )
