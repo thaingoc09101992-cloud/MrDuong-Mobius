@@ -1277,3 +1277,124 @@ a.module-card {
 a.ad-navbtn {
   text-decoration: none;
 }
+
+/* ==========================================================
+   App nhân viên có thanh bên: thẻ công cụ, tab công cụ, hồ sơ, trang chờ nội dung
+   ========================================================== */
+.ad-account-info strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tool-tabs {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+.tool-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 12px 0;
+  margin-bottom: -1px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--ease), border-color var(--motion-fast) var(--ease);
+}
+.tool-tab:hover {
+  color: var(--text);
+}
+.tool-tab.is-active {
+  color: var(--text);
+  border-bottom-color: var(--text);
+}
+.tool-tab:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+/* Điện thoại: tab công cụ nằm ở thanh dưới; máy tính: tab nằm trên đầu nội dung */
+@media (max-width: 900px) {
+  .tool-tabs {
+    display: none;
+  }
+  .ad-main.has-tabbar {
+    padding-bottom: calc(var(--tabbar-h) + 48px + env(safe-area-inset-bottom));
+  }
+}
+@media (min-width: 901px) {
+  .tabbar {
+    display: none;
+  }
+}
+/* Biểu mẫu trong khung mới giữ nền tông kem */
+.ad-main > form.card {
+  background: var(--tint);
+  border-color: var(--tint-border);
+}
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-16) var(--space-6);
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+}
+.empty-state p {
+  margin: 0;
+  max-width: 44ch;
+}
+.empty-title {
+  font-family: var(--font-editorial);
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+.profile-list {
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.profile-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border);
+}
+.profile-row:first-child {
+  border-top: 0;
+}
+.profile-row dt {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  align-self: center;
+}
+.profile-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .profile-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}
+
+.ad-nav > .ad-navbtn + .ad-navgroup {
+  margin-top: var(--space-6);
+}

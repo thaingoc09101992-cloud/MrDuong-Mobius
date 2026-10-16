@@ -75,6 +75,32 @@ const PATHS = {
       <path d="M10 20v-5h4v5" />
     </>
   ),
+  grid: (
+    <>
+      <rect x="4" y="4" width="7" height="7" rx="1" />
+      <rect x="13" y="4" width="7" height="7" rx="1" />
+      <rect x="4" y="13" width="7" height="7" rx="1" />
+      <rect x="13" y="13" width="7" height="7" rx="1" />
+    </>
+  ),
+  play: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M10 8.5l5 3.5-5 3.5z" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M5 4h10a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z" />
+      <path d="M5 17a3 3 0 0 1 3-3h10" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </>
+  ),
   eye: (
     <>
       <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />

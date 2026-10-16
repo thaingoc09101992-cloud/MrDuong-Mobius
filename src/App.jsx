@@ -3,18 +3,24 @@ import { supabase, safeSet } from './supabase.js'
 import { MODULES, PLATFORM_NAME, ALL_MODULE_IDS, modulesOf } from './modules.js'
 import Login from './pages/Login.jsx'
 import ChangePassword from './pages/ChangePassword.jsx'
-import Home from './pages/Home.jsx'
+import { HomePage, ToolsPage, ComingSoonPage, ProfilePage } from './pages/sections.jsx'
 import Capture from './pages/Capture.jsx'
 import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
 import Icon from './icons.jsx'
-import Logo from './Logo.jsx'
+import AppShell from './AppShell.jsx'
 import { loadProfile } from './profile.js'
-import ThemeToggle from './ThemeToggle.jsx'
 
-const HOME = 'home'
+// Menu chính của thanh bên
+const NAV = [
+  { id: 'home', label: 'Home', icon: 'home' },
+  { id: 'tools', label: 'Công cụ', icon: 'grid' },
+  { id: 'videos', label: 'Video đào tạo', icon: 'play' },
+  { id: 'knowledge', label: 'Kiến thức', icon: 'book' },
+  { id: 'profile', label: 'Thông tin nhân viên', icon: 'user' },
+]
 
-// Các màn hình bên trong chức năng "Định vị điểm bán"
+// Các màn hình bên trong công cụ "Định vị điểm bán"
 const TABS = [
   { id: 'capture', label: 'Chụp ảnh', icon: 'camera' },
   { id: 'history', label: 'Lịch sử', icon: 'history' },
@@ -46,7 +52,8 @@ function normalizeUser(data) {
 export default function App() {
   const [user, setUser] = useState(null)
   const [booting, setBooting] = useState(true)
-  const [view, setView] = useState(HOME) // HOME hoặc mã chức năng
+  const [section, setSection] = useState('home')
+  const [tool, setTool] = useState(null) // null hoặc mã công cụ đang mở
   const [tab, setTab] = useState('capture')
   const [theme, setTheme] = useState(
     () => document.documentElement.getAttribute('data-theme') || 'light',
@@ -60,7 +67,7 @@ export default function App() {
     safeSet('theme', theme)
   }, [theme])
 
-  // Khôi phục phiên đăng nhập: chỉ giữ lại nếu tài khoản vẫn Active và có email
+  // Khôi phục phiên đăng nhập: chỉ giữ lại nếu tài khoản vẫn được phép dùng MOBIUS
   useEffect(() => {
     let alive = true
     safeSet('user', null) // dọn dữ liệu đăng nhập bằng mã của phiên bản cũ
@@ -82,7 +89,8 @@ export default function App() {
       if (evt === 'SIGNED_OUT') {
         setUser(null)
         setOutlets([])
-        setView(HOME)
+        setSection('home')
+        setTool(null)
       }
     })
     return () => {
@@ -92,7 +100,7 @@ export default function App() {
   }, [])
 
   const ready = Boolean(user) && !user.must_change_password
-  const inLocate = view === 'dinh-vi-diem-ban'
+  const inLocate = tool === 'dinh-vi-diem-ban'
 
   const refresh = useCallback(async () => {
     if (!ready || !(user.hasEmployee || user.isAdmin) || !user.modules.includes('dinh-vi-diem-ban')) return
@@ -119,7 +127,8 @@ export default function App() {
 
   function handleLogin(u) {
     setUser(normalizeUser(u))
-    setView(HOME)
+    setSection('home')
+    setTool(null)
     setTab('capture')
   }
 
@@ -127,14 +136,22 @@ export default function App() {
     await supabase.auth.signOut()
     setUser(null)
     setOutlets([])
-    setView(HOME)
+    setSection('home')
+    setTool(null)
   }
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
-  function openModule(id) {
+  function navigate(id) {
+    setSection(id)
+    setTool(null)
+  }
+
+  // Công cụ nằm trong mục Công cụ; chưa có hồ sơ nhân viên thì không chụp ảnh được nên vào thẳng Lịch sử
+  function openTool(id) {
     setTab(user && user.hasEmployee ? 'capture' : 'history')
-    setView(id)
+    setSection('tools')
+    setTool(id)
   }
 
   if (booting) return <div className="boot">Đang tải...</div>
@@ -161,95 +178,110 @@ export default function App() {
   const seesOthers = scope !== 'mine'
   // Chụp ảnh cần hồ sơ nhân viên (điểm bán phải gắn với một nhân viên)
   const tabs = TABS.filter((t) => t.id !== 'capture' || user.hasEmployee)
-  const moduleName = (MODULES.find((m) => m.id === view) || {}).name
+  const toolName = (MODULES.find((m) => m.id === tool) || {}).name
+  const sectionName = (NAV.find((n) => n.id === section) || {}).label
+
+  const bottomBar = inLocate ? (
+    <nav
+      className="tabbar"
+      style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+      aria-label="Điều hướng công cụ Định vị điểm bán"
+    >
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          className={`tab ${tab === t.id ? 'tab-active' : ''}`}
+          aria-current={tab === t.id ? 'page' : undefined}
+          onClick={() => setTab(t.id)}
+        >
+          <span className="tab-icon">
+            <Icon name={t.icon} />
+            {t.id === 'history' && outlets.length > 0 && (
+              <span className="badge">{outlets.length > 99 ? '99+' : outlets.length}</span>
+            )}
+          </span>
+          <span className="tab-label">{t.label}</span>
+        </button>
+      ))}
+    </nav>
+  ) : null
 
   return (
-    <div className="app">
-      <header className="topbar">
-        <button type="button" className="brand-home" onClick={() => setView(HOME)} aria-label="Về trang chủ MOBIUS">
-          <Logo size={38} />
-          <span className="brand">
-            <span className="brand-title">{PLATFORM_NAME}</span>
-            <span className="brand-sub">
-              {[user.full_name, user.code || user.email, user.isAdmin ? 'Quản trị' : isManager ? 'Quản lý' : '']
-                .filter(Boolean)
-                .join(' - ')}
-            </span>
-          </span>
-        </button>
-        <div className="topbar-actions">
-          {user.isAdmin && (
-            <a className="btn btn-soft btn-sm" href="/admin">
-              <Icon name="shield" size={18} />
-              <span className="hide-xs">Trang quản trị</span>
-            </a>
-          )}
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
-          <button type="button" className="btn btn-ghost btn-sm" onClick={handleLogout}>
-            <Icon name="logout" size={18} />
-            <span className="hide-xs">Thoát</span>
-          </button>
-        </div>
-      </header>
-
-      <main className={`content ${inLocate ? '' : 'no-tabbar'}`}>
-        {!inLocate && <Home user={user} onOpen={openModule} />}
-
-        {inLocate && (
-          <>
-            {loadError && tab !== 'capture' && (
-              <div className="alert alert-error" role="alert">
-                {loadError}{' '}
-                <button type="button" className="link" onClick={refresh}>
-                  Thử lại
-                </button>
-              </div>
-            )}
-            <header className="page-head" key={tab}>
-              <span className="eyebrow">
-                {moduleName} · {PAGES[tab].eyebrow}
-              </span>
-              <h1 className="page-title">
-                {typeof PAGES[tab].title === 'function' ? PAGES[tab].title(scope) : PAGES[tab].title}
-              </h1>
-              <p className="page-sub">{PAGES[tab].sub}</p>
-            </header>
-            {tab === 'capture' && user.hasEmployee && <Capture user={user} onSaved={refresh} />}
-            {tab === 'history' && (
-              <History outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />
-            )}
-            {tab === 'map' && (
-              <MapReport outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />
-            )}
-          </>
-        )}
-      </main>
+    <AppShell
+      user={user}
+      nav={NAV}
+      active={section}
+      onNavigate={navigate}
+      theme={theme}
+      onToggleTheme={toggleTheme}
+      onLogout={handleLogout}
+      eyebrow={tool ? `${PLATFORM_NAME} · Công cụ` : PLATFORM_NAME}
+      title={tool ? toolName : sectionName}
+      hasTabbar={inLocate}
+      bottomBar={bottomBar}
+    >
+      {!tool && section === 'home' && <HomePage user={user} onOpenTool={openTool} />}
+      {!tool && section === 'tools' && <ToolsPage user={user} onOpenTool={openTool} />}
+      {!tool && section === 'videos' && (
+        <ComingSoonPage
+          eyebrow="Đào tạo"
+          heading="Video đào tạo"
+          icon="play"
+          text="Các video hướng dẫn và đào tạo nghiệp vụ sẽ được cập nhật tại đây."
+        />
+      )}
+      {!tool && section === 'knowledge' && (
+        <ComingSoonPage
+          eyebrow="Thư viện"
+          heading="Kiến thức"
+          icon="book"
+          text="Tài liệu, quy trình và kiến thức nghiệp vụ sẽ được cập nhật tại đây."
+        />
+      )}
+      {!tool && section === 'profile' && <ProfilePage user={user} />}
 
       {inLocate && (
-        <nav
-          className="tabbar"
-          style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
-          aria-label="Điều hướng chức năng Định vị điểm bán"
-        >
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={`tab ${tab === t.id ? 'tab-active' : ''}`}
-              aria-current={tab === t.id ? 'page' : undefined}
-              onClick={() => setTab(t.id)}
-            >
-              <span className="tab-icon">
-                <Icon name={t.icon} />
-                {t.id === 'history' && outlets.length > 0 && (
-                  <span className="badge">{outlets.length > 99 ? '99+' : outlets.length}</span>
-                )}
-              </span>
-              <span className="tab-label">{t.label}</span>
-            </button>
-          ))}
-        </nav>
+        <>
+          <div className="tool-tabs" role="tablist" aria-label="Màn hình của công cụ">
+            {tabs.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === t.id}
+                className={`tool-tab ${tab === t.id ? 'is-active' : ''}`}
+                onClick={() => setTab(t.id)}
+              >
+                <Icon name={t.icon} size={18} />
+                {t.label}
+              </button>
+            ))}
+          </div>
+          {loadError && tab !== 'capture' && (
+            <div className="alert alert-error" role="alert">
+              {loadError}{' '}
+              <button type="button" className="link" onClick={refresh}>
+                Thử lại
+              </button>
+            </div>
+          )}
+          <header className="page-head" key={tab}>
+            <span className="eyebrow">{PAGES[tab].eyebrow}</span>
+            <h2 className="page-title">
+              {typeof PAGES[tab].title === 'function' ? PAGES[tab].title(scope) : PAGES[tab].title}
+            </h2>
+            <p className="page-sub">{PAGES[tab].sub}</p>
+          </header>
+          {tab === 'capture' && user.hasEmployee && <Capture user={user} onSaved={refresh} />}
+          {tab === 'history' && (
+            <History outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />
+          )}
+          {tab === 'map' && (
+            <MapReport outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />
+          )}
+        </>
       )}
-    </div>
+    </AppShell>
   )
 }
