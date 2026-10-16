@@ -10,7 +10,7 @@ export default function Home({ user, onOpen }) {
     <section className="stack">
       <header className="page-head">
         <span className="eyebrow">{PLATFORM_NAME} · Trang chủ</span>
-        <h1 className="page-title">Xin chào, {user.full_name || user.code || user.email || 'bạn'}</h1>
+        <h1 className="page-title">Xin chào, {user.full_name || user.code || (user.isAdmin ? 'Quản trị viên' : 'bạn')}</h1>
         <p className="page-sub">Chọn chức năng để bắt đầu làm việc.</p>
       </header>
 

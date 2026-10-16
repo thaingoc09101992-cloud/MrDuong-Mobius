@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase, safeSet } from './supabase.js'
-import { MODULES, PLATFORM_NAME, modulesOf } from './modules.js'
+import { MODULES, PLATFORM_NAME, ALL_MODULE_IDS, modulesOf } from './modules.js'
 import Login from './pages/Login.jsx'
 import ChangePassword from './pages/ChangePassword.jsx'
 import Home from './pages/Home.jsx'
@@ -29,7 +29,7 @@ const PAGES = {
   },
   history: {
     eyebrow: '02 / Lưu trữ',
-    title: (m) => (m ? 'Điểm bán của đội' : 'Điểm bán của tôi'),
+    title: (scope) => (scope === 'all' ? 'Tất cả điểm bán' : scope === 'team' ? 'Điểm bán của đội' : 'Điểm bán của tôi'),
     sub: 'Danh sách các điểm bán đã ghi nhận, mới nhất ở trên cùng.',
   },
   map: {
@@ -40,7 +40,7 @@ const PAGES = {
 }
 
 function normalizeUser(data) {
-  return { ...data, modules: modulesOf(data) }
+  return { ...data, modules: data.isAdmin ? ALL_MODULE_IDS : modulesOf(data) }
 }
 
 export default function App() {
@@ -95,7 +95,7 @@ export default function App() {
   const inLocate = view === 'dinh-vi-diem-ban'
 
   const refresh = useCallback(async () => {
-    if (!ready || !user.hasEmployee || !user.modules.includes('dinh-vi-diem-ban')) return
+    if (!ready || !(user.hasEmployee || user.isAdmin) || !user.modules.includes('dinh-vi-diem-ban')) return
     setLoading(true)
     setLoadError('')
     const { data, error } = await supabase.rpc('app_list_outlets')
@@ -132,6 +132,11 @@ export default function App() {
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
+  function openModule(id) {
+    setTab(user && user.hasEmployee ? 'capture' : 'history')
+    setView(id)
+  }
+
   if (booting) return <div className="boot">Đang tải...</div>
 
   if (!user) {
@@ -151,6 +156,11 @@ export default function App() {
   }
 
   const isManager = user.role === 'manager'
+  // Phạm vi xem dữ liệu: admin xem tất cả, quản lý xem đội, nhân viên xem của mình
+  const scope = user.isAdmin ? 'all' : isManager ? 'team' : 'mine'
+  const seesOthers = scope !== 'mine'
+  // Chụp ảnh cần hồ sơ nhân viên (điểm bán phải gắn với một nhân viên)
+  const tabs = TABS.filter((t) => t.id !== 'capture' || user.hasEmployee)
   const moduleName = (MODULES.find((m) => m.id === view) || {}).name
 
   return (
@@ -183,7 +193,7 @@ export default function App() {
       </header>
 
       <main className={`content ${inLocate ? '' : 'no-tabbar'}`}>
-        {!inLocate && <Home user={user} onOpen={setView} />}
+        {!inLocate && <Home user={user} onOpen={openModule} />}
 
         {inLocate && (
           <>
@@ -200,24 +210,28 @@ export default function App() {
                 {moduleName} · {PAGES[tab].eyebrow}
               </span>
               <h1 className="page-title">
-                {typeof PAGES[tab].title === 'function' ? PAGES[tab].title(isManager) : PAGES[tab].title}
+                {typeof PAGES[tab].title === 'function' ? PAGES[tab].title(scope) : PAGES[tab].title}
               </h1>
               <p className="page-sub">{PAGES[tab].sub}</p>
             </header>
-            {tab === 'capture' && <Capture user={user} onSaved={refresh} />}
+            {tab === 'capture' && user.hasEmployee && <Capture user={user} onSaved={refresh} />}
             {tab === 'history' && (
-              <History outlets={outlets} loading={loading} isManager={isManager} onRefresh={refresh} />
+              <History outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />
             )}
             {tab === 'map' && (
-              <MapReport outlets={outlets} loading={loading} isManager={isManager} onRefresh={refresh} />
+              <MapReport outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />
             )}
           </>
         )}
       </main>
 
       {inLocate && (
-        <nav className="tabbar" aria-label="Điều hướng chức năng Định vị điểm bán">
-          {TABS.map((t) => (
+        <nav
+          className="tabbar"
+          style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+          aria-label="Điều hướng chức năng Định vị điểm bán"
+        >
+          {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
