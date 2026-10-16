@@ -1102,3 +1102,170 @@ h2 {
     max-width: 420px;
   }
 }
+
+/* ==========================================================
+   Đăng nhập kiểu sang trọng: nền đen ấm, điểm nhấn vàng gold, vòng cung phát sáng
+   ========================================================== */
+:root {
+  --gold: #c9a96e;
+  --gold-soft: #d9c49b;
+  --gold-deep: #8f723a;
+}
+.login-wrap {
+  --lg-text: #111111;
+  --lg-muted: #737373;
+  --lg-input-bg: #ffffff;
+  --lg-input-border: #e4ded1;
+  --lg-link: var(--gold-deep);
+  background: var(--page-bg);
+}
+:root[data-theme='dark'] .login-wrap {
+  --lg-text: #f3f1ec;
+  --lg-muted: #b4ada1;
+  --lg-input-bg: #f3f1ec;
+  --lg-input-border: transparent;
+  --lg-link: var(--gold);
+  background: #110e0c;
+}
+
+/* Khung thương hiệu bên trái: luôn tối, có vòng cung vàng */
+.login-wrap .login-aside {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  color: #f2f0ec;
+  background:
+    radial-gradient(900px 620px at 12% 18%, rgba(201, 169, 110, 0.08), transparent 70%),
+    #14100d;
+  border-right: 1px solid rgba(201, 169, 110, 0.28);
+}
+.login-wrap .login-aside::before,
+.login-wrap .login-aside::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+.login-wrap .login-aside::before {
+  width: 150%;
+  left: -38%;
+  top: -14%;
+  border: 1px solid rgba(201, 169, 110, 0.34);
+  background: radial-gradient(circle at 62% 80%, rgba(201, 169, 110, 0.2), transparent 46%);
+  box-shadow: inset -70px -90px 140px -40px rgba(201, 169, 110, 0.32);
+}
+.login-wrap .login-aside::after {
+  width: 150%;
+  left: -30%;
+  top: -6%;
+  border: 1px solid rgba(201, 169, 110, 0.14);
+}
+.login-wrap .login-aside .eyebrow {
+  color: var(--gold);
+  letter-spacing: 0.26em;
+}
+.login-wrap .login-display {
+  color: #f6f3ec;
+}
+.login-wrap .login-lead {
+  color: #d2cbbd;
+}
+
+/* Biểu mẫu bên phải */
+.login-wrap .login-card {
+  color: var(--lg-text);
+}
+.login-wrap .login-title {
+  font-size: 2.8rem;
+  color: var(--lg-text);
+}
+.login-wrap .login-title::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin-top: var(--space-4);
+  background: var(--gold);
+}
+.login-wrap .login-card .muted {
+  color: var(--lg-muted);
+  font-size: 0.95rem;
+}
+.login-wrap .field {
+  color: var(--lg-text);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+}
+.login-wrap .field input {
+  min-height: 54px;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  color: #111111;
+  background: var(--lg-input-bg);
+  border: 1px solid var(--lg-input-border);
+  border-radius: 0;
+}
+.login-wrap .field input::placeholder {
+  color: rgba(17, 17, 17, 0.38);
+}
+.login-wrap .field input:hover {
+  border-color: var(--gold);
+}
+.login-wrap .field input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.55);
+}
+.login-wrap .btn-primary {
+  min-height: 54px;
+  border-radius: 0;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  color: #14100d;
+  background: var(--gold);
+}
+.login-wrap .btn-primary:hover:not(:disabled) {
+  background: var(--gold-soft);
+}
+.login-wrap .btn-primary:disabled {
+  opacity: 0.72;
+}
+.login-wrap .link {
+  color: var(--lg-link);
+  text-decoration-color: var(--gold);
+}
+.login-wrap .login-theme {
+  letter-spacing: 0.22em;
+  color: var(--lg-text);
+  border-color: rgba(201, 169, 110, 0.6);
+  background: transparent;
+}
+.login-wrap .login-theme:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(201, 169, 110, 0.12);
+}
+.login-wrap .alert {
+  border-radius: 0;
+}
+
+@media (min-width: 900px) {
+  .login-wrap .login-aside .login-logo {
+    width: clamp(170px, 17vw, 270px) !important;
+    height: clamp(170px, 17vw, 270px) !important;
+    margin-left: clamp(0px, 3.5vw, 56px);
+    margin-bottom: var(--space-8);
+  }
+  .login-wrap .login-display {
+    font-size: clamp(3.6rem, 6vw, 6rem);
+  }
+}
+
+/* Chế độ tối: giữ khung trái đen ấm, đường ngăn vàng mảnh (ghi đè luật cũ của chế độ tối) */
+:root[data-theme='dark'] .login-wrap .login-aside {
+  background:
+    radial-gradient(900px 620px at 12% 18%, rgba(201, 169, 110, 0.08), transparent 70%),
+    #14100d;
+  border-right: 1px solid rgba(201, 169, 110, 0.28);
+}
