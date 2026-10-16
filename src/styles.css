@@ -1064,3 +1064,41 @@ h2 {
 .login-logo {
   margin-bottom: var(--space-4);
 }
+
+/* ==========================================================
+   Màn hình đăng nhập: khung thương hiệu bên trái cân với biểu mẫu bên phải
+   ========================================================== */
+.login-aside {
+  background:
+    radial-gradient(520px 420px at 22% 38%, rgba(201, 169, 110, 0.16), transparent 70%),
+    #111111;
+}
+:root[data-theme='dark'] .login-aside {
+  background:
+    radial-gradient(520px 420px at 22% 38%, rgba(201, 169, 110, 0.14), transparent 70%),
+    #1a1917;
+  border-right: 1px solid rgba(242, 240, 236, 0.08);
+}
+@media (min-width: 900px) {
+  .login-aside {
+    justify-content: center;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-20) var(--space-16);
+  }
+  .login-aside .login-logo {
+    width: clamp(150px, 15vw, 240px) !important;
+    height: clamp(150px, 15vw, 240px) !important;
+    margin-bottom: var(--space-8);
+  }
+  .login-display {
+    font-size: clamp(3.4rem, 5.6vw, 5.6rem);
+  }
+  .login-lead {
+    font-size: 1rem;
+    max-width: 38ch;
+  }
+  .login-card {
+    max-width: 420px;
+  }
+}
