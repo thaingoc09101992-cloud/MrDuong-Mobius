@@ -9,6 +9,7 @@ import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
 import Icon from './icons.jsx'
 import Logo from './Logo.jsx'
+import ThemeToggle from './ThemeToggle.jsx'
 
 const HOME = 'home'
 
@@ -172,14 +173,7 @@ export default function App() {
               <span className="hide-xs">Trang admin</span>
             </a>
           )}
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm btn-icon"
-            onClick={toggleTheme}
-            aria-label="Đổi giao diện sáng hoặc tối"
-          >
-            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={18} />
-          </button>
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
           <button type="button" className="btn btn-ghost btn-sm" onClick={handleLogout}>
             <Icon name="logout" size={18} />
             <span className="hide-xs">Thoát</span>

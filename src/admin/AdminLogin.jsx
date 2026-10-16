@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Logo from '../Logo.jsx'
+import ThemeToggle from '../ThemeToggle.jsx'
 
 export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
   const [email, setEmail] = useState('')
@@ -16,9 +17,7 @@ export default function AdminLogin({ onSubmit, error, theme, onToggleTheme }) {
 
   return (
     <div className="login-wrap">
-      <button type="button" className="btn btn-ghost btn-sm login-theme" onClick={onToggleTheme}>
-        {theme === 'dark' ? 'Sáng' : 'Tối'}
-      </button>
+      <ThemeToggle theme={theme} onToggle={onToggleTheme} className="login-theme" />
       <aside className="login-aside">
         <Logo size={60} className="login-logo" />
         <span className="eyebrow">Quản trị</span>

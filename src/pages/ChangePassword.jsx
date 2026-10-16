@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabase.js'
 import Logo from '../Logo.jsx'
+import ThemeToggle from '../ThemeToggle.jsx'
 
 const MIN_LENGTH = 8
 
@@ -50,14 +51,7 @@ export default function ChangePassword({ user, onDone, onLogout, theme, onToggle
 
   return (
     <div className="login-wrap">
-      <button
-        type="button"
-        className="btn btn-ghost btn-sm login-theme"
-        onClick={onToggleTheme}
-        aria-label="Đổi giao diện sáng hoặc tối"
-      >
-        {theme === 'dark' ? 'Sáng' : 'Tối'}
-      </button>
+      <ThemeToggle theme={theme} onToggle={onToggleTheme} className="login-theme" />
       <aside className="login-aside">
         <Logo size={60} className="login-logo" />
         <span className="eyebrow">Lần đăng nhập đầu tiên</span>

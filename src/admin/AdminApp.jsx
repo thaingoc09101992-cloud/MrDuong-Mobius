@@ -221,7 +221,7 @@ export default function AdminApp() {
               <span className="ad-label">{isFs ? 'Thoát toàn màn hình' : 'Toàn màn hình'}</span>
             </button>
           )}
-          <button type="button" className="ad-navbtn" onClick={themeToggle} title="Đổi giao diện sáng hoặc tối">
+          <button type="button" className="ad-navbtn" onClick={themeToggle} title={theme === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}>
             <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={20} />
             <span className="ad-label">{theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}</span>
           </button>
