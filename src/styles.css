@@ -501,30 +501,146 @@ h2 {
   position: relative;
   background: var(--bg);
 }
+/* Khung thương hiệu bên trái (luôn nền tối ở cả hai giao diện): logo và khối chữ tạo thành một brand lockup */
 .login-aside {
-  background: #111111;
-  color: #f2f0ec;
-  padding: var(--space-12) var(--space-6) var(--space-8);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: var(--space-3);
+  padding: 56px var(--space-6) var(--space-6);
+  color: #f2f0ec;
+  background:
+    radial-gradient(520px 420px at 38% 48%, rgba(201, 169, 110, 0.12), transparent 72%),
+    #14100d;
+  border-bottom: 1px solid rgba(201, 169, 110, 0.28);
+}
+/* Nền luôn tối: dùng bản logo cho nền tối */
+.login-aside .logo .logo-on-light {
+  display: none;
+}
+.login-aside .logo .logo-on-dark {
+  display: block;
+}
+.login-brand-lockup {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+}
+.login-logo {
+  width: 76px;
+  height: 76px;
+}
+.login-brand-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 .login-aside .eyebrow {
-  color: var(--color-taupe);
+  color: var(--gold);
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
 }
 .login-display {
+  margin: 4px 0 0;
   font-family: var(--font-editorial);
   font-weight: 500;
-  font-size: clamp(2.6rem, 11vw, 4.4rem);
-  line-height: 0.98;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.4rem, 11vw, 3rem);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: #f6f3ec;
+}
+.login-display-sm {
+  font-size: clamp(1.8rem, 8vw, 2.4rem);
+  line-height: 1.05;
+}
+.login-brand-rule {
+  display: block;
+  width: 52px;
+  height: 2px;
+  margin: var(--space-3) 0;
+  background: var(--gold);
 }
 .login-lead {
   margin: 0;
-  max-width: 34ch;
-  color: #b9b5ae;
-  font-size: 0.9rem;
+  max-width: 46ch;
+  color: #d2cbbd;
+  font-size: 1rem;
+  line-height: 1.55;
+  text-wrap: balance;
+}
+
+@media (max-width: 899px) {
+  .login-lead-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+@media (min-width: 900px) {
+  .login-aside {
+    padding: var(--space-12);
+    border-bottom: 0;
+    border-right: 1px solid rgba(201, 169, 110, 0.28);
+  }
+  /* Hai đường cong mảnh bao quanh lockup, không đi qua logo hoặc chữ */
+  .login-aside::before,
+  .login-aside::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .login-aside::before {
+    width: 120%;
+    left: -70%;
+    top: -65%;
+    border: 1px solid rgba(201, 169, 110, 0.28);
+  }
+  .login-aside::after {
+    width: 105%;
+    right: -60%;
+    bottom: -70%;
+    border: 1px solid rgba(201, 169, 110, 0.18);
+  }
+  .login-brand-lockup {
+    top: -3vh; /* nằm hơi cao hơn tâm dọc */
+    width: min(92%, 820px);
+    margin: auto;
+    grid-template-columns: clamp(120px, 12.5vw, 190px) minmax(0, 1fr);
+    gap: clamp(24px, 2.8vw, 44px);
+  }
+  .login-logo {
+    width: clamp(120px, 12.5vw, 190px);
+    height: clamp(120px, 12.5vw, 190px);
+  }
+  .login-aside .eyebrow {
+    font-size: 0.72rem;
+  }
+  .login-display {
+    font-size: clamp(3.4rem, 4.6vw, 5rem);
+  }
+  .login-display-sm {
+    font-size: clamp(2.2rem, 3.2vw, 3.4rem);
+  }
+  .login-brand-rule {
+    margin: var(--space-4) 0;
+  }
+  .login-lead {
+    max-width: 30ch;
+    font-size: clamp(1rem, 1.25vw, 1.2rem);
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    color: #e4ddcf;
+  }
+
 }
 .login-theme {
   position: absolute;
@@ -855,13 +971,6 @@ h2 {
   .login-theme:hover:not(:disabled) {
     border-color: var(--border-strong);
   }
-  .login-aside {
-    padding: var(--space-20) var(--space-16);
-    justify-content: flex-end;
-  }
-  .login-display {
-    font-size: clamp(4rem, 6.5vw, 6.5rem);
-  }
   .login-card {
     align-self: center;
     padding: var(--space-16) var(--space-12);
@@ -1159,55 +1268,6 @@ h2 {
 :root[data-theme='dark'] .logo .logo-on-dark {
   display: block;
 }
-/* Khung đăng nhập luôn nền đen: dùng bản logo cho nền tối */
-.login-aside .logo .logo-on-light {
-  display: none;
-}
-.login-aside .logo .logo-on-dark {
-  display: block;
-}
-.login-logo {
-  margin-bottom: var(--space-4);
-}
-
-/* ==========================================================
-   Màn hình đăng nhập: khung thương hiệu bên trái cân với biểu mẫu bên phải
-   ========================================================== */
-.login-aside {
-  background:
-    radial-gradient(520px 420px at 22% 38%, rgba(201, 169, 110, 0.16), transparent 70%),
-    #111111;
-}
-:root[data-theme='dark'] .login-aside {
-  background:
-    radial-gradient(520px 420px at 22% 38%, rgba(201, 169, 110, 0.14), transparent 70%),
-    #1a1917;
-  border-right: 1px solid rgba(242, 240, 236, 0.08);
-}
-@media (min-width: 900px) {
-  .login-aside {
-    justify-content: center;
-    align-items: flex-start;
-    gap: var(--space-4);
-    padding: var(--space-20) var(--space-16);
-  }
-  .login-aside .login-logo {
-    width: clamp(150px, 15vw, 240px) !important;
-    height: clamp(150px, 15vw, 240px) !important;
-    margin-bottom: var(--space-8);
-  }
-  .login-display {
-    font-size: clamp(3.4rem, 5.6vw, 5.6rem);
-  }
-  .login-lead {
-    font-size: 1rem;
-    max-width: 38ch;
-  }
-  .login-card {
-    max-width: 420px;
-  }
-}
-
 /* ==========================================================
    Đăng nhập kiểu sang trọng: nền đen ấm, điểm nhấn vàng gold, vòng cung phát sáng
    ========================================================== */
@@ -1231,51 +1291,6 @@ h2 {
   --lg-input-border: transparent;
   --lg-link: var(--gold);
   background: #110e0c;
-}
-
-/* Khung thương hiệu bên trái: luôn tối, có vòng cung vàng */
-.login-wrap .login-aside {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  color: #f2f0ec;
-  background:
-    radial-gradient(900px 620px at 12% 18%, rgba(201, 169, 110, 0.08), transparent 70%),
-    #14100d;
-  border-right: 1px solid rgba(201, 169, 110, 0.28);
-}
-.login-wrap .login-aside::before,
-.login-wrap .login-aside::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  border-radius: 50%;
-  aspect-ratio: 1;
-  pointer-events: none;
-}
-.login-wrap .login-aside::before {
-  width: 150%;
-  left: -38%;
-  top: -14%;
-  border: 1px solid rgba(201, 169, 110, 0.34);
-  background: radial-gradient(circle at 62% 80%, rgba(201, 169, 110, 0.2), transparent 46%);
-  box-shadow: inset -70px -90px 140px -40px rgba(201, 169, 110, 0.32);
-}
-.login-wrap .login-aside::after {
-  width: 150%;
-  left: -30%;
-  top: -6%;
-  border: 1px solid rgba(201, 169, 110, 0.14);
-}
-.login-wrap .login-aside .eyebrow {
-  color: var(--gold);
-  letter-spacing: 0.26em;
-}
-.login-wrap .login-display {
-  color: #f6f3ec;
-}
-.login-wrap .login-lead {
-  color: #d2cbbd;
 }
 
 /* Biểu mẫu bên phải */
@@ -1353,26 +1368,6 @@ h2 {
 }
 .login-wrap .alert {
   border-radius: 0;
-}
-
-@media (min-width: 900px) {
-  .login-wrap .login-aside .login-logo {
-    width: clamp(170px, 17vw, 270px) !important;
-    height: clamp(170px, 17vw, 270px) !important;
-    margin-left: clamp(0px, 3.5vw, 56px);
-    margin-bottom: var(--space-8);
-  }
-  .login-wrap .login-display {
-    font-size: clamp(3.6rem, 6vw, 6rem);
-  }
-}
-
-/* Chế độ tối: giữ khung trái đen ấm, đường ngăn vàng mảnh (ghi đè luật cũ của chế độ tối) */
-:root[data-theme='dark'] .login-wrap .login-aside {
-  background:
-    radial-gradient(900px 620px at 12% 18%, rgba(201, 169, 110, 0.08), transparent 70%),
-    #14100d;
-  border-right: 1px solid rgba(201, 169, 110, 0.28);
 }
 
 /* Thẻ chức năng dạng liên kết (Trang quản trị) và mục thanh bên dạng liên kết */

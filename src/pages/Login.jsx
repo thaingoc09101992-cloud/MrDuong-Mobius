@@ -40,14 +40,20 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
     <div className="login-wrap">
       <ThemeToggle theme={theme} onToggle={onToggleTheme} className="login-theme" />
       <aside className="login-aside">
-        <Logo size={60} className="login-logo" />
-        <span className="eyebrow">Nền tảng nội bộ</span>
-        <h1 className="login-display">MOBIUS</h1>
-        <p className="login-lead">Nơi tập hợp các chức năng làm việc dành cho nhân viên, từ định vị điểm bán và nhiều hơn nữa.</p>
+        <div className="login-brand-lockup">
+          <Logo size="auto" className="login-logo" />
+          <div className="login-brand-copy">
+            <span className="eyebrow">Nền tảng nội bộ</span>
+            <h1 className="login-display">MOBIUS</h1>
+            <span className="login-brand-rule" aria-hidden="true" />
+            <p className="login-lead login-lead-2">
+              Mọi công cụ. Một không gian.
+            </p>
+          </div>
+        </div>
       </aside>
       <form className="card login-card" onSubmit={submit} noValidate>
         <h2 className="login-title">Đăng nhập</h2>
-        <p className="muted small">Dùng email công ty và mật khẩu được cấp.</p>
 
         <label className="field">
           <span>Email công ty</span>

@@ -53,16 +53,21 @@ export default function ChangePassword({ user, onDone, onLogout, theme, onToggle
     <div className="login-wrap">
       <ThemeToggle theme={theme} onToggle={onToggleTheme} className="login-theme" />
       <aside className="login-aside">
-        <Logo size={60} className="login-logo" />
-        <span className="eyebrow">Lần đăng nhập đầu tiên</span>
-        <h1 className="login-display">
-          Đặt mật khẩu
-          <br />
-          của bạn
-        </h1>
-        <p className="login-lead">
-          Mật khẩu tạm thời chỉ dùng một lần. Hãy đặt mật khẩu riêng để tiếp tục.
-        </p>
+        <div className="login-brand-lockup">
+          <Logo size="auto" className="login-logo" />
+          <div className="login-brand-copy">
+            <span className="eyebrow">Lần đăng nhập đầu tiên</span>
+            <h1 className="login-display login-display-sm">
+              Đặt mật khẩu
+              <br />
+              của bạn
+            </h1>
+            <span className="login-brand-rule" aria-hidden="true" />
+            <p className="login-lead">
+              Mật khẩu tạm thời chỉ dùng một lần. Hãy đặt mật khẩu riêng để tiếp tục.
+            </p>
+          </div>
+        </div>
       </aside>
       <form className="card login-card" onSubmit={submit} noValidate>
         <h2 className="login-title">Đổi mật khẩu</h2>
