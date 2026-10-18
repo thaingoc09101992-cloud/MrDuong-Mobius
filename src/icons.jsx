@@ -18,6 +18,13 @@ const PATHS = {
       <circle cx="12" cy="10" r="2.5" />
     </>
   ),
+  target: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1.2" />
+    </>
+  ),
   chart: (
     <>
       <path d="M4 20V10" />

@@ -6,6 +6,8 @@ Nền tảng làm việc nội bộ. Một trang đăng nhập duy nhất bằng
 
 - **Định vị điểm bán**: chụp ảnh, lấy định vị GPS và ghi nhận thông tin điểm bán tại thị trường; xem lịch sử và bản đồ.
 
+- **Bố trận điểm bán**: admin tải danh sách điểm bán từ Excel (doanh số tháng, doanh thu 6 tháng, trung bình 6 tháng, số đơn mỗi tháng, SKU hay mua, tọa độ), xem trên bản đồ và tô màu ghim theo ngưỡng của từng tiêu chí. Nhân viên được cấp quyền chỉ xem. Cần chạy migration `20261018_08_trade_stores.sql` và triển khai lại Edge Function `admin-employees`.
+
 ## Dùng chung toàn MOBIUS
 
 - **Nhân viên và phân quyền** (trang quản trị `/admin`, mục Nhân viên): tạo nhân viên, import Excel hàng loạt, mật khẩu tạm và bắt buộc đổi lần đầu.

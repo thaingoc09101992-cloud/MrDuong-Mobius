@@ -1,0 +1,69 @@
+/* Bố trận điểm bán */
+.tm-date {
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+.tm-filters {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.tm-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: opacity var(--motion-fast) var(--ease), border-color var(--motion-fast) var(--ease);
+}
+.tm-chip:hover {
+  border-color: var(--border-strong);
+}
+.tm-chip:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.tm-chip.is-off {
+  opacity: 0.45;
+}
+.tm-chip.is-off .tm-dot {
+  filter: grayscale(1);
+}
+.tm-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.tm-stats {
+  font-size: 0.88rem;
+}
+.tm-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.tm-preview p {
+  margin: 0;
+}
+.tm-errors {
+  margin: 0;
+  padding-left: var(--space-6);
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.tm-popup-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px var(--space-3);
+  margin-top: var(--space-1);
+}

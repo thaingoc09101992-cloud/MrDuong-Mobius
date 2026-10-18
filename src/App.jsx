@@ -7,6 +7,7 @@ import { HomePage, ToolsPage, ComingSoonPage, ProfilePage } from './pages/sectio
 import Capture from './pages/Capture.jsx'
 import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
+import TradeMap from './pages/TradeMap.jsx'
 import Icon from './icons.jsx'
 import AppShell from './AppShell.jsx'
 import { loadProfile } from './profile.js'
@@ -282,6 +283,7 @@ export default function App() {
           )}
         </>
       )}
+      {tool === 'bo-tran-diem-ban' && <TradeMap user={user} />}
     </AppShell>
   )
 }

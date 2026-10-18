@@ -11,6 +11,14 @@ export const MODULES = [
     desc: 'Chụp ảnh, lấy định vị và ghi nhận thông tin điểm bán tại thị trường.',
     icon: 'map',
   },
+  {
+    id: 'bo-tran-diem-ban',
+    name: 'Bố trận điểm bán',
+    category: 'Công cụ thị trường',
+    image: '/tools/bo-tran-diem-ban.jpg',
+    desc: 'Tải danh sách điểm bán từ Excel, xem trên bản đồ và tô màu theo doanh số, đơn hàng.',
+    icon: 'target',
+  },
 ]
 
 export const ALL_MODULE_IDS = MODULES.map((m) => m.id)

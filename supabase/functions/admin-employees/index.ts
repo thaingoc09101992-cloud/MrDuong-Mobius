@@ -9,7 +9,7 @@ const CODE_PATTERN = /^[A-Z0-9_-]{3,20}$/
 const PHONE_PATTERN = /^\+?[0-9]{9,12}$/
 const ROLES = ['staff', 'manager']
 // Các chức năng của MOBIUS (khớp ràng buộc employees_modules_known ở cơ sở dữ liệu)
-const KNOWN_MODULES = ['dinh-vi-diem-ban']
+const KNOWN_MODULES = ['dinh-vi-diem-ban', 'bo-tran-diem-ban']
 
 const cors = {
   'Access-Control-Allow-Origin': '*',

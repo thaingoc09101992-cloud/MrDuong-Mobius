@@ -27,6 +27,7 @@ Nếu người thiết kế hoặc AI được giao thêm một công cụ hay t
 - Kích thước khuyên dùng: rộng từ 1200px, tỉ lệ khoảng 3:1 (ví dụ 1200 × 400). Tối thiểu 780px. Thẻ cắt ảnh kiểu `cover`, căn giữa, nên chủ thể phải nằm vùng giữa.
 - Dung lượng dưới khoảng 150 KB, JPEG chất lượng 85-88.
 - Không có chữ, logo, watermark trong ảnh.
+- **Đồng nhất sắc thái giữa các thẻ:** mọi ảnh tiêu đề phải cùng tông tối, độ sáng trung bình khoảng 100-140 trên thang 255. Ảnh nền sáng (bản đồ, giấy, tường trắng) phải được đảo tông hoặc làm tối trước khi dùng, để các thẻ đứng cạnh nhau không lệch sáng tối.
 - Nội dung phù hợp công cụ, tông trầm, ít chi tiết sáng gắt ở nửa dưới (chữ trắng đè lên đó).
 
 ## 3. Cấu trúc thẻ
