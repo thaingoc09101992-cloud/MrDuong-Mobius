@@ -1,11 +1,154 @@
-/* Bố trận điểm bán */
-.tm-date {
-  font-weight: 400;
-  font-size: 0.85rem;
+/* Bố trận điểm bán: mọi luật đều nằm dưới .tm để không ảnh hưởng bản đồ của "Định vị điểm bán" */
+.tm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--bg);
+}
+
+/* Thanh lệnh gọn: số điểm bán, ô tìm kiếm, các nút thao tác */
+.tm-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.tm-count {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-right: var(--space-4);
+  border-right: 1px solid var(--border);
+}
+.tm-count-icon {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: var(--gold-deep);
+  background: var(--surface-2);
+  border-radius: 50%;
+}
+:root[data-theme='dark'] .tm-count-icon {
+  color: var(--gold);
+}
+.tm-count-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.tm-count-text strong {
+  font-size: 1.05rem;
+}
+.tm-count-text small {
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 .tm-search {
-  max-width: 420px;
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 var(--space-3);
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
 }
+.tm-search:focus-within {
+  border-color: var(--border-strong);
+}
+.tm-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+.tm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.tm-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+}
+.tm-btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+.tm-btn:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.tm-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.tm-btn-primary {
+  color: var(--bg);
+  background: var(--text);
+  border-color: var(--text);
+}
+.tm-btn-icon {
+  width: 44px;
+  padding: 0;
+}
+/* Chú thích nhỏ khi rê chuột hoặc focus vào nút chỉ có biểu tượng */
+.tm-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  color: var(--bg);
+  background: var(--text);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) var(--ease);
+  z-index: 5;
+}
+.tm-actions .tm-btn-icon:last-child::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.tm-btn[data-tip]:hover::after,
+.tm-btn[data-tip]:focus-visible::after {
+  opacity: 1;
+}
+
 .tm-preview {
   display: flex;
   flex-direction: column;
@@ -20,9 +163,100 @@
   font-size: 0.85rem;
   color: var(--muted);
 }
+
+/* Bản đồ */
+.tm-mapbox {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.tm-map {
+  height: clamp(420px, 68vh, 780px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  z-index: 0;
+}
+.tm-badge {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 1000;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  pointer-events: none;
+}
+.tm-badge-dot {
+  width: 9px;
+  height: 9px;
+  background: #0284c7;
+  border-radius: 50%;
+}
+.tm-empty {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
 .tm-popup-grid {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 2px var(--space-3);
   margin-top: var(--space-1);
+}
+
+/* Cụm điểm màu xanh nhất quán với ghim */
+.tm .marker-cluster-small,
+.tm .marker-cluster-medium,
+.tm .marker-cluster-large {
+  background: rgba(2, 132, 199, 0.28);
+}
+.tm .marker-cluster-small div,
+.tm .marker-cluster-medium div,
+.tm .marker-cluster-large div {
+  color: #ffffff;
+  background: #0284c7;
+}
+
+/* Toàn màn hình (Fullscreen API, hoặc chế độ phủ kín khi trình duyệt không hỗ trợ) */
+.tm-full {
+  padding: var(--space-3);
+  overflow: auto;
+}
+.tm-full .tm-mapbox {
+  display: flex;
+  flex-direction: column;
+}
+.tm-full .tm-map {
+  flex: 1;
+  height: auto;
+  min-height: 320px;
+}
+.tm:fullscreen {
+  height: 100vh;
+}
+.tm-full:not(:fullscreen) {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+}
+
+@media (max-width: 720px) {
+  .tm-count {
+    flex: 1 1 100%;
+    padding-right: 0;
+    border-right: 0;
+  }
+  .tm-actions {
+    width: 100%;
+  }
+  .tm-actions .tm-btn:not(.tm-btn-icon) {
+    flex: 1 1 auto;
+  }
 }

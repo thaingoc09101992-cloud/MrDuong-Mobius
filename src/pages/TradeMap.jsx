@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
+import 'leaflet.markercluster'
 import { supabase } from '../supabase.js'
 import { fold } from '../admin/util.js'
+import Icon from '../icons.jsx'
 import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExcel.js'
 import './tradeMap.css'
 
@@ -48,9 +50,10 @@ function friendlyError(error) {
 }
 
 export default function TradeMap({ user }) {
+  const wrapRef = useRef(null)
   const mapElRef = useRef(null)
   const mapRef = useRef(null)
-  const layerRef = useRef(null)
+  const clusterRef = useRef(null)
   const fitRef = useRef(false)
   const fileRef = useRef(null)
 
@@ -61,6 +64,7 @@ export default function TradeMap({ user }) {
   const [preview, setPreview] = useState(null) // kết quả đọc file đang chờ xác nhận
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
+  const [fullscreen, setFullscreen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -87,12 +91,14 @@ export default function TradeMap({ user }) {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
-    layerRef.current = L.layerGroup().addTo(map)
+    const cluster = L.markerClusterGroup({ maxClusterRadius: 50, chunkedLoading: true })
+    map.addLayer(cluster)
     mapRef.current = map
+    clusterRef.current = cluster
     return () => {
       map.remove()
       mapRef.current = null
-      layerRef.current = null
+      clusterRef.current = null
     }
   }, [])
 
@@ -102,14 +108,13 @@ export default function TradeMap({ user }) {
     return stores.filter((s) => fold(`${s.name} ${s.store_code || ''} ${s.address || ''}`).includes(q))
   }, [stores, search])
 
-  // Vẽ lại ghim khi dữ liệu hoặc từ khóa tìm kiếm đổi
+  // Vẽ lại điểm khi dữ liệu hoặc từ khóa tìm kiếm đổi
   useEffect(() => {
     const map = mapRef.current
-    const layer = layerRef.current
-    if (!map || !layer) return
-    layer.clearLayers()
-    const points = []
-    visible.forEach((s) => {
+    const cluster = clusterRef.current
+    if (!map || !cluster) return
+    cluster.clearLayers()
+    const markers = visible.map((s) => {
       const m = L.circleMarker([s.lat, s.lng], {
         radius: 7,
         color: '#ffffff',
@@ -118,14 +123,43 @@ export default function TradeMap({ user }) {
         fillOpacity: 0.92,
       })
       m.bindPopup(() => buildPopup(s), { maxWidth: 280, minWidth: 220, autoPanPadding: [24, 24] })
-      m.addTo(layer)
-      points.push([s.lat, s.lng])
+      return m
     })
-    if (fitRef.current && points.length > 0) {
-      map.fitBounds(L.latLngBounds(points).pad(0.15), { maxZoom: 16 })
+    cluster.addLayers(markers)
+    if (fitRef.current && markers.length > 0) {
+      map.fitBounds(cluster.getBounds().pad(0.15), { maxZoom: 16 })
       fitRef.current = false
     }
   }, [visible])
+
+  // Theo dõi chế độ toàn màn hình (kể cả khi thoát bằng phím Esc)
+  useEffect(() => {
+    function onChange() {
+      setFullscreen(document.fullscreenElement === wrapRef.current)
+      setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 150)
+    }
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  async function toggleFullscreen() {
+    const node = wrapRef.current
+    if (!node) return
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      } else if (node.requestFullscreen) {
+        await node.requestFullscreen()
+      } else {
+        // Trình duyệt không hỗ trợ API toàn màn hình (ví dụ iPhone): dùng chế độ phủ kín màn hình
+        setFullscreen((v) => !v)
+        setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 150)
+      }
+    } catch {
+      setFullscreen((v) => !v)
+      setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 150)
+    }
+  }
 
   async function onPickFile(e) {
     const file = e.target.files && e.target.files[0]
@@ -161,79 +195,102 @@ export default function TradeMap({ user }) {
   const uploadedAt = stores[0] && stores[0].uploaded_at
 
   return (
-    <section className="map-wrap tm">
-      <div className="map-toolbar">
-        <div className="row between wrap-row">
-          <strong>
-            {visible.length} / {total} điểm bán
-            {uploadedAt && <span className="muted tm-date"> · cập nhật {new Date(uploadedAt).toLocaleDateString('vi-VN')}</span>}
-          </strong>
-          <div className="row wrap-row">
-            {user.isAdmin && (
-              <>
-                <button type="button" className="btn btn-ghost btn-sm" onClick={downloadStoresTemplate}>
-                  Tải file mẫu
-                </button>
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
-                  Tải danh sách Excel
-                </button>
-                <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
-              </>
-            )}
-            <button type="button" className="btn btn-ghost btn-sm" onClick={load} disabled={loading}>
-              {loading ? 'Đang tải...' : 'Tải lại'}
-            </button>
-          </div>
+    <section className={`tm ${fullscreen ? 'tm-full' : ''}`} ref={wrapRef}>
+      <div className="tm-bar">
+        <div className="tm-count">
+          <span className="tm-count-icon">
+            <Icon name="map" size={22} />
+          </span>
+          <span className="tm-count-text">
+            <strong>{nf.format(total)} điểm bán</strong>
+            <small>{uploadedAt ? `Cập nhật ${new Date(uploadedAt).toLocaleDateString('vi-VN')}` : 'Chưa có dữ liệu'}</small>
+          </span>
         </div>
 
-        {notice && <div className="alert">{notice}</div>}
-        {error && <div className="alert alert-error">{error}</div>}
-
-        {preview && (
-          <div className="card tm-preview">
-            <strong>Đọc file: {preview.file}</strong>
-            <p className="muted">
-              {preview.total} dòng dữ liệu: <strong>{preview.rows.length}</strong> hợp lệ
-              {preview.errors.length > 0 && <>, <strong>{preview.errors.length}</strong> lỗi sẽ bị bỏ qua</>}.
-              Khi xác nhận, toàn bộ danh sách hiện có sẽ được thay bằng danh sách này (tối đa {MAX_STORES} điểm bán).
-            </p>
-            {preview.errors.length > 0 && (
-              <ul className="tm-errors">
-                {preview.errors.slice(0, 8).map((e) => (
-                  <li key={e.row}>Dòng {e.row}: {e.message}</li>
-                ))}
-                {preview.errors.length > 8 && <li>... và {preview.errors.length - 8} lỗi khác</li>}
-              </ul>
-            )}
-            <div className="row wrap-row">
-              <button type="button" className="btn btn-primary btn-sm" onClick={confirmReplace} disabled={busy || preview.rows.length === 0}>
-                {busy ? 'Đang lưu...' : `Thay thế bằng ${preview.rows.length} điểm bán`}
-              </button>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPreview(null)} disabled={busy}>
-                Hủy
-              </button>
-            </div>
-          </div>
-        )}
-
-        <label className="field field-sm tm-search">
-          <span>Tìm điểm bán</span>
+        <label className="tm-search">
+          <Icon name="search" size={18} />
           <input
             type="search"
             value={search}
             placeholder="Tên, mã hoặc địa chỉ"
+            aria-label="Tìm điểm bán"
             onChange={(e) => {
               fitRef.current = true
               setSearch(e.target.value)
             }}
           />
         </label>
+
+        <div className="tm-actions">
+          {user.isAdmin && (
+            <>
+              <button type="button" className="tm-btn" onClick={downloadStoresTemplate}>
+                <Icon name="download" size={18} />
+                <span>Tải file mẫu</span>
+              </button>
+              <button type="button" className="tm-btn tm-btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
+                <Icon name="upload" size={18} />
+                <span>Nhập danh sách Excel</span>
+              </button>
+              <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
+            </>
+          )}
+          <button type="button" className="tm-btn tm-btn-icon" data-tip="Tải lại" aria-label="Tải lại dữ liệu" onClick={load} disabled={loading}>
+            <Icon name="refresh" size={18} />
+          </button>
+          <button
+            type="button"
+            className="tm-btn tm-btn-icon"
+            data-tip={fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+            aria-label={fullscreen ? 'Thoát toàn màn hình' : 'Xem toàn màn hình'}
+            onClick={toggleFullscreen}
+          >
+            <Icon name={fullscreen ? 'collapse' : 'expand'} size={18} />
+          </button>
+        </div>
       </div>
 
-      <div ref={mapElRef} className="map-canvas" />
+      {notice && <div className="alert">{notice}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
+
+      {preview && (
+        <div className="card tm-preview">
+          <strong>Đọc file: {preview.file}</strong>
+          <p className="muted">
+            {preview.total} dòng dữ liệu: <strong>{preview.rows.length}</strong> hợp lệ
+            {preview.errors.length > 0 && <>, <strong>{preview.errors.length}</strong> lỗi sẽ bị bỏ qua</>}.
+            Khi xác nhận, toàn bộ danh sách hiện có sẽ được thay bằng danh sách này (tối đa {MAX_STORES} điểm bán).
+          </p>
+          {preview.errors.length > 0 && (
+            <ul className="tm-errors">
+              {preview.errors.slice(0, 8).map((e) => (
+                <li key={e.row}>Dòng {e.row}: {e.message}</li>
+              ))}
+              {preview.errors.length > 8 && <li>... và {preview.errors.length - 8} lỗi khác</li>}
+            </ul>
+          )}
+          <div className="tm-actions">
+            <button type="button" className="tm-btn tm-btn-primary" onClick={confirmReplace} disabled={busy || preview.rows.length === 0}>
+              {busy ? 'Đang lưu...' : `Thay thế bằng ${preview.rows.length} điểm bán`}
+            </button>
+            <button type="button" className="tm-btn" onClick={() => setPreview(null)} disabled={busy}>
+              Hủy
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="tm-mapbox">
+        <div ref={mapElRef} className="tm-map" />
+        <div className="tm-badge" aria-live="polite">
+          <span className="tm-badge-dot" />
+          {nf.format(visible.length)} điểm đang hiển thị
+        </div>
+      </div>
+
       {!loading && !error && total === 0 && (
-        <p className="map-empty muted">
-          {user.isAdmin ? 'Chưa có danh sách điểm bán. Bấm "Tải danh sách Excel" để bắt đầu (có file mẫu).' : 'Chưa có danh sách điểm bán. Vui lòng liên hệ quản trị viên.'}
+        <p className="tm-empty muted">
+          {user.isAdmin ? 'Chưa có danh sách điểm bán. Bấm "Nhập danh sách Excel" để bắt đầu (có file mẫu).' : 'Chưa có danh sách điểm bán. Vui lòng liên hệ quản trị viên.'}
         </p>
       )}
     </section>
