@@ -979,15 +979,14 @@ h2 {
 }
 .module-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
   gap: var(--space-4);
 }
 .module-card {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-6);
+  align-items: stretch;
+  overflow: hidden;
   text-align: left;
   font: inherit;
   color: inherit;
@@ -1005,35 +1004,130 @@ h2 {
   outline: 2px solid var(--text);
   outline-offset: 2px;
 }
+.module-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-6) var(--space-6) 0;
+}
+.module-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6) var(--space-6) var(--space-4);
+}
+/* Phần đầu thẻ có ảnh đen trắng: phủ lớp tối để chữ trắng luôn đọc được */
+.module-head.has-cover {
+  align-items: flex-end;
+  min-height: 150px;
+  padding-bottom: var(--space-4);
+  color: #ffffff;
+  background-size: cover;
+  background-position: center;
+  background-color: #1a1a1a;
+  position: relative;
+  isolation: isolate;
+}
+.module-head.has-cover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.82) 0%, rgba(10, 10, 10, 0.5) 55%, rgba(10, 10, 10, 0.28) 100%);
+}
+.module-head.has-cover .module-icon {
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.module-head.has-cover .module-kicker {
+  color: var(--gold-soft);
+}
 .module-icon {
-  width: 48px;
-  height: 48px;
+  flex: none;
+  width: 54px;
+  height: 54px;
   display: grid;
   place-items: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border-radius: var(--radius-lg);
 }
-.module-name {
-  font-family: var(--font-editorial);
-  font-size: 1.7rem;
-  font-weight: 500;
-  line-height: 1.1;
-}
-.module-desc {
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-.module-go {
-  margin-top: var(--space-2);
-  display: inline-flex;
-  align-items: center;
+.module-id {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 500;
+  min-width: 0;
+}
+.module-kicker {
+  color: var(--gold-deep);
+  font-size: 0.68rem;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.field .ad-check input {
+.module-name {
+  font-family: var(--font-editorial);
+  font-size: clamp(1.75rem, 1.4rem + 1.1vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.module-desc {
+  margin-top: var(--space-2);
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.module-foot {
+  margin-top: auto; /* luôn neo xuống cuối thẻ */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+.module-go {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.module-arrow {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: #111111;
+  background: var(--gold-deep);
+  border-radius: 50%;
+  transition: background var(--motion-normal) var(--ease);
+}
+.module-card:hover .module-arrow,
+.module-card:focus-visible .module-arrow {
+  background: var(--gold);
+}
+:root[data-theme='dark'] .module-head.has-cover .module-kicker {
+  color: var(--gold-soft);
+}
+:root[data-theme='dark'] .module-kicker {
+  color: var(--gold);
+}
+:root[data-theme='dark'] .module-arrow {
+  background: var(--gold-soft);
+}
+:root[data-theme='dark'] .module-card:hover .module-arrow,
+:root[data-theme='dark'] .module-card:focus-visible .module-arrow {
+  background: var(--gold);
+}.field .ad-check input {
   width: 18px;
   min-height: 0;
   height: 18px;

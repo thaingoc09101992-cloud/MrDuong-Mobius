@@ -6,6 +6,8 @@ export const MODULES = [
   {
     id: 'dinh-vi-diem-ban',
     name: 'Định vị điểm bán',
+    category: 'Công cụ thị trường',
+    image: '/tools/dinh-vi-diem-ban.jpg', // ảnh đen trắng nền phần đầu thẻ, bỏ trống thì thẻ không có ảnh
     desc: 'Chụp ảnh, lấy định vị và ghi nhận thông tin điểm bán tại thị trường.',
     icon: 'map',
   },

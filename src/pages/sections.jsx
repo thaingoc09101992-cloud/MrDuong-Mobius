@@ -45,14 +45,26 @@ function ToolGrid({ tools, onOpenTool }) {
     <div className="module-grid">
       {tools.map((m) => (
         <button key={m.id} type="button" className="module-card" onClick={() => onOpenTool(m.id)}>
-          <span className="module-icon">
-            <Icon name={m.icon} size={26} />
+          <span
+            className={`module-head ${m.image ? 'has-cover' : ''}`}
+            style={m.image ? { backgroundImage: `url("${m.image}")` } : undefined}
+          >
+            <span className="module-icon">
+              <Icon name={m.icon} size={26} />
+            </span>
+            <span className="module-id">
+              <span className="module-kicker">{m.category || 'Công cụ'}</span>
+              <span className="module-name">{m.name}</span>
+            </span>
           </span>
-          <span className="module-name">{m.name}</span>
-          <span className="module-desc">{m.desc}</span>
-          <span className="module-go">
-            Mở công cụ
-            <Icon name="chevron-right" size={16} />
+          <span className="module-body">
+            <span className="module-desc">{m.desc}</span>
+            <span className="module-foot">
+              <span className="module-go">Mở công cụ</span>
+              <span className="module-arrow" aria-hidden="true">
+                <Icon name="arrow-right" size={18} />
+              </span>
+            </span>
           </span>
         </button>
       ))}
