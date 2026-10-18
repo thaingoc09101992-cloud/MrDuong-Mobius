@@ -21,6 +21,18 @@ export const MODULES = [
   },
 ]
 
+// Mục "Kiến thức": dùng cùng kiểu thẻ với công cụ (xem docs/TOOL_CARD_SPEC.md). Mọi nhân viên đều xem được, không qua phân quyền chức năng.
+export const KNOWLEDGE_ITEMS = [
+  {
+    id: 'lessons',
+    name: 'Bài học',
+    category: 'Kiến thức',
+    image: '/tools/bai-hoc.jpg',
+    desc: 'Các bài học và tài liệu slide của công ty, xem trực tiếp ngay trong MOBIUS.',
+    icon: 'book',
+  },
+]
+
 export const ALL_MODULE_IDS = MODULES.map((m) => m.id)
 
 /** Nhân viên cũ chưa có cột modules được coi là dùng được mọi chức năng. */

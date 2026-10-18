@@ -1,0 +1,208 @@
+/* Bài học: mọi luật dùng tiền tố .ls để không ảnh hưởng nơi khác */
+.ls-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.ls-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 44px;
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--motion-fast) var(--ease);
+}
+.ls-btn:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+.ls-btn:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.ls-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.ls-btn-primary {
+  color: var(--bg);
+  background: var(--text);
+  border-color: var(--text);
+}
+.ls-btn-icon {
+  width: 44px;
+  padding: 0;
+}
+.ls-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ls-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ls-form-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.ls-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.ls-item {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+.ls-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--motion-normal) var(--ease), transform var(--motion-normal) var(--ease);
+}
+.ls-open:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+.ls-open:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+.ls-row {
+  cursor: default;
+}
+.ls-row:hover {
+  border-color: var(--border);
+  transform: none;
+}
+.ls-icon {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  border-radius: var(--radius-lg);
+}
+.ls-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ls-text strong {
+  font-size: 1.02rem;
+  overflow-wrap: anywhere;
+}
+.ls-desc {
+  color: var(--muted);
+  font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ls-item > .ls-btn-icon {
+  height: auto;
+}
+
+/* Trình xem */
+.ls-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--bg);
+}
+.ls-vbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.ls-vtitle {
+  flex: 1 1 200px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ls-pager {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ls-count {
+  min-width: 72px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+}
+.ls-stage {
+  display: grid;
+  place-items: center;
+  /* Khung xem chiếm gần hết chiều cao màn hình còn lại dưới thanh tiêu đề và thanh điều khiển */
+  height: max(360px, calc(100vh - 252px));
+  height: max(360px, calc(100dvh - 252px));
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.ls-canvas {
+  display: block;
+  background: #ffffff;
+  border: 1px solid var(--border);
+}
+.ls-full {
+  padding: var(--space-3);
+}
+.ls-full .ls-stage {
+  flex: 1;
+  height: auto;
+}
+@media (max-width: 900px) {
+  .ls-stage {
+    height: max(300px, calc(100vh - 270px));
+    height: max(300px, calc(100dvh - 270px));
+  }
+}
+.ls-full .ls-stage {
+  height: auto;
+}
+.ls-viewer:fullscreen {
+  height: 100vh;
+}
+.ls-full:not(:fullscreen) {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+}

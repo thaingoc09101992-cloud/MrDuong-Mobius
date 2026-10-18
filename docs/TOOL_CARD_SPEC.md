@@ -17,6 +17,8 @@ Khai báo trong `MODULES` ở [src/modules.js](../src/modules.js). Thẻ đọc 
 | `icon` | Có | Tên icon có trong [src/icons.jsx](../src/icons.jsx). Cần icon mới thì thêm vào file này, không dùng thư viện ngoài. |
 | `image` | **Có** | Ảnh tiêu đề đen trắng, xem mục 2. |
 
+**Thẻ trong mục Kiến thức** (ví dụ "Bài học") dùng đúng cùng thiết kế và cùng bộ trường dữ liệu, khai báo trong `KNOWLEDGE_ITEMS` ở `src/modules.js` (với `category: 'Kiến thức'`). Các thẻ này không qua phân quyền chức năng, mọi nhân viên đều thấy.
+
 ### Quy tắc khi thiếu ảnh tiêu đề
 Nếu người thiết kế hoặc AI được giao thêm một công cụ hay thẻ mới mà **chưa có ảnh tiêu đề thì phải dừng lại và yêu cầu chủ dự án cung cấp ảnh**. Không được tự chọn ảnh ngẫu nhiên, không tải ảnh từ internet, không dùng ảnh của công cụ khác, và không phát hành thẻ không ảnh. (Code vẫn hiển thị được thẻ khi thiếu `image` chỉ để tránh lỗi, đó không phải kiểu thiết kế được chấp nhận.)
 

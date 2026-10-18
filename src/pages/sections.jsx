@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MODULES, moduleNames } from '../modules.js'
+import { MODULES, KNOWLEDGE_ITEMS, moduleNames } from '../modules.js'
 import Icon from '../icons.jsx'
 import Hero from './Hero.jsx'
 import { fetchBanners } from '../banners.js'
@@ -33,7 +33,7 @@ export function HomePage({ user, onOpenTool }) {
   )
 }
 
-function ToolGrid({ tools, onOpenTool }) {
+export function ToolGrid({ tools, onOpenTool }) {
   if (tools.length === 0) {
     return (
       <div className="card center muted">
@@ -87,7 +87,21 @@ export function ToolsPage({ user, onOpenTool }) {
   )
 }
 
-/** Trang chưa có nội dung (Video đào tạo, Kiến thức). */
+/** Kiến thức: các mục tài liệu (hiện có "Bài học"), cùng kiểu thẻ với công cụ. */
+export function KnowledgePage({ onOpenItem }) {
+  return (
+    <section className="stack">
+      <header className="page-head">
+        <span className="eyebrow">Thư viện</span>
+        <h2 className="page-title">Kiến thức</h2>
+        <p className="page-sub">Tài liệu và bài học nội bộ dành cho nhân viên.</p>
+      </header>
+      <ToolGrid tools={KNOWLEDGE_ITEMS} onOpenTool={onOpenItem} />
+    </section>
+  )
+}
+
+/** Trang chưa có nội dung (Video đào tạo). */
 export function ComingSoonPage({ eyebrow, heading, text, icon }) {
   return (
     <section className="stack">

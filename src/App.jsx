@@ -3,11 +3,12 @@ import { supabase, safeSet } from './supabase.js'
 import { MODULES, PLATFORM_NAME, ALL_MODULE_IDS, modulesOf } from './modules.js'
 import Login from './pages/Login.jsx'
 import ChangePassword from './pages/ChangePassword.jsx'
-import { HomePage, ToolsPage, ComingSoonPage, ProfilePage } from './pages/sections.jsx'
+import { HomePage, ToolsPage, KnowledgePage, ComingSoonPage, ProfilePage } from './pages/sections.jsx'
 import Capture from './pages/Capture.jsx'
 import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
 import TradeMap from './pages/TradeMap.jsx'
+import LessonsPage from './pages/LessonsPage.jsx'
 import Icon from './icons.jsx'
 import AppShell from './AppShell.jsx'
 import { loadProfile } from './profile.js'
@@ -55,6 +56,7 @@ export default function App() {
   const [booting, setBooting] = useState(true)
   const [section, setSection] = useState('home')
   const [tool, setTool] = useState(null) // null hoặc mã công cụ đang mở
+  const [knowledge, setKnowledge] = useState(null) // null hoặc mục đang mở trong Kiến thức
   const [tab, setTab] = useState('capture')
   const [theme, setTheme] = useState(
     () => document.documentElement.getAttribute('data-theme') || 'light',
@@ -139,6 +141,7 @@ export default function App() {
     setOutlets([])
     setSection('home')
     setTool(null)
+    setKnowledge(null)
   }
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
@@ -146,6 +149,7 @@ export default function App() {
   function navigate(id) {
     setSection(id)
     setTool(null)
+    setKnowledge(null)
   }
 
   // Công cụ nằm trong mục Công cụ; chưa có hồ sơ nhân viên thì không chụp ảnh được nên vào thẳng Lịch sử
@@ -218,7 +222,7 @@ export default function App() {
       onToggleTheme={toggleTheme}
       onLogout={handleLogout}
       eyebrow={tool ? `${PLATFORM_NAME} · Công cụ` : PLATFORM_NAME}
-      title={tool ? toolName : sectionName}
+      title={tool ? toolName : section === 'knowledge' && knowledge === 'lessons' ? 'Bài học' : sectionName}
       hasTabbar={inLocate}
       bottomBar={bottomBar}
     >
@@ -232,14 +236,10 @@ export default function App() {
           text="Các video hướng dẫn và đào tạo nghiệp vụ sẽ được cập nhật tại đây."
         />
       )}
-      {!tool && section === 'knowledge' && (
-        <ComingSoonPage
-          eyebrow="Thư viện"
-          heading="Kiến thức"
-          icon="book"
-          text="Tài liệu, quy trình và kiến thức nghiệp vụ sẽ được cập nhật tại đây."
-        />
+      {!tool && section === 'knowledge' && knowledge === 'lessons' && (
+        <LessonsPage onBack={() => setKnowledge(null)} />
       )}
+      {!tool && section === 'knowledge' && !knowledge && <KnowledgePage onOpenItem={setKnowledge} />}
       {!tool && section === 'profile' && <ProfilePage user={user} />}
 
       {inLocate && (

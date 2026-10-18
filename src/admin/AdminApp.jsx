@@ -6,6 +6,7 @@ import OutletTable from './OutletTable.jsx'
 import AdminMap from './AdminMap.jsx'
 import Employees from './Employees.jsx'
 import Banners from './Banners.jsx'
+import Lessons from './Lessons.jsx'
 import FilterBar from './FilterBar.jsx'
 import { exportExcel } from './exportExcel.js'
 import { applyFilters, EMPTY_FILTERS } from './util.js'
@@ -24,6 +25,7 @@ const NAV_GROUPS = [
 const TABS = [
   { id: 'employees', label: 'Nhân viên', title: 'Nhân viên và phân quyền', icon: 'users', group: 'system' },
   { id: 'banners', label: 'Banner trang chủ', title: 'Banner trang chủ', icon: 'image', group: 'system' },
+  { id: 'lessons', label: 'Bài học', title: 'Bài học', icon: 'book', group: 'system' },
   { id: 'overview', label: 'Tổng quan', icon: 'chart', group: 'locate' },
   { id: 'list', label: 'Danh sách', icon: 'list', group: 'locate' },
   { id: 'map', label: 'Bản đồ', icon: 'map', group: 'locate' },
@@ -306,6 +308,7 @@ export default function AdminApp() {
           )}
 
           {tab === 'banners' && <Banners />}
+          {tab === 'lessons' && <Lessons />}
           {tab === 'overview' && <Overview rows={rows} employees={employees} />}
           {tab === 'list' && <OutletTable rows={filtered} />}
           {tab === 'map' && <AdminMap rows={filtered} />}
