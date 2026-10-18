@@ -49,6 +49,8 @@ module-card
 
 ## 4. Thông số thiết kế
 
+**Thẻ là `<button>`:** bắt buộc đặt `padding: 0` cho `.module-card` (kèm `overflow: hidden`). Nếu không, trình duyệt áp padding mặc định của nút và ảnh phần đầu bị hở khoảng trắng hai bên và phía trên. Ảnh phần đầu luôn **tràn sát viền thẻ** ở ba cạnh (trên, trái, phải); khoảng cách bên trong do `.module-head` và `.module-body` tự giữ.
+
 **Phần đầu (có ảnh)**
 - Cao tối thiểu 150px, ảnh `cover`, căn giữa, nền dự phòng `#1a1a1a`.
 - Phủ gradient tối từ dưới lên: `rgba(10,10,10,.82)` ở đáy, `.5` ở 55%, `.28` ở đỉnh. Bắt buộc có để chữ trắng luôn đọc được.
@@ -98,6 +100,7 @@ module-card
 - [ ] Đủ 6 trường dữ liệu, `image` do chủ dự án cung cấp.
 - [ ] Ảnh đen trắng, đúng kích thước, dưới 150 KB, đặt trong `public/tools/`.
 - [ ] `npm run build` thành công.
+- [ ] Ảnh phần đầu tràn sát viền thẻ, không hở khoảng trắng hai bên và phía trên.
 - [ ] Kiểm tra chế độ sáng và tối.
 - [ ] Kiểm tra ở 1440px, 1024px, 390px: tên và mô tả không tràn, các thẻ cùng hàng cao bằng nhau.
 - [ ] Hover, focus bàn phím, và chữ tiếng Việt có dấu hiển thị đúng.
