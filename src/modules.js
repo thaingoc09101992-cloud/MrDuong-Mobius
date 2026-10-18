@@ -16,7 +16,7 @@ export const MODULES = [
     name: 'Bố trận điểm bán',
     category: 'Công cụ thị trường',
     image: '/tools/bo-tran-diem-ban.jpg',
-    desc: 'Tải danh sách điểm bán từ Excel, xem trên bản đồ và tô màu theo doanh số, đơn hàng.',
+    desc: 'Tải danh sách điểm bán từ Excel, xem vị trí trên bản đồ và thông tin chi tiết từng điểm.',
     icon: 'target',
   },
 ]

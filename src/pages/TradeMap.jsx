@@ -5,45 +5,10 @@ import { fold } from '../admin/util.js'
 import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExcel.js'
 import './tradeMap.css'
 
-// Tiêu chí dùng để tô màu ghim
-const CRITERIA = [
-  { key: 'revenue_current', label: 'Doanh số tháng hiện tại' },
-  { key: 'revenue_6m', label: 'Doanh thu 6 tháng' },
-  { key: 'avg_6m', label: 'Trung bình 6 tháng' },
-  { key: 'orders_per_month', label: 'Số đơn hàng mỗi tháng' },
-]
-const NO_CRITERION = 'none'
-
-const BANDS = [
-  { id: 'low', color: '#d1493f' },
-  { id: 'mid', color: '#c9a96e' },
-  { id: 'high', color: '#2f8f5b' },
-  { id: 'na', color: '#9b9791' },
-]
-const PLAIN_COLOR = '#0284c7'
+const PIN_COLOR = '#0284c7'
 
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 })
 const fmt = (v) => (v === null || v === undefined ? '-' : nf.format(v))
-
-function quantile(sorted, q) {
-  if (sorted.length === 0) return 0
-  const pos = (sorted.length - 1) * q
-  const lo = Math.floor(pos)
-  const hi = Math.ceil(pos)
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo)
-}
-
-function niceRound(n) {
-  if (!Number.isFinite(n)) return 0
-  return Math.abs(n) >= 100 ? Math.round(n) : Math.round(n * 10) / 10
-}
-
-function bandOf(value, t1, t2) {
-  if (value === null || value === undefined) return 'na'
-  if (value < t1) return 'low'
-  if (value < t2) return 'mid'
-  return 'high'
-}
 
 function el(tag, className, text) {
   const node = document.createElement(tag)
@@ -93,9 +58,6 @@ export default function TradeMap({ user }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
-  const [criterion, setCriterion] = useState(CRITERIA[0].key)
-  const [override, setOverride] = useState(null) // { t1, t2 } do người dùng nhập; null thì tự chia theo tam phân vị
-  const [hidden, setHidden] = useState([])
   const [preview, setPreview] = useState(null) // kết quả đọc file đang chờ xác nhận
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
@@ -134,57 +96,28 @@ export default function TradeMap({ user }) {
     }
   }, [])
 
-  // Ngưỡng tự động: chia đều thành 3 nhóm theo số điểm bán
-  const auto = useMemo(() => {
-    const values = stores.map((s) => s[criterion]).filter((v) => v !== null && v !== undefined).sort((a, b) => a - b)
-    return { t1: niceRound(quantile(values, 1 / 3)), t2: niceRound(quantile(values, 2 / 3)) }
-  }, [stores, criterion])
-  const t1 = override ? override.t1 : auto.t1
-  const t2 = override ? override.t2 : auto.t2
-  const colored = criterion !== NO_CRITERION
-
-  const searched = useMemo(() => {
+  const visible = useMemo(() => {
     const q = fold(search.trim())
     if (!q) return stores
     return stores.filter((s) => fold(`${s.name} ${s.store_code || ''} ${s.address || ''}`).includes(q))
   }, [stores, search])
 
-  const withBand = useMemo(
-    () => searched.map((s) => ({ s, band: colored ? bandOf(s[criterion], t1, t2) : 'all' })),
-    [searched, colored, criterion, t1, t2],
-  )
-
-  const counts = useMemo(() => {
-    const c = { low: 0, mid: 0, high: 0, na: 0 }
-    withBand.forEach((x) => {
-      if (x.band in c) c[x.band] += 1
-    })
-    return c
-  }, [withBand])
-
-  const visible = useMemo(
-    () => withBand.filter((x) => !colored || !hidden.includes(x.band)),
-    [withBand, colored, hidden],
-  )
-
-  // Vẽ lại ghim khi dữ liệu, tiêu chí hoặc ngưỡng đổi
+  // Vẽ lại ghim khi dữ liệu hoặc từ khóa tìm kiếm đổi
   useEffect(() => {
     const map = mapRef.current
     const layer = layerRef.current
     if (!map || !layer) return
     layer.clearLayers()
     const points = []
-    visible.forEach(({ s, band }) => {
-      const color = colored ? BANDS.find((b) => b.id === band).color : PLAIN_COLOR
+    visible.forEach((s) => {
       const m = L.circleMarker([s.lat, s.lng], {
         radius: 7,
         color: '#ffffff',
         weight: 1.5,
-        fillColor: color,
+        fillColor: PIN_COLOR,
         fillOpacity: 0.92,
       })
       m.bindPopup(() => buildPopup(s), { maxWidth: 280, minWidth: 220, autoPanPadding: [24, 24] })
-      m.bindTooltip(s.name, { direction: 'top', offset: [0, -6] })
       m.addTo(layer)
       points.push([s.lat, s.lng])
     })
@@ -192,23 +125,7 @@ export default function TradeMap({ user }) {
       map.fitBounds(L.latLngBounds(points).pad(0.15), { maxZoom: 16 })
       fitRef.current = false
     }
-  }, [visible, colored])
-
-  function changeCriterion(key) {
-    setCriterion(key)
-    setOverride(null)
-    setHidden([])
-  }
-
-  function setThreshold(which, text) {
-    const n = Number(text)
-    if (text === '' || !Number.isFinite(n)) return
-    setOverride({ t1, t2, [which]: n })
-  }
-
-  function toggleBand(id) {
-    setHidden((h) => (h.includes(id) ? h.filter((x) => x !== id) : [...h, id]))
-  }
+  }, [visible])
 
   async function onPickFile(e) {
     const file = e.target.files && e.target.files[0]
@@ -241,16 +158,7 @@ export default function TradeMap({ user }) {
   }
 
   const total = stores.length
-  const sum = (key) => searched.reduce((acc, s) => acc + (s[key] || 0), 0)
   const uploadedAt = stores[0] && stores[0].uploaded_at
-  const critLabel = (CRITERIA.find((c) => c.key === criterion) || {}).label
-
-  const bandLabel = {
-    low: `Thấp (< ${fmt(t1)})`,
-    mid: `Trung bình (${fmt(t1)} đến < ${fmt(t2)})`,
-    high: `Cao (≥ ${fmt(t2)})`,
-    na: 'Chưa có dữ liệu',
-  }
 
   return (
     <section className="map-wrap tm">
@@ -308,63 +216,18 @@ export default function TradeMap({ user }) {
           </div>
         )}
 
-        <div className="filters tm-filters">
-          <label className="field field-sm">
-            <span>Tìm điểm bán</span>
-            <input value={search} placeholder="Tên, mã hoặc địa chỉ" onChange={(e) => { fitRef.current = true; setSearch(e.target.value) }} />
-          </label>
-          <label className="field field-sm">
-            <span>Tô màu theo tiêu chí</span>
-            <select value={criterion} onChange={(e) => changeCriterion(e.target.value)}>
-              {CRITERIA.map((c) => (
-                <option key={c.key} value={c.key}>{c.label}</option>
-              ))}
-              <option value={NO_CRITERION}>Không tô màu</option>
-            </select>
-          </label>
-          {colored && (
-            <>
-              <label className="field field-sm">
-                <span>Ngưỡng thấp / trung bình</span>
-                <input key={`a-${criterion}-${override ? 'o' : 'a'}`} type="number" inputMode="decimal" defaultValue={t1} onBlur={(e) => setThreshold('t1', e.target.value)} />
-              </label>
-              <label className="field field-sm">
-                <span>Ngưỡng trung bình / cao</span>
-                <input key={`b-${criterion}-${override ? 'o' : 'a'}`} type="number" inputMode="decimal" defaultValue={t2} onBlur={(e) => setThreshold('t2', e.target.value)} />
-              </label>
-            </>
-          )}
-        </div>
-
-        {colored && (
-          <div className="tm-legend" role="group" aria-label={`Chú giải theo ${critLabel}`}>
-            {BANDS.map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                className={`tm-chip ${hidden.includes(b.id) ? 'is-off' : ''}`}
-                aria-pressed={!hidden.includes(b.id)}
-                onClick={() => toggleBand(b.id)}
-              >
-                <span className="tm-dot" style={{ background: b.color }} />
-                {bandLabel[b.id]}
-                <strong>{counts[b.id]}</strong>
-              </button>
-            ))}
-            {override && (
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setOverride(null)}>
-                Tự chia lại ngưỡng
-              </button>
-            )}
-          </div>
-        )}
-
-        {total > 0 && (
-          <div className="tm-stats muted">
-            Tổng doanh số tháng này: <strong>{fmt(sum('revenue_current'))}</strong> · Tổng doanh thu 6 tháng:{' '}
-            <strong>{fmt(sum('revenue_6m'))}</strong> (theo các điểm đang lọc)
-          </div>
-        )}
+        <label className="field field-sm tm-search">
+          <span>Tìm điểm bán</span>
+          <input
+            type="search"
+            value={search}
+            placeholder="Tên, mã hoặc địa chỉ"
+            onChange={(e) => {
+              fitRef.current = true
+              setSearch(e.target.value)
+            }}
+          />
+        </label>
       </div>
 
       <div ref={mapElRef} className="map-canvas" />
