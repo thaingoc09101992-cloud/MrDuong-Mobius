@@ -199,7 +199,7 @@
   border-top: 1px solid var(--border);
   color: var(--text);
 }
-@container (min-width: 1320px) {
+@container (min-width: 1220px) {
   .tm-style {
     order: 2;
     flex: 0 1 auto;

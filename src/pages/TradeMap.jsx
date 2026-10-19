@@ -237,6 +237,7 @@ export default function TradeMap({ user }) {
 
   const [stores, setStores] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loaded, setLoaded] = useState(0) // số điểm đã nhận được trong lúc đang tải
   const [error, setError] = useState('')
   const [preview, setPreview] = useState(null) // kết quả đọc file đang chờ xác nhận
   const [busy, setBusy] = useState(false)
@@ -247,6 +248,7 @@ export default function TradeMap({ user }) {
 
   const load = useCallback(async () => {
     setLoading(true)
+    setLoaded(0)
     setError('')
     const all = []
     let failed = null
@@ -263,6 +265,7 @@ export default function TradeMap({ user }) {
       for (const r of results) {
         const rows = Array.isArray(r.data) ? r.data : []
         all.push(...rows)
+        setLoaded(all.length)
         if (rows.length < PAGE_SIZE) {
           last = true
           break
@@ -418,8 +421,12 @@ export default function TradeMap({ user }) {
             <Icon name="map" size={22} />
           </span>
           <span className="tm-count-text">
-            <strong>{nf.format(total)} điểm bán</strong>
-            <small>{uploadedAt ? `Cập nhật ${new Date(uploadedAt).toLocaleDateString('vi-VN')}` : 'Chưa có dữ liệu'}</small>
+            <strong>{loading ? 'Đang tải điểm bán...' : `${nf.format(total)} điểm bán`}</strong>
+            <small>
+              {loading
+                ? loaded > 0 ? `Đã nhận ${nf.format(loaded)} điểm` : 'Vui lòng chờ trong giây lát'
+                : uploadedAt ? `Cập nhật ${new Date(uploadedAt).toLocaleDateString('vi-VN')}` : 'Chưa có dữ liệu'}
+            </small>
           </span>
         </div>
 
