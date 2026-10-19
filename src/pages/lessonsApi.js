@@ -74,30 +74,30 @@ export function uploadLessonFile(path, file, onProgress) {
   }
 }
 
-// Chỉ nhận liên kết https của OneDrive, SharePoint, Office (khớp ràng buộc ở cơ sở dữ liệu)
-const EMBED_HOSTS = /^https:\/\/(onedrive\.live\.com|1drv\.ms|[a-z0-9-]+\.sharepoint\.com|[a-z0-9-]+\.officeapps\.live\.com|[a-z0-9-]+\.office\.com)\//i
-
 /**
- * Lấy địa chỉ nhúng từ nội dung admin dán vào: có thể là cả mã <iframe ...> hoặc chỉ là địa chỉ.
+ * Lấy địa chỉ xem nhúng từ liên kết Google Drive admin dán vào. Chấp nhận liên kết chia sẻ của file
+ * (…/file/d/<id>/view, open?id=<id>, uc?id=<id>, …/preview) hoặc cả mã <iframe …> của Drive.
+ * Mọi dạng đều được đổi về https://drive.google.com/file/d/<id>/preview.
  * Trả về { url } hoặc { error } với thông báo thân thiện.
  */
 export function parseEmbedInput(input) {
   const raw = String(input || '').trim()
-  if (!raw) return { error: 'Hãy dán mã nhúng hoặc liên kết OneDrive.' }
+  if (!raw) return { error: 'Hãy dán liên kết Google Drive của file.' }
   const m = /<iframe[^>]*\ssrc\s*=\s*["']([^"']+)["']/i.exec(raw)
   const url = (m ? m[1] : raw).replace(/&amp;/g, '&').trim()
-  // Liên kết chia sẻ thường của 1drv.ms là trang xem, không nhúng được; địa chỉ nhúng chính thức có tham số em=
-  if (/^https:\/\/1drv\.ms\//i.test(url) && !/[?&]em=/i.test(url)) {
-    return {
-      error:
-        'Mã này chỉ là thẻ biểu tượng file (thường gặp với file PDF), không xem được nội dung. OneDrive cá nhân chỉ nhúng được trình xem cho file PowerPoint, Word, Excel (mã có em=2). Với file PDF, hãy chọn "Tải file PDF lên".',
-    }
+  if (!/^https:\/\/drive\.google\.com\//i.test(url)) {
+    return { error: 'Chỉ nhận liên kết Google Drive (bắt đầu bằng https://drive.google.com/).' }
   }
-  if (!EMBED_HOSTS.test(url)) {
-    return { error: 'Chỉ nhận liên kết https của OneDrive, SharePoint hoặc Office. Hãy dùng chức năng Nhúng (Embed) của OneDrive.' }
+  if (/\/drive\/(u\/\d+\/)?folders\//i.test(url) || /\/folderview/i.test(url)) {
+    return { error: 'Đây là liên kết thư mục. Hãy mở file rồi sao chép liên kết của chính file đó.' }
   }
-  if (url.length > 1500) return { error: 'Liên kết quá dài.' }
-  return { url }
+  const id = (/\/file\/d\/([A-Za-z0-9_-]{10,})/.exec(url) || /[?&]id=([A-Za-z0-9_-]{10,})/.exec(url) || [])[1]
+  if (!id) return { error: 'Không nhận ra file trong liên kết này. Hãy sao chép liên kết chia sẻ của file.' }
+  return { url: `https://drive.google.com/file/d/${id}/preview` }
+}
+/** Nhãn nguồn của bài học dạng liên kết, dùng ở thẻ và nút mở. Bài học cũ dùng OneDrive vẫn xem được nhưng không thêm mới. */
+export function sourceLabel(url) {
+  return /^https:\/\/drive\.google\.com\//i.test(String(url || '')) ? 'Google Drive' : 'OneDrive'
 }
 
 /** Thêm bài học dạng liên kết nhúng (chỉ admin). */
@@ -108,7 +108,7 @@ export async function addLessonLink(title, description, url) {
     p_source_url: url,
   })
   if (error) {
-    if (/lien ket khong hop le/i.test(error.message || '')) throw new Error('Liên kết không hợp lệ. Hãy dùng mã nhúng (Embed) của OneDrive.')
+    if (/lien ket khong hop le/i.test(error.message || '')) throw new Error('Liên kết không hợp lệ. Hãy dùng liên kết chia sẻ của file trên Google Drive.')
     throw new Error(lessonError(error))
   }
 }

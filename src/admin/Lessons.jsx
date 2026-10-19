@@ -27,7 +27,7 @@ export default function Lessons() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState(null)
-  const [mode, setMode] = useState('pdf') // 'pdf' = tải file lên Supabase, 'link' = dán liên kết nhúng OneDrive
+  const [mode, setMode] = useState('link') // 'link' = dán liên kết Google Drive (mặc định), 'pdf' = tải file lên Supabase
   const [linkInput, setLinkInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [active, setActive] = useState(null)
@@ -185,11 +185,11 @@ export default function Lessons() {
           <input value={description} maxLength={1000} disabled={busy} onChange={(e) => setDescription(e.target.value)} />
         </label>
         <div className="ls-mode" role="group" aria-label="Cách thêm bài học">
+          <button type="button" className={`ls-mode-btn ${mode === 'link' ? 'is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode('link')} disabled={busy}>
+            Dán liên kết Google Drive
+          </button>
           <button type="button" className={`ls-mode-btn ${mode === 'pdf' ? 'is-active' : ''}`} aria-pressed={mode === 'pdf'} onClick={() => setMode('pdf')} disabled={busy}>
             Tải file PDF lên
-          </button>
-          <button type="button" className={`ls-mode-btn ${mode === 'link' ? 'is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode('link')} disabled={busy}>
-            Dán liên kết OneDrive
           </button>
         </div>
         {mode === 'pdf' ? (
@@ -203,18 +203,19 @@ export default function Lessons() {
           </div>
         ) : (
           <label className="field">
-            <span>Mã nhúng hoặc liên kết OneDrive</span>
+            <span>Liên kết Google Drive của file</span>
             <textarea
               className="ls-link-input"
               rows={3}
               value={linkInput}
               disabled={busy}
               onChange={(e) => setLinkInput(e.target.value)}
-              placeholder='Dán mã nhúng (bắt đầu bằng <iframe src="https://...") hoặc địa chỉ nhúng'
+              placeholder="Dán liên kết chia sẻ của file, ví dụ https://drive.google.com/file/d/..."
             />
             <small className="muted ls-hint">
-              Trên OneDrive: mở file, chọn Nhúng (Embed), bấm tạo rồi sao chép mã. File vẫn nằm ở OneDrive của bạn và không tốn dung lượng Supabase.
-              Lưu ý: nhân viên chỉ xem được nếu file được chia sẻ cho họ (hoặc cho bất kỳ ai có liên kết).
+              Trên Google Drive: chuột phải vào file (PDF, PowerPoint...), chọn Chia sẻ, đặt "Bất kỳ ai có đường liên kết" (Người xem),
+              bấm Sao chép đường liên kết rồi dán vào đây. File nằm ở Drive của bạn nên không tốn dung lượng Supabase.
+              Nhân viên chỉ xem được nếu file được chia sẻ cho họ.
             </small>
           </label>
         )}

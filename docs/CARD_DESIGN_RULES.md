@@ -88,7 +88,7 @@ Thành phần: `LessonCard` ([src/pages/LessonCard.jsx](../src/pages/LessonCard.
 - **Giữa:** tên (đậm 600, một dòng, cắt "..."), mô tả (tối đa 2 dòng), metadata dạng `Tài liệu · 18/10/2026 · 425 KB`.
 - **Phải:** nút vàng "Mở tài liệu" kèm icon mở; trang quản trị có thêm nút đổi tên (bút chì) và nút xóa (thùng rác) ngay cạnh.
 
-**Hai nguồn bài học:** file PDF lưu ở Supabase Storage (mở bằng `PdfViewer`), hoặc liên kết nhúng OneDrive/SharePoint (cột `source_url`, mở bằng `EmbedViewer`). `LessonViewer` chọn trình xem theo nguồn; thẻ hiển thị giống nhau, chỉ dòng metadata khác (`OneDrive · ngày` thay cho `Tài liệu · ngày · dung lượng`). Chỉ nhận liên kết https của OneDrive, SharePoint, Office (kiểm tra ở cả giao diện và cơ sở dữ liệu); khung nhúng dùng `sandbox`.
+**Hai nguồn bài học:** file PDF lưu ở Supabase Storage (mở bằng `PdfViewer`), hoặc liên kết Google Drive (dạng `https://drive.google.com/file/d/<id>/preview`, cột `source_url`, mở bằng `EmbedViewer`). Bài học mới chỉ thêm bằng Google Drive; bài học cũ dùng OneDrive vẫn xem được. `LessonViewer` chọn trình xem theo nguồn; thẻ hiển thị giống nhau, chỉ dòng metadata khác (`Google Drive · ngày` hoặc `OneDrive · ngày` thay cho `Tài liệu · ngày · dung lượng`). Giao diện chỉ nhận liên kết https của Google Drive (kiểm tra ở cả giao diện và cơ sở dữ liệu); khung nhúng dùng `sandbox`.
 
 **Đổi tên (chỉ admin):** chỉnh trực tiếp trên thẻ.
 - Tự focus và chọn toàn bộ tên; `Enter` lưu, `Esc` hủy; có nút dấu tích và nút X rõ ràng.

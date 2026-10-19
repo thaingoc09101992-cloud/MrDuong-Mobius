@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../icons.jsx'
-import { displayTitle, formatSize, LESSON_TITLE_MAX } from './lessonsApi.js'
+import { displayTitle, formatSize, sourceLabel, LESSON_TITLE_MAX } from './lessonsApi.js'
 
 /**
  * Thẻ tài liệu dùng chung cho trang nhân viên (chỉ mở) và trang quản trị (thêm đổi tên, xóa).
@@ -69,7 +69,7 @@ export default function LessonCard({ lesson, onOpen, admin = false, onRename, on
     }
   }
 
-  const meta = [lesson.source_url ? 'OneDrive' : 'Tài liệu', new Date(lesson.created_at).toLocaleDateString('vi-VN'), formatSize(lesson.file_size)]
+  const meta = [lesson.source_url ? sourceLabel(lesson.source_url) : 'Tài liệu', new Date(lesson.created_at).toLocaleDateString('vi-VN'), formatSize(lesson.file_size)]
     .filter(Boolean)
     .join(' · ')
 

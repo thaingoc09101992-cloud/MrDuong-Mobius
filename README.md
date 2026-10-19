@@ -8,7 +8,7 @@ Nền tảng làm việc nội bộ. Một trang đăng nhập duy nhất bằng
 
 - **Bố trận điểm bán**: admin tải danh sách điểm bán từ Excel (doanh số tháng, doanh thu 6 tháng, trung bình 6 tháng, số đơn mỗi tháng, SKU hay mua, tọa độ), xem trên bản đồ, bấm vào điểm bán để xem thông tin chi tiết, có ô tìm kiếm. Nhân viên được cấp quyền chỉ xem. Cần chạy migration `20261018_08_trade_stores.sql` và triển khai lại Edge Function `admin-employees`.
 
-- **Bài học** (mục Kiến thức): admin tải file PDF (xuất từ slide) lên, nhân viên xem từng trang ngay trong MOBIUS (chuyển trang, phím mũi tên, toàn màn hình). File lưu ở kho riêng tư Supabase. Admin cũng có thể dán liên kết nhúng OneDrive thay vì tải file (không tốn dung lượng Supabase). Cần chạy migration `20261018_09_lessons.sql`, `20261019_10_rename_lesson.sql` và `20261019_11_lesson_links.sql`.
+- **Bài học** (mục Kiến thức): admin tải file PDF (xuất từ slide) lên, nhân viên xem từng trang ngay trong MOBIUS (chuyển trang, phím mũi tên, toàn màn hình). File lưu ở kho riêng tư Supabase. Admin cũng có thể dán liên kết Google Drive của file (PDF, PowerPoint...) thay vì tải file lên (không tốn dung lượng Supabase). Cần chạy migration `20261018_09_lessons.sql`, `20261019_10_rename_lesson.sql` và `20261019_11_lesson_links.sql`, `20261019_12_allow_1drv_embed.sql` và `20261019_13_allow_google_drive.sql`.
 
 ## Dùng chung toàn MOBIUS
 

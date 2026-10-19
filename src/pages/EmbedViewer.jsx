@@ -1,13 +1,14 @@
 import { useRef } from 'react'
 import Icon from '../icons.jsx'
 import useFullscreen from './useFullscreen.js'
-import { displayTitle } from './lessonsApi.js'
+import { displayTitle, sourceLabel } from './lessonsApi.js'
 
-/** Xem bài học dạng liên kết nhúng (OneDrive/SharePoint). Nội dung do Microsoft hiển thị trong khung. */
+/** Xem bài học dạng liên kết nhúng (Google Drive; bài học cũ dùng OneDrive vẫn xem được). Nội dung do nhà cung cấp hiển thị trong khung. */
 export default function EmbedViewer({ lesson, onClose }) {
   const wrapRef = useRef(null)
   const [fullscreen, toggleFullscreen] = useFullscreen(wrapRef)
   const name = displayTitle(lesson.title)
+  const source = sourceLabel(lesson.source_url)
 
   return (
     <section className={`ls-viewer ${fullscreen ? 'ls-full' : ''}`} ref={wrapRef}>
@@ -18,9 +19,9 @@ export default function EmbedViewer({ lesson, onClose }) {
         </button>
         <strong className="ls-vtitle" title={name}>{name}</strong>
         <div className="ls-pager">
-          <a className="ls-btn" href={lesson.source_url} target="_blank" rel="noopener noreferrer" aria-label="Mở trong OneDrive (tab mới)" title="Mở trong OneDrive">
+          <a className="ls-btn" href={lesson.source_url} target="_blank" rel="noopener noreferrer" aria-label={`Mở trong ${source} (tab mới)`} title={`Mở trong ${source}`}>
             <Icon name="open" size={18} />
-            <span>Mở trong OneDrive</span>
+            <span>Mở trong {source}</span>
           </a>
           <button
             type="button"
