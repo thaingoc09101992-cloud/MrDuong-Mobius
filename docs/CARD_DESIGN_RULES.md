@@ -13,30 +13,23 @@ Thẻ mới phải **tái sử dụng** component và CSS sẵn có khi cùng lo
 
 ## 1. Quy tắc chung cho mọi loại thẻ
 
+> Token màu, bo góc, khoảng cách, chuyển động nằm ở [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) (nguồn duy nhất). Phần dưới chỉ nêu **cách áp dụng cho thẻ**.
+
 ### Độ bo góc (quan trọng, hay sai)
-Chỉ dùng token, không viết số px rời. Hệ thống chỉ có 3 mức bo nhẹ:
-
-| Token | Giá trị | Dùng cho |
-|---|---|---|
-| `--radius-sm` | 2px | Chi tiết nhỏ |
-| `--radius-md` | 4px | **Thẻ**, nút, ô nhập, khung bản đồ |
-| `--radius-lg` | 8px | **Ô vuông chứa icon** bên trong thẻ |
-
-- Không bo quá 8px. Không dùng 12px, 16px hay dạng viên thuốc (`999px`).
-- Hình tròn (`50%`) chỉ dành cho: nút mũi tên tròn của thẻ công cụ, avatar, chấm trạng thái, vòng quay loading. Không dùng cho khung thẻ hay nút chữ.
+- **Thẻ: `--radius-md` (4px). Ô vuông chứa icon bên trong thẻ: `--radius-lg` (8px).** Nút và ô nhập trong thẻ: `--radius-sm`/`--radius-md` theo component nền. Không bao giờ viết số px rời, không bo 12px hay dạng viên thuốc, không bo quá 8px.
+- Hình tròn (`50%`) chỉ cho nút mũi tên tròn của thẻ công cụ, avatar, chấm trạng thái, vòng quay loading; không dùng cho khung thẻ hay nút chữ.
 - Thẻ và nút ở cùng một khu vực phải cùng mức bo.
 
 ### Viền, bóng, nền
-- Viền 1px: `--border` (mặc định), `--border-strong` khi hover hoặc focus. Thẻ công cụ có thể dùng `--color-taupe` (sáng) theo quy tắc riêng.
+- Viền 1px: `--border` (mặc định), `--border-strong` khi hover hoặc focus. Thẻ công cụ dùng `--color-taupe` ở chế độ sáng theo quy tắc riêng.
 - Bóng đổ: **thẻ công cụ không có bóng**. Thẻ dạng hàng (như thẻ tài liệu) chỉ được bóng rất nhẹ: `0 1px 2px rgba(17,17,17,.05)`, hover `0 2px 6px rgba(17,17,17,.07)`; chế độ tối `0 1px 2px rgba(0,0,0,.4)`. Không bóng nặng.
-- Không dùng gradient trang trí, glassmorphism hay hiệu ứng rườm rà. (Chỉ gradient phủ ảnh tiêu đề của thẻ công cụ là ngoại lệ, vì cần để chữ đọc được.)
+- Không gradient trang trí, glassmorphism hay hiệu ứng rườm rà (ngoại lệ duy nhất: gradient phủ ảnh tiêu đề của thẻ công cụ để chữ đọc được).
 - Nền thẻ `--surface`; nền phụ (ô icon, vùng nhấn nhẹ) `--surface-2`.
 
 ### Màu
-- Chỉ dùng token (`--surface`, `--surface-2`, `--border`, `--border-strong`, `--text`, `--muted`, `--gold`, `--gold-soft`, `--gold-deep`). Không viết mã màu rời, ngoại trừ màu cảnh báo/xóa (`#b3261e`, tối `#f2b8b5`) và chữ `#111111` trên nền vàng.
-- Vàng champagne (`--gold`) chỉ dùng cho: nhãn phân loại, ô icon dạng nhấn vàng, và **nút hành động chính của thẻ** (mục "Nút" bên dưới). Không dùng vàng cho nền cả thẻ hay chữ nội dung.
-- Mọi thẻ phải đẹp ở **cả chế độ sáng và tối** bằng token; chế độ tối chỉ đổi qua `:root[data-theme='dark']`.
-
+- Chỉ dùng token ngữ nghĩa và token vàng; không viết mã màu rời. Cảnh báo/xóa dùng `--danger-text`. Chữ trên nền vàng là `#111111`.
+- Vàng champagne chỉ dùng cho nhãn phân loại, ô icon dạng nhấn vàng và **nút hành động chính của thẻ**. Không dùng vàng cho nền cả thẻ hay chữ nội dung.
+- Thẻ phải đẹp ở **cả chế độ sáng và tối** chỉ nhờ token.
 ### Chữ
 - Tên công cụ: Cormorant Garamond (`--font-editorial`) đậm 700. Tên tài liệu và các thẻ dạng hàng: font giao diện (Be Vietnam Pro) đậm 600, cỡ khoảng 1.05rem, một dòng, cắt bằng dấu "..." khi dài.
 - Mô tả: `--muted`, khoảng 0.9-0.95rem, giới hạn 2 dòng (thẻ công cụ) bằng `-webkit-line-clamp`.
@@ -44,12 +37,12 @@ Chỉ dùng token, không viết số px rời. Hệ thống chỉ có 3 mức b
 - Hiển thị tên thân thiện: tên kỹ thuật như `AI_History_and_Evolution` hiển thị thành `AI History & Evolution` (xem `displayTitle` trong `src/pages/lessonsApi.js`). Ưu tiên tên hiển thị đã lưu trong dữ liệu.
 
 ### Khoảng cách
-Dùng token khoảng cách (`--space-1` ... `--space-20`; hợp lệ: 1, 2, 3, 4, 6, 8, 12, 16, 20). **Không có `--space-5`**, dùng sai sẽ làm mất khoảng cách.
+Dùng token khoảng cách (xem DESIGN_SYSTEM.md; không có `--space-5`).
 
 ### Nút trong thẻ
 - Nút phụ (đổi tên, xóa, hủy): nền `--surface`, viền `--border`, bo `--radius-md`, cao 44px, hover viền `--border-strong`.
 - Nút hành động chính của thẻ (ví dụ "Mở tài liệu"): **vàng champagne** (`--gold`, chữ `#111111`, đậm 600), hover `--gold-soft`.
-- Nút xóa: hover đổi sang màu cảnh báo, không đỏ sẵn.
+- Nút xóa: hover đổi sang `--danger-text`, không đỏ sẵn.
 - Nút chỉ có icon: bắt buộc có `aria-label` và `title` (tooltip); vùng bấm tối thiểu 40 × 40px (hiện dùng 44px).
 - Không lồng `<button>` trong `<button>`. Khi cả thẻ bấm được, các nút con phải chặn lan sự kiện (`stopPropagation`) để bấm đổi tên hoặc xóa không kích hoạt việc mở.
 

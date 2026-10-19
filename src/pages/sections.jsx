@@ -33,7 +33,7 @@ export function HomePage({ user, onOpenTool }) {
   )
 }
 
-export function ToolGrid({ tools, onOpenTool }) {
+function ToolGrid({ tools, onOpenTool }) {
   if (tools.length === 0) {
     return (
       <div className="card center muted">

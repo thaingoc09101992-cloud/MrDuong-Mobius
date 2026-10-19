@@ -35,7 +35,7 @@ function cellText(v) {
 }
 
 /** Đọc số theo định dạng Việt Nam hoặc quốc tế: 1.234.567 | 1,234,567 | 1234,5 | 1234.5 */
-export function parseNumber(raw) {
+function parseNumber(raw) {
   if (raw === null || raw === undefined || raw === '') return null
   if (typeof raw === 'number') return Number.isFinite(raw) ? raw : NaN
   let s = cellText(raw).replace(/\s| /g, '').replace(/[đ₫]|vnd|vnđ/gi, '')

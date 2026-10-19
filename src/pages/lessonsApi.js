@@ -114,7 +114,7 @@ export async function addLessonLink(title, description, url) {
 }
 
 /** Mới đăng nhất lên đầu, cũ nhất xuống cuối (theo ngày đăng). Cùng thời điểm thì giữ thứ tự ổn định theo id. */
-export function sortNewestFirst(list) {
+function sortNewestFirst(list) {
   return [...list].sort((a, b) => {
     const diff = new Date(b.created_at) - new Date(a.created_at)
     return diff !== 0 ? diff : String(a.id).localeCompare(String(b.id))

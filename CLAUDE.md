@@ -9,4 +9,4 @@ Khi thêm, sửa hoặc thiết kế **bất kỳ thẻ nào** (thẻ công cụ
 Thẻ công cụ có thêm quy tắc riêng tại [docs/TOOL_CARD_SPEC.md](docs/TOOL_CARD_SPEC.md). Mỗi công cụ phải có `name`, `category`, `desc`, `icon` và **`image` (ảnh tiêu đề đen trắng, cùng tông tối)** trong `src/modules.js`. Nếu chưa có ảnh tiêu đề thì **dừng lại và yêu cầu chủ dự án cung cấp**, không tự chọn hoặc tải ảnh khác.
 
 ## Tài liệu thiết kế khác
-Token và component dùng chung: [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md), [docs/COMPONENT_SPECIFICATION.md](docs/COMPONENT_SPECIFICATION.md).
+Token, nền tảng và component nền dùng chung (nguồn duy nhất, các tài liệu khác trỏ về đây): [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
