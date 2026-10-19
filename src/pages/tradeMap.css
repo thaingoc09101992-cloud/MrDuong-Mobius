@@ -287,11 +287,74 @@
   text-align: center;
   font-size: 0.9rem;
 }
-.tm-popup-grid {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px var(--space-3);
-  margin-top: var(--space-1);
+.tm-pop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.tm-pop-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+.tm-pop-title {
+  font-family: var(--font-editorial);
+  font-size: 1.45rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text);
+}
+.tm-pop-title::after {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 2px;
+  margin-top: var(--space-2);
+  background: var(--gold);
+}
+.tm-pop-address {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.tm-pop-stats {
+  display: flex;
+  flex-direction: column;
+  margin: var(--space-1) 0 0;
+  border-top: 1px solid var(--border);
+}
+.tm-pop-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tm-pop-row dt {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.tm-pop-row dd {
+  margin: 0;
+  font-family: var(--font-editorial);
+  font-size: 1.2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+.tm-pop-sku {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-2);
 }
 
 /* Cụm điểm màu xanh nhất quán với ghim */

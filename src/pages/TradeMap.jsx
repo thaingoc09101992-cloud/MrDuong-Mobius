@@ -118,23 +118,40 @@ const DotLayer = L.Layer.extend({
     ctx.clearRect(0, 0, w, h)
     const r = this._radius()
     const near = map.getZoom() >= 15
-    ctx.fillStyle = this._color
+    // Chấm được vẽ sẵn một lần thành ảnh nhỏ rồi dán lên từng vị trí, nhanh hơn nhiều so với vẽ hàng chục nghìn hình tròn
+    const sprite = this._sprite(r, near, dpr)
+    const side = sprite.width / dpr
+    const half = side / 2
     ctx.globalAlpha = near ? 1 : 0.92
-    if (near) {
-      ctx.strokeStyle = '#ffffff'
-      ctx.lineWidth = 1.5
-    }
     const { _mx: mx, _my: my } = this
-    ctx.beginPath()
     for (let i = 0; i < mx.length; i += 1) {
       const x = mx[i] * scale - ox
       const y = my[i] * scale - oy
-      if (x < -r || y < -r || x > w + r || y > h + r) continue
-      ctx.moveTo(x + r, y)
-      ctx.arc(x, y, r, 0, Math.PI * 2)
+      if (x < -half || y < -half || x > w + half || y > h + half) continue
+      ctx.drawImage(sprite, x - half, y - half, side, side)
     }
-    ctx.fill()
-    if (near) ctx.stroke()
+    ctx.globalAlpha = 1
+  },
+  _sprite(r, near, dpr) {
+    const key = `${this._color}|${r}|${near}|${dpr}`
+    if (this._spriteKey === key) return this._spriteImg
+    const side = Math.ceil((r * 2 + 4) * dpr)
+    const c = document.createElement('canvas')
+    c.width = side
+    c.height = side
+    const g = c.getContext('2d')
+    g.fillStyle = this._color
+    g.beginPath()
+    g.arc(side / 2, side / 2, r * dpr, 0, Math.PI * 2)
+    g.fill()
+    if (near) {
+      g.strokeStyle = '#ffffff'
+      g.lineWidth = 1.5 * dpr
+      g.stroke()
+    }
+    this._spriteKey = key
+    this._spriteImg = c
+    return c
   },
   _pick(point) {
     const map = this._map
@@ -176,22 +193,29 @@ function el(tag, className, text) {
 
 /** Popup dựng bằng DOM + textContent để dữ liệu từ Excel không thể chèn mã HTML. */
 function buildPopup(s) {
-  const box = el('div', 'popup')
-  box.appendChild(el('strong', 'popup-title', s.name))
-  if (s.store_code) box.appendChild(el('div', 'popup-muted', `Mã: ${s.store_code}`))
-  if (s.address) box.appendChild(el('div', null, s.address))
-  const list = el('div', 'tm-popup-grid')
+  const box = el('div', 'tm-pop')
+  if (s.store_code) box.appendChild(el('span', 'tm-pop-eyebrow', `Mã ${s.store_code}`))
+  box.appendChild(el('strong', 'tm-pop-title', s.name))
+  if (s.address) box.appendChild(el('p', 'tm-pop-address', s.address))
+  const list = el('dl', 'tm-pop-stats')
   ;[
     ['Doanh số tháng này', s.revenue_current],
     ['Doanh thu 6 tháng', s.revenue_6m],
     ['Trung bình 6 tháng', s.avg_6m],
     ['Số đơn mỗi tháng', s.orders_per_month],
   ].forEach(([label, value]) => {
-    list.appendChild(el('span', 'popup-muted', label))
-    list.appendChild(el('strong', null, fmt(value)))
+    const row = el('div', 'tm-pop-row')
+    row.appendChild(el('dt', null, label))
+    row.appendChild(el('dd', null, fmt(value)))
+    list.appendChild(row)
   })
   box.appendChild(list)
-  if (s.top_skus) box.appendChild(el('div', 'popup-muted', `SKU hay mua: ${s.top_skus}`))
+  if (s.top_skus) {
+    const sku = el('p', 'tm-pop-sku')
+    sku.appendChild(el('span', 'tm-pop-eyebrow', 'SKU hay mua'))
+    sku.appendChild(document.createTextNode(s.top_skus))
+    box.appendChild(sku)
+  }
   return box
 }
 
@@ -271,7 +295,7 @@ export default function TradeMap({ user }) {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
     const dots = new DotLayer((store) => {
-      L.popup({ maxWidth: 280, minWidth: 220, autoPanPadding: [24, 24] })
+      L.popup({ maxWidth: 300, minWidth: 260, autoPanPadding: [24, 24] })
         .setLatLng([store.lat, store.lng])
         .setContent(buildPopup(store))
         .openOn(map)
