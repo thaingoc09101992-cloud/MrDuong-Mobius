@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
-import { supabase } from '../supabase.js'
+import { supabase, safeGet, safeSet } from '../supabase.js'
 import { fold } from '../admin/util.js'
 import Icon from '../icons.jsx'
 import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExcel.js'
 import './tradeMap.css'
 
-const PIN_COLOR = '#0284c7'
+const PIN_COLOR = '#0264a0'
+const DOT_COLORS = ['#0264a0', '#dc2626', '#16a34a', '#ea580c', '#7c3aed', '#111111']
+const DOT_STYLE_KEY = 'tm-dot-style'
+
+function loadDotStyle() {
+  try {
+    const v = JSON.parse(safeGet(DOT_STYLE_KEY) || '{}')
+    const color = /^#[0-9a-f]{6}$/i.test(v.color) ? v.color : PIN_COLOR
+    const scale = Number.isFinite(v.scale) ? Math.min(Math.max(v.scale, 0.5), 4) : 1
+    return { color, scale }
+  } catch {
+    return { color: PIN_COLOR, scale: 1 }
+  }
+}
 
 /**
  * Lớp vẽ từng điểm bán lên một canvas duy nhất (nhanh với hàng chục nghìn điểm). Chấm bán trong suốt nên
@@ -15,7 +28,16 @@ const PIN_COLOR = '#0284c7'
 const DotLayer = L.Layer.extend({
   initialize(onPick) {
     this._pts = []
+    this._mx = new Float64Array(0)
+    this._my = new Float64Array(0)
     this._onPick = onPick
+    this._color = PIN_COLOR
+    this._scale = 1
+  },
+  setStyle(color, scale) {
+    this._color = color
+    this._scale = scale
+    if (this._canvas) this._draw()
   },
   onAdd(map) {
     this._map = map
@@ -30,12 +52,13 @@ const DotLayer = L.Layer.extend({
       })
     }
     this._click = (e) => this._pick(e.containerPoint)
-    map.on('move zoomend resize', this._redraw)
+    // Chỉ vẽ lại khi kéo hoặc zoom xong; trong lúc kéo, canvas (rộng hơn màn hình) trượt cùng bản đồ nên không giật
+    map.on('moveend zoomend resize', this._redraw)
     map.on('click', this._click)
     this._draw()
   },
   onRemove(map) {
-    map.off('move zoomend resize', this._redraw)
+    map.off('moveend zoomend resize', this._redraw)
     map.off('click', this._click)
     cancelAnimationFrame(this._raf)
     L.DomUtil.remove(this._canvas)
@@ -43,66 +66,97 @@ const DotLayer = L.Layer.extend({
   },
   setPoints(pts) {
     this._pts = pts
+    // Đổi sẵn sang tọa độ Mercator chuẩn hóa (0..1) một lần, để mỗi lần vẽ chỉ cần nhân và trừ
+    const mx = new Float64Array(pts.length)
+    const my = new Float64Array(pts.length)
+    pts.forEach((p, i) => {
+      const sin = Math.sin((p.lat * Math.PI) / 180)
+      mx[i] = (p.lng + 180) / 360
+      my[i] = 0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)
+    })
+    this._mx = mx
+    this._my = my
     if (this._canvas) this._draw()
   },
   _radius() {
     const z = this._map.getZoom()
-    return z <= 9 ? 2.2 : z <= 12 ? 3 : z <= 14 ? 4 : 5.5
+    return (z <= 9 ? 2.2 : z <= 12 ? 3 : z <= 14 ? 4 : 5.5) * this._scale
+  },
+  /** Gốc tọa độ của canvas so với bản đồ ở mức zoom hiện tại: điểm (x, y) trên canvas = mx * scale - ox. */
+  _frame() {
+    const map = this._map
+    const size = map.getSize()
+    const padX = Math.round(size.x / 2)
+    const padY = Math.round(size.y / 2)
+    const min = map.getPixelBounds().min
+    return {
+      size,
+      padX,
+      padY,
+      scale: 256 * 2 ** map.getZoom(),
+      ox: Math.round(min.x) - padX,
+      oy: Math.round(min.y) - padY,
+    }
   },
   _draw() {
     const map = this._map
     const c = this._canvas
     if (!map || !c) return
-    const size = map.getSize()
+    const { size, padX, padY, scale, ox, oy } = this._frame()
+    const w = size.x + padX * 2
+    const h = size.y + padY * 2
     const dpr = window.devicePixelRatio || 1
-    L.DomUtil.setPosition(c, map.containerPointToLayerPoint([0, 0]))
-    if (c.width !== Math.round(size.x * dpr) || c.height !== Math.round(size.y * dpr)) {
-      c.width = Math.round(size.x * dpr)
-      c.height = Math.round(size.y * dpr)
-      c.style.width = `${size.x}px`
-      c.style.height = `${size.y}px`
+    L.DomUtil.setPosition(c, map.containerPointToLayerPoint([-padX, -padY]))
+    if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+      c.width = Math.round(w * dpr)
+      c.height = Math.round(h * dpr)
+      c.style.width = `${w}px`
+      c.style.height = `${h}px`
     }
     const ctx = c.getContext('2d')
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    ctx.clearRect(0, 0, size.x, size.y)
+    ctx.clearRect(0, 0, w, h)
     const r = this._radius()
     const near = map.getZoom() >= 15
-    ctx.fillStyle = near ? PIN_COLOR : 'rgba(2, 100, 160, 0.92)'
+    ctx.fillStyle = this._color
+    ctx.globalAlpha = near ? 1 : 0.92
     if (near) {
       ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 1.5
     }
-    const bounds = map.getBounds().pad(0.05)
-    const s = bounds.getSouth()
-    const n = bounds.getNorth()
-    const w = bounds.getWest()
-    const e = bounds.getEast()
+    const { _mx: mx, _my: my } = this
     ctx.beginPath()
-    for (const p of this._pts) {
-      if (p.lat < s || p.lat > n || p.lng < w || p.lng > e) continue
-      const q = map.latLngToContainerPoint([p.lat, p.lng])
-      ctx.moveTo(q.x + r, q.y)
-      ctx.arc(q.x, q.y, r, 0, Math.PI * 2)
+    for (let i = 0; i < mx.length; i += 1) {
+      const x = mx[i] * scale - ox
+      const y = my[i] * scale - oy
+      if (x < -r || y < -r || x > w + r || y > h + r) continue
+      ctx.moveTo(x + r, y)
+      ctx.arc(x, y, r, 0, Math.PI * 2)
     }
     ctx.fill()
     if (near) ctx.stroke()
   },
   _pick(point) {
     const map = this._map
+    const { scale, ox, oy, padX, padY } = this._frame()
     const limit = Math.max(this._radius() + 4, 8)
-    const bounds = map.getBounds().pad(0.05)
-    let best = null
+    // Điểm bấm tính theo canvas = vị trí trên màn hình cộng phần đệm
+    const px = point.x + padX
+    const py = point.y + padY
+    const { _mx: mx, _my: my } = this
+    let best = -1
     let bestD = limit * limit
-    for (const p of this._pts) {
-      if (!bounds.contains([p.lat, p.lng])) continue
-      const q = map.latLngToContainerPoint([p.lat, p.lng])
-      const d = (q.x - point.x) ** 2 + (q.y - point.y) ** 2
+    for (let i = 0; i < mx.length; i += 1) {
+      const dx = mx[i] * scale - ox - px
+      if (dx > limit || dx < -limit) continue
+      const dy = my[i] * scale - oy - py
+      const d = dx * dx + dy * dy
       if (d <= bestD) {
         bestD = d
-        best = p
+        best = i
       }
     }
-    if (best) this._onPick(best)
+    if (best >= 0) this._onPick(this._pts[best])
   },
 })
 
@@ -168,6 +222,7 @@ export default function TradeMap({ user }) {
   const [progress, setProgress] = useState(null) // { loaded, total } khi đang lưu danh sách lên máy chủ
   const [notice, setNotice] = useState('')
   const [fullscreen, setFullscreen] = useState(false)
+  const [dotStyle, setDotStyle] = useState(loadDotStyle) // { color, scale }: màu và cỡ chấm do người xem chọn
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -268,6 +323,11 @@ export default function TradeMap({ user }) {
       fitRef.current = false
     }
   }, [visible])
+
+  useEffect(() => {
+    if (dotsRef.current) dotsRef.current.setStyle(dotStyle.color, dotStyle.scale)
+    safeSet(DOT_STYLE_KEY, JSON.stringify(dotStyle))
+  }, [dotStyle])
 
   // Theo dõi chế độ toàn màn hình (kể cả khi thoát bằng phím Esc)
   useEffect(() => {
@@ -447,6 +507,42 @@ export default function TradeMap({ user }) {
 
       <div className="tm-mapbox">
         <div ref={mapElRef} className="tm-map" />
+        <div className="tm-style">
+          <span className="tm-style-title">Kiểu chấm</span>
+          <div className="tm-swatches" role="group" aria-label="Màu chấm">
+            {DOT_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
+                style={{ background: c }}
+                aria-label={`Màu ${c}`}
+                aria-pressed={dotStyle.color.toLowerCase() === c}
+                onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
+              />
+            ))}
+            <input
+              type="color"
+              className="tm-colorpick"
+              value={dotStyle.color}
+              aria-label="Chọn màu khác"
+              onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
+            />
+          </div>
+          <label className="tm-size">
+            <span>Cỡ chấm</span>
+            <input
+              type="range"
+              min="0.5"
+              max="4"
+              step="0.1"
+              value={dotStyle.scale}
+              aria-label="Cỡ chấm"
+              onChange={(e) => setDotStyle((d) => ({ ...d, scale: Number(e.target.value) }))}
+            />
+            <span className="tm-size-val">{dotStyle.scale.toFixed(1)}x</span>
+          </label>
+        </div>
         <div className="tm-badge" aria-live="polite">
           <span className="tm-badge-dot" />
           {nf.format(visible.length)} điểm đang hiển thị
