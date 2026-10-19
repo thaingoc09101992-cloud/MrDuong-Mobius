@@ -9,6 +9,10 @@ import './tradeMap.css'
 
 const PIN_COLOR = '#0284c7'
 
+const PAGE_SIZE = 1000 // máy chủ giới hạn số dòng mỗi lần đọc, nên đọc theo từng trang
+const READ_PARALLEL = 6
+const UPLOAD_CHUNK = 2000
+
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 })
 const fmt = (v) => (v === null || v === undefined ? '-' : nf.format(v))
 
@@ -61,6 +65,7 @@ export default function TradeMap({ user }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
+  const [query, setQuery] = useState('') // từ khóa đã chờ ngừng gõ, để danh sách lớn không vẽ lại mỗi phím
   const [preview, setPreview] = useState(null) // kết quả đọc file đang chờ xác nhận
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState('')
@@ -69,13 +74,34 @@ export default function TradeMap({ user }) {
   const load = useCallback(async () => {
     setLoading(true)
     setError('')
-    const { data, error: err } = await supabase.rpc('app_list_trade_stores')
-    if (err) {
-      setError(friendlyError(err))
+    const all = []
+    let failed = null
+    // Đọc nhiều trang cùng lúc cho nhanh; dừng khi gặp trang không đầy
+    for (let start = 0; !failed; start += PAGE_SIZE * READ_PARALLEL) {
+      const results = await Promise.all(
+        Array.from({ length: READ_PARALLEL }, (_, i) =>
+          supabase.rpc('app_list_trade_stores').range(start + i * PAGE_SIZE, start + (i + 1) * PAGE_SIZE - 1),
+        ),
+      )
+      failed = results.find((r) => r.error) || null
+      if (failed) break
+      let last = false
+      for (const r of results) {
+        const rows = Array.isArray(r.data) ? r.data : []
+        all.push(...rows)
+        if (rows.length < PAGE_SIZE) {
+          last = true
+          break
+        }
+      }
+      if (last) break
+    }
+    if (failed) {
+      setError(friendlyError(failed.error))
       setStores([])
     } else {
       fitRef.current = true
-      setStores(Array.isArray(data) ? data : [])
+      setStores(all)
     }
     setLoading(false)
   }, [])
@@ -102,11 +128,21 @@ export default function TradeMap({ user }) {
     }
   }, [])
 
+  useEffect(() => {
+    const t = setTimeout(() => {
+      fitRef.current = true
+      setQuery(search)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [search])
+
+  const searchKeys = useMemo(() => stores.map((s) => fold(`${s.name} ${s.store_code || ''} ${s.address || ''}`)), [stores])
+
   const visible = useMemo(() => {
-    const q = fold(search.trim())
+    const q = fold(query.trim())
     if (!q) return stores
-    return stores.filter((s) => fold(`${s.name} ${s.store_code || ''} ${s.address || ''}`).includes(q))
-  }, [stores, search])
+    return stores.filter((_, i) => searchKeys[i].includes(q))
+  }, [stores, searchKeys, query])
 
   // Vẽ lại điểm khi dữ liệu hoặc từ khóa tìm kiếm đổi
   useEffect(() => {
@@ -180,14 +216,26 @@ export default function TradeMap({ user }) {
     if (!preview || preview.rows.length === 0) return
     setBusy(true)
     setNotice('')
-    const { data, error: err } = await supabase.rpc('app_replace_trade_stores', { p_rows: preview.rows })
+    const rows = preview.rows
+    const batch = crypto.randomUUID()
+    let err = (await supabase.rpc('app_begin_trade_upload')).error
+    for (let i = 0; !err && i < rows.length; i += UPLOAD_CHUNK) {
+      setNotice(`Đang lưu ${nf.format(Math.min(i + UPLOAD_CHUNK, rows.length))} / ${nf.format(rows.length)} điểm bán...`)
+      err = (await supabase.rpc('app_append_trade_stores', { p_batch: batch, p_rows: rows.slice(i, i + UPLOAD_CHUNK) })).error
+    }
+    let saved = 0
+    if (!err) {
+      const done = await supabase.rpc('app_finish_trade_upload', { p_batch: batch, p_expected: rows.length })
+      err = done.error
+      saved = done.data
+    }
     setBusy(false)
     if (err) {
       setNotice(friendlyError(err))
       return
     }
     setPreview(null)
-    setNotice(`Đã cập nhật ${data} điểm bán.`)
+    setNotice(`Đã cập nhật ${nf.format(saved)} điểm bán.`)
     load()
   }
 
@@ -214,10 +262,7 @@ export default function TradeMap({ user }) {
             value={search}
             placeholder="Tên, mã hoặc địa chỉ"
             aria-label="Tìm điểm bán"
-            onChange={(e) => {
-              fitRef.current = true
-              setSearch(e.target.value)
-            }}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </label>
 

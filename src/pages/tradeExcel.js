@@ -1,6 +1,6 @@
 import { fold } from '../admin/util.js'
 
-export const MAX_STORES = 10000
+export const MAX_STORES = 100000
 
 // Cột của file Excel: key trong dữ liệu, tên cột hiển thị ở file mẫu và các tên gọi khác được chấp nhận
 export const COLUMNS = [
