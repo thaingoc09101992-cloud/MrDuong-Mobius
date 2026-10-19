@@ -30,11 +30,19 @@ export function displayTitle(title) {
   return raw.replace(/_+/g, ' ').replace(/\s+/g, ' ').replace(/\s(and)\s/gi, ' & ').trim()
 }
 
-/** Danh sách bài học (admin và nhân viên Active đều đọc được). */
+/** Mới đăng nhất lên đầu, cũ nhất xuống cuối (theo ngày đăng). Cùng thời điểm thì giữ thứ tự ổn định theo id. */
+export function sortNewestFirst(list) {
+  return [...list].sort((a, b) => {
+    const diff = new Date(b.created_at) - new Date(a.created_at)
+    return diff !== 0 ? diff : String(a.id).localeCompare(String(b.id))
+  })
+}
+
+/** Danh sách bài học (admin và nhân viên Active đều đọc được), đã sắp xếp từ mới nhất đến cũ nhất. */
 export async function listLessons() {
   const { data, error } = await supabase.rpc('app_list_lessons')
   if (error) throw error
-  return Array.isArray(data) ? data : []
+  return sortNewestFirst(Array.isArray(data) ? data : [])
 }
 
 /** Đổi tên hiển thị (chỉ admin). Trả về tên đã lưu; ném lỗi có thông báo thân thiện khi thất bại. */

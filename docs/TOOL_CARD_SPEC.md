@@ -2,6 +2,8 @@
 
 **Bắt buộc tuân thủ.** Chỉ được thay đổi khi chủ dự án yêu cầu rõ ràng việc thay đổi quy tắc này. Khi thay đổi, cập nhật file này cùng lúc với code.
 
+> Quy tắc chung cho **mọi loại thẻ** (bo góc, viền, bóng, màu, nút, tương tác) nằm ở [CARD_DESIGN_RULES.md](CARD_DESIGN_RULES.md); file này chỉ là phần riêng của thẻ công cụ. Khi hai file khác nhau thì thẻ công cụ theo file này.
+
 Áp dụng cho mọi thẻ công cụ trong portal MOBIUS (trang Home và trang Công cụ), hiện được render bởi `ToolGrid` trong [src/pages/sections.jsx](../src/pages/sections.jsx), kiểu ở khối `.module-*` trong [src/styles.css](../src/styles.css). Thẻ mới hoặc loại thẻ phát triển thêm cũng phải theo cùng ngôn ngữ thiết kế này.
 
 ## 1. Dữ liệu bắt buộc của mỗi công cụ
