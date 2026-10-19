@@ -466,13 +466,13 @@ export default function TradeMap({ user }) {
         <div className="tm-actions">
           {user.isAdmin && (
             <>
-              <button type="button" className="tm-btn" onClick={downloadStoresTemplate}>
+              <button type="button" className="tm-btn" onClick={downloadStoresTemplate} title="Tải file Excel mẫu">
                 <Icon name="download" size={18} />
-                <span>Tải file mẫu</span>
+                <span>File mẫu</span>
               </button>
-              <button type="button" className="tm-btn tm-btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
+              <button type="button" className="tm-btn tm-btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title="Nhập danh sách điểm bán từ file Excel">
                 <Icon name="upload" size={18} />
-                <span>Nhập danh sách Excel</span>
+                <span>Nhập Excel</span>
               </button>
               <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
             </>
@@ -545,7 +545,7 @@ export default function TradeMap({ user }) {
 
       {!loading && !error && total === 0 && (
         <p className="tm-empty muted">
-          {user.isAdmin ? 'Chưa có danh sách điểm bán. Bấm "Nhập danh sách Excel" để bắt đầu (có file mẫu).' : 'Chưa có danh sách điểm bán. Vui lòng liên hệ quản trị viên.'}
+          {user.isAdmin ? 'Chưa có danh sách điểm bán. Bấm "Nhập Excel" để bắt đầu (có file mẫu).' : 'Chưa có danh sách điểm bán. Vui lòng liên hệ quản trị viên.'}
         </p>
       )}
     </section>
