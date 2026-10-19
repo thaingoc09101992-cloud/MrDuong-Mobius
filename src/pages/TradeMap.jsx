@@ -68,6 +68,7 @@ export default function TradeMap({ user }) {
   const [query, setQuery] = useState('') // từ khóa đã chờ ngừng gõ, để danh sách lớn không vẽ lại mỗi phím
   const [preview, setPreview] = useState(null) // kết quả đọc file đang chờ xác nhận
   const [busy, setBusy] = useState(false)
+  const [progress, setProgress] = useState(null) // { loaded, total } khi đang lưu danh sách lên máy chủ
   const [notice, setNotice] = useState('')
   const [fullscreen, setFullscreen] = useState(false)
 
@@ -218,10 +219,11 @@ export default function TradeMap({ user }) {
     setNotice('')
     const rows = preview.rows
     const batch = crypto.randomUUID()
+    setProgress({ loaded: 0, total: rows.length })
     let err = (await supabase.rpc('app_begin_trade_upload')).error
     for (let i = 0; !err && i < rows.length; i += UPLOAD_CHUNK) {
-      setNotice(`Đang lưu ${nf.format(Math.min(i + UPLOAD_CHUNK, rows.length))} / ${nf.format(rows.length)} điểm bán...`)
       err = (await supabase.rpc('app_append_trade_stores', { p_batch: batch, p_rows: rows.slice(i, i + UPLOAD_CHUNK) })).error
+      if (!err) setProgress({ loaded: Math.min(i + UPLOAD_CHUNK, rows.length), total: rows.length })
     }
     let saved = 0
     if (!err) {
@@ -230,6 +232,7 @@ export default function TradeMap({ user }) {
       saved = done.data
     }
     setBusy(false)
+    setProgress(null)
     if (err) {
       setNotice(friendlyError(err))
       return
@@ -313,6 +316,23 @@ export default function TradeMap({ user }) {
               ))}
               {preview.errors.length > 8 && <li>... và {preview.errors.length - 8} lỗi khác</li>}
             </ul>
+          )}
+          {progress && (
+            <div className="tm-progress">
+              <div
+                className="tm-progress-track"
+                role="progressbar"
+                aria-label="Tiến độ lưu danh sách"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round((progress.loaded / progress.total) * 100)}
+              >
+                <div className="tm-progress-bar" style={{ width: `${Math.round((progress.loaded / progress.total) * 100)}%` }} />
+              </div>
+              <span className="tm-progress-text muted">
+                {Math.round((progress.loaded / progress.total) * 100)}% · {nf.format(progress.loaded)} / {nf.format(progress.total)} điểm bán
+              </span>
+            </div>
           )}
           <div className="tm-actions">
             <button type="button" className="tm-btn tm-btn-primary" onClick={confirmReplace} disabled={busy || preview.rows.length === 0}>
