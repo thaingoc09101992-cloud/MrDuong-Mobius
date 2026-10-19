@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import Icon from '../icons.jsx'
 import PdfViewer from './PdfViewer.jsx'
-import { listLessons, lessonError, formatSize } from './lessonsApi.js'
+import LessonCard from './LessonCard.jsx'
+import { listLessons, lessonError } from './lessonsApi.js'
 import './lessons.css'
 
 /** Danh sách bài học để xem. Việc tải lên và xóa chỉ có ở trang quản trị (/admin). */
@@ -53,22 +54,7 @@ export default function LessonsPage({ onBack }) {
 
       <ul className="ls-list">
         {lessons.map((l) => (
-          <li key={l.id} className="ls-item">
-            <button type="button" className="ls-open" onClick={() => setActive(l)}>
-              <span className="ls-icon">
-                <Icon name="book" size={22} />
-              </span>
-              <span className="ls-text">
-                <strong>{l.title}</strong>
-                {l.description && <span className="ls-desc">{l.description}</span>}
-                <small className="muted">
-                  {new Date(l.created_at).toLocaleDateString('vi-VN')}
-                  {l.file_size ? ` · ${formatSize(l.file_size)}` : ''}
-                </small>
-              </span>
-              <Icon name="chevron-right" size={18} />
-            </button>
-          </li>
+          <LessonCard key={l.id} lesson={l} onOpen={setActive} />
         ))}
       </ul>
     </section>

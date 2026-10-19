@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase.js'
 import Icon from '../icons.jsx'
-import { LESSON_BUCKET, LESSON_MAX_FILE, listLessons, lessonError, formatSize } from '../pages/lessonsApi.js'
+import {
+  LESSON_BUCKET,
+  LESSON_MAX_FILE,
+  listLessons,
+  renameLesson,
+  lessonError,
+  formatSize,
+  displayTitle,
+} from '../pages/lessonsApi.js'
+import LessonCard from '../pages/LessonCard.jsx'
+import PdfViewer from '../pages/PdfViewer.jsx'
 import '../pages/lessons.css'
 
 /** Quản lý bài học (PDF): chỉ admin tải lên và xóa. Nhân viên xem ở mục Kiến thức → Bài học. */
@@ -15,6 +25,7 @@ export default function Lessons() {
   const [description, setDescription] = useState('')
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
+  const [active, setActive] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -47,7 +58,7 @@ export default function Lessons() {
       return
     }
     setFile(f)
-    if (!title.trim()) setTitle(f.name.replace(/\.pdf$/i, ''))
+    if (!title.trim()) setTitle(displayTitle(f.name.replace(/\.pdf$/i, '')))
   }
 
   function resetForm() {
@@ -99,6 +110,14 @@ export default function Lessons() {
     load()
   }
 
+  // Đổi tên hiển thị: chỉ cập nhật cột title; thẻ tự đổi ngay không cần tải lại trang
+  async function rename(lesson, name) {
+    const saved = await renameLesson(lesson.id, name)
+    setLessons((list) => list.map((l) => (l.id === lesson.id ? { ...l, title: saved } : l)))
+  }
+
+  if (active) return <PdfViewer lesson={active} onClose={() => setActive(null)} />
+
   return (
     <div className="stack ls">
       <p className="muted small">
@@ -137,24 +156,7 @@ export default function Lessons() {
 
       <ul className="ls-list">
         {lessons.map((l) => (
-          <li key={l.id} className="ls-item">
-            <div className="ls-open ls-row">
-              <span className="ls-icon">
-                <Icon name="book" size={22} />
-              </span>
-              <span className="ls-text">
-                <strong>{l.title}</strong>
-                {l.description && <span className="ls-desc">{l.description}</span>}
-                <small className="muted">
-                  {new Date(l.created_at).toLocaleDateString('vi-VN')}
-                  {l.file_size ? ` · ${formatSize(l.file_size)}` : ''}
-                </small>
-              </span>
-            </div>
-            <button type="button" className="ls-btn ls-btn-icon" aria-label={`Xóa bài học ${l.title}`} title="Xóa" onClick={() => remove(l)}>
-              <Icon name="trash" size={18} />
-            </button>
-          </li>
+          <LessonCard key={l.id} lesson={l} admin onOpen={setActive} onRename={rename} onDelete={remove} />
         ))}
       </ul>
     </div>

@@ -67,61 +67,61 @@
   flex-direction: column;
   gap: var(--space-3);
 }
-.ls-item {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
-}
-.ls-open {
-  flex: 1;
-  min-width: 0;
-  display: flex;
+
+/* Thẻ tài liệu */
+.ls-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-4);
-  font: inherit;
-  text-align: left;
-  color: inherit;
+  padding: var(--space-4) var(--space-5, 20px);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.05);
   cursor: pointer;
-  transition: border-color var(--motion-normal) var(--ease), transform var(--motion-normal) var(--ease);
+  transition: border-color var(--motion-normal) var(--ease), box-shadow var(--motion-normal) var(--ease);
 }
-.ls-open:hover {
+.ls-card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(17, 17, 17, 0.07);
 }
-.ls-open:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
+.ls-card:focus-within {
+  border-color: var(--border-strong);
 }
-.ls-row {
+.ls-card.is-editing {
   cursor: default;
 }
-.ls-row:hover {
-  border-color: var(--border);
-  transform: none;
+:root[data-theme='dark'] .ls-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
-.ls-icon {
+.ls-doc {
   flex: none;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
-  background: var(--surface-2);
+  color: var(--gold-deep);
+  background: color-mix(in srgb, var(--gold) 16%, var(--surface));
   border-radius: var(--radius-lg);
 }
-.ls-text {
-  flex: 1;
+:root[data-theme='dark'] .ls-doc {
+  color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, var(--surface));
+}
+.ls-body {
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.ls-text strong {
-  font-size: 1.02rem;
-  overflow-wrap: anywhere;
+.ls-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .ls-desc {
   color: var(--muted);
@@ -131,10 +131,114 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.ls-item > .ls-btn-icon {
-  height: auto;
+.ls-meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.ls-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: default;
+}
+/* Nút "Mở tài liệu" màu vàng champagne của MOBIUS (cùng màu với nút mũi tên ở thẻ công cụ) */
+.ls-btn.ls-open-btn {
+  color: #111111;
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+.ls-btn.ls-open-btn:hover:not(:disabled) {
+  background: var(--gold-soft);
+  border-color: var(--gold-soft);
+}
+.ls-btn.ls-open-btn:focus-visible {
+  outline-color: var(--gold-deep);
+}
+:root[data-theme='dark'] .ls-btn.ls-open-btn:focus-visible {
+  outline-color: var(--gold-soft);
+}.ls-btn-danger:hover:not(:disabled) {
+  color: #b3261e;
+  border-color: #b3261e;
+}
+:root[data-theme='dark'] .ls-btn-danger:hover:not(:disabled) {
+  color: #f2b8b5;
+  border-color: #f2b8b5;
+}
+.ls-edit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ls-edit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.ls-edit-input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+.ls-edit-input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.ls-edit-input[aria-invalid='true'] {
+  border-color: #b3261e;
+}
+.ls-err {
+  margin: 0;
+  color: #b3261e;
+  font-size: 0.85rem;
+}
+:root[data-theme='dark'] .ls-err {
+  color: #f2b8b5;
+}
+.ls-spin {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ls-spin 0.7s linear infinite;
+}
+@keyframes ls-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
+@media (max-width: 640px) {
+  .ls-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+  .ls-doc {
+    width: 44px;
+    height: 44px;
+  }
+  .ls-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+  /* "Mở tài liệu" thành nút biểu tượng (có aria-label và tooltip) */
+  .ls-open-btn {
+    width: 44px;
+    padding: 0;
+  }
+  .ls-open-btn span {
+    display: none;
+  }
+}
 /* Trình xem */
 .ls-viewer {
   display: flex;
