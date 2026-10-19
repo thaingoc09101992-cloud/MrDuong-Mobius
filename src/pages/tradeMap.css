@@ -199,7 +199,7 @@
   border-top: 1px solid var(--border);
   color: var(--text);
 }
-@container (min-width: 1220px) {
+@container (min-width: 1120px) {
   .tm-style {
     order: 2;
     flex: 0 1 auto;
@@ -255,7 +255,7 @@
   cursor: pointer;
 }
 .tm-range {
-  width: 100px;
+  width: 90px;
   accent-color: var(--gold-deep);
 }
 .tm-size-val {
