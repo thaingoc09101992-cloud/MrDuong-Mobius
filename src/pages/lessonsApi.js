@@ -75,7 +75,7 @@ export function uploadLessonFile(path, file, onProgress) {
 }
 
 // Chỉ nhận liên kết https của OneDrive, SharePoint, Office (khớp ràng buộc ở cơ sở dữ liệu)
-const EMBED_HOSTS = /^https:\/\/(onedrive\.live\.com|[a-z0-9-]+\.sharepoint\.com|[a-z0-9-]+\.officeapps\.live\.com|[a-z0-9-]+\.office\.com)\//i
+const EMBED_HOSTS = /^https:\/\/(onedrive\.live\.com|1drv\.ms|[a-z0-9-]+\.sharepoint\.com|[a-z0-9-]+\.officeapps\.live\.com|[a-z0-9-]+\.office\.com)\//i
 
 /**
  * Lấy địa chỉ nhúng từ nội dung admin dán vào: có thể là cả mã <iframe ...> hoặc chỉ là địa chỉ.
@@ -86,8 +86,9 @@ export function parseEmbedInput(input) {
   if (!raw) return { error: 'Hãy dán mã nhúng hoặc liên kết OneDrive.' }
   const m = /<iframe[^>]*\ssrc\s*=\s*["']([^"']+)["']/i.exec(raw)
   const url = (m ? m[1] : raw).replace(/&amp;/g, '&').trim()
-  if (/^https:\/\/1drv\.ms\//i.test(url)) {
-    return { error: 'Liên kết rút gọn 1drv.ms không nhúng được. Hãy dùng chức năng Nhúng (Embed) của OneDrive và dán mã nhúng.' }
+  // Liên kết chia sẻ thường của 1drv.ms là trang xem, không nhúng được; địa chỉ nhúng chính thức có tham số em=
+  if (/^https:\/\/1drv\.ms\//i.test(url) && !/[?&]em=/i.test(url)) {
+    return { error: 'Đây là liên kết chia sẻ thường, không nhúng được. Hãy dùng chức năng Nhúng (Embed) của OneDrive và dán mã nhúng (có chứa em=2).' }
   }
   if (!EMBED_HOSTS.test(url)) {
     return { error: 'Chỉ nhận liên kết https của OneDrive, SharePoint hoặc Office. Hãy dùng chức năng Nhúng (Embed) của OneDrive.' }

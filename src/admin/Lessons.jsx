@@ -98,7 +98,14 @@ export default function Lessons() {
       setBusy(false)
       return
     }
-    if (!title.trim() || !file) return
+    if (!title.trim()) {
+      setNotice('Hãy nhập tên bài học.')
+      return
+    }
+    if (!file) {
+      setNotice('Hãy chọn file PDF.')
+      return
+    }
     setBusy(true)
     setNotice('')
     setStage('upload')
@@ -215,7 +222,7 @@ export default function Lessons() {
           <button
             type="submit"
             className="ls-btn ls-btn-primary"
-            disabled={busy || !title.trim() || (mode === 'pdf' ? !file : !linkInput.trim())}
+            disabled={busy}
           >
             {stage === 'save' ? 'Đang lưu...' : busy ? (mode === 'link' ? 'Đang thêm...' : 'Đang tải lên...') : 'Thêm bài học'}
           </button>
