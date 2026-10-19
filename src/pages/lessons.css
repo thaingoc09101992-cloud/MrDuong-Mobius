@@ -307,6 +307,9 @@
   background: #ffffff;
   border: 1px solid var(--border);
 }
+.ls-canvas[hidden] {
+  display: none;
+}
 .ls-full {
   padding: var(--space-3);
 }

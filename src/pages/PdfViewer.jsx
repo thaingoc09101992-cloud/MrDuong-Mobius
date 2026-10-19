@@ -14,6 +14,44 @@ function loadPdfjs() {
   return pdfjsPromise
 }
 
+const RANGE_CHUNK = 1024 * 1024 // mỗi lần xin 1 MB để ít vòng chờ mạng
+const OPEN_TIMEOUT_MS = 25000
+
+/** Tải một đoạn byte [begin, end) từ liên kết có chữ ký. Máy chủ không hỗ trợ Range (trả 200) thì cắt từ cả file. */
+async function fetchRange(url, begin, end) {
+  const res = await fetch(url, { headers: { Range: `bytes=${begin}-${end - 1}` } })
+  if (res.status === 206) return { bytes: new Uint8Array(await res.arrayBuffer()), full: false }
+  if (res.status === 200) return { bytes: new Uint8Array(await res.arrayBuffer()), full: true }
+  throw new Error('range')
+}
+
+/**
+ * Mở PDF theo từng phần: máy chủ lưu trữ hỗ trợ Range nhưng không công bố qua CORS nên pdf.js không tự nhận ra,
+ * và sẽ tải trọn file trước khi hiện trang đầu. Vì đã biết dung lượng file, ta tự cung cấp các đoạn dữ liệu.
+ * Trả về promise tài liệu, hoặc null nếu không dùng được (để quay về cách tải trọn file).
+ */
+async function openRanged(lib, url, size, alive) {
+  if (!size || size <= RANGE_CHUNK) return null
+  const first = await fetchRange(url, 0, Math.min(size, RANGE_CHUNK))
+  if (first.full) return { task: lib.getDocument({ data: first.bytes }) } // đã nhận trọn file
+  let fail
+  const failed = new Promise((_, reject) => {
+    fail = reject
+  })
+  const transport = new lib.PDFDataRangeTransport(size, first.bytes)
+  transport.requestDataRange = (begin, end) => {
+    fetchRange(url, begin, end)
+      .then((r) => alive() && transport.onDataRange(begin, r.bytes))
+      .catch(() => fail(new Error('range')))
+  }
+  const task = lib.getDocument({
+    range: transport,
+    rangeChunkSize: RANGE_CHUNK,
+    disableAutoFetch: true,
+    disableStream: true,
+  })
+  return { task, failed }
+}
 /** Xem một bài học (PDF): chuyển trang, phím mũi tên, toàn màn hình. File được tải về có xác thực từ kho riêng tư. */
 export default function PdfViewer({ lesson, onClose }) {
   const wrapRef = useRef(null)
@@ -36,26 +74,28 @@ export default function PdfViewer({ lesson, onClose }) {
     ;(async () => {
       const lib = await loadPdfjs()
       let doc = null
-      // Ưu tiên tải dần theo từng phần (range request) để trang đầu hiện nhanh dù file lớn
+      // Ưu tiên tải dần theo từng phần để trang đầu hiện nhanh dù file lớn
       const signed = await supabase.storage.from('lessons').createSignedUrl(lesson.file_path, 3600)
       if (signed.data && signed.data.signedUrl) {
         try {
-          const task = lib.getDocument({ url: signed.data.signedUrl, disableAutoFetch: true, rangeChunkSize: 524288 })
-          task.onProgress = ({ loaded, total }) => {
-            if (alive && total) setLoadPct(Math.min(99, Math.round((loaded / total) * 100)))
+          const opened = await openRanged(lib, signed.data.signedUrl, lesson.file_size, () => alive)
+          if (opened) {
+            opened.task.onProgress = ({ loaded, total: all }) => {
+              if (alive && all) setLoadPct(Math.min(99, Math.round((loaded / all) * 100)))
+            }
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), OPEN_TIMEOUT_MS))
+            doc = await Promise.race([opened.task.promise, opened.failed || new Promise(() => {}), timeout])
           }
-          doc = await task.promise
         } catch {
           doc = null
         }
       }
-      // Phương án dự phòng: tải trọn file nếu máy chủ không hỗ trợ tải theo phần
+      // Phương án dự phòng: tải trọn file nếu không tải theo phần được
       if (!doc) {
         const dl = await supabase.storage.from('lessons').download(lesson.file_path)
         if (dl.error || !dl.data) throw new Error('download')
         doc = await lib.getDocument({ data: await dl.data.arrayBuffer() }).promise
-      }
-      if (!alive) {
+      }      if (!alive) {
         doc.destroy()
         return
       }
@@ -97,6 +137,14 @@ export default function PdfViewer({ lesson, onClose }) {
       await task.promise
     } catch {
       /* bị hủy vì đã chuyển trang hoặc đổi kích thước: bỏ qua */
+      return
+    }
+    // Tải trước trang kế tiếp để khi chuyển slide không phải chờ
+    if (page < doc.numPages) {
+      doc
+        .getPage(page + 1)
+        .then((next) => next.getOperatorList())
+        .catch(() => {})
     }
   }, [page])
 
