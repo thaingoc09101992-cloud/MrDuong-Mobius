@@ -3,3 +3,8 @@ dist
 .env
 .env.*
 !.env.example
+
+# Ảnh tham chiếu thiết kế, tệp đính kèm cá nhân và cấu hình trình soạn thảo: chỉ để ở máy, không đưa vào repo
+docs/mobius-login-left-panel-redesign-demo.png
+Mobius Attach/
+.vscode/
