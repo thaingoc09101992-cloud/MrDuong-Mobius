@@ -88,7 +88,10 @@ export function parseEmbedInput(input) {
   const url = (m ? m[1] : raw).replace(/&amp;/g, '&').trim()
   // Liên kết chia sẻ thường của 1drv.ms là trang xem, không nhúng được; địa chỉ nhúng chính thức có tham số em=
   if (/^https:\/\/1drv\.ms\//i.test(url) && !/[?&]em=/i.test(url)) {
-    return { error: 'Đây là liên kết chia sẻ thường, không nhúng được. Hãy dùng chức năng Nhúng (Embed) của OneDrive và dán mã nhúng (có chứa em=2).' }
+    return {
+      error:
+        'Mã này chỉ là thẻ biểu tượng file (thường gặp với file PDF), không xem được nội dung. OneDrive cá nhân chỉ nhúng được trình xem cho file PowerPoint, Word, Excel (mã có em=2). Với file PDF, hãy chọn "Tải file PDF lên".',
+    }
   }
   if (!EMBED_HOSTS.test(url)) {
     return { error: 'Chỉ nhận liên kết https của OneDrive, SharePoint hoặc Office. Hãy dùng chức năng Nhúng (Embed) của OneDrive.' }
