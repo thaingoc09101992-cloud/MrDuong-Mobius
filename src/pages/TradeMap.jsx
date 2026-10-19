@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
-import 'leaflet.markercluster'
+import Supercluster from 'supercluster'
 import { supabase } from '../supabase.js'
 import { fold } from '../admin/util.js'
 import Icon from '../icons.jsx'
@@ -8,6 +8,12 @@ import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExce
 import './tradeMap.css'
 
 const PIN_COLOR = '#0284c7'
+
+function clusterIcon(n) {
+  const size = n >= 10000 ? 52 : n >= 1000 ? 44 : n >= 100 ? 38 : 32
+  const label = n >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '')}k` : String(n)
+  return L.divIcon({ className: 'tm-cluster', html: `<span>${label}</span>`, iconSize: [size, size] })
+}
 
 const PAGE_SIZE = 1000 // máy chủ giới hạn số dòng mỗi lần đọc, nên đọc theo từng trang
 const READ_PARALLEL = 6
@@ -57,7 +63,10 @@ export default function TradeMap({ user }) {
   const wrapRef = useRef(null)
   const mapElRef = useRef(null)
   const mapRef = useRef(null)
-  const clusterRef = useRef(null)
+  const layerRef = useRef(null)
+  const indexRef = useRef(null)
+  const visibleRef = useRef([])
+  const popupOpenRef = useRef(false)
   const fitRef = useRef(false)
   const fileRef = useRef(null)
 
@@ -111,6 +120,31 @@ export default function TradeMap({ user }) {
     load()
   }, [load])
 
+  // Chỉ vẽ các điểm và cụm nằm trong vùng đang xem, để vài chục nghìn điểm bán vẫn mượt
+  const draw = useCallback(() => {
+    const map = mapRef.current
+    const layer = layerRef.current
+    const index = indexRef.current
+    if (!map || !layer || !index || popupOpenRef.current) return // đang mở popup thì giữ nguyên điểm để popup không bị đóng
+    const b = map.getBounds().pad(0.2)
+    const bbox = [Math.max(-180, b.getWest()), Math.max(-90, b.getSouth()), Math.min(180, b.getEast()), Math.min(90, b.getNorth())]
+    layer.clearLayers()
+    index.getClusters(bbox, Math.round(map.getZoom())).forEach((f) => {
+      const [lng, lat] = f.geometry.coordinates
+      if (f.properties.cluster) {
+        const id = f.properties.cluster_id
+        L.marker([lat, lng], { icon: clusterIcon(f.properties.point_count), keyboard: false })
+          .on('click', () => map.setView([lat, lng], Math.min(index.getClusterExpansionZoom(id), 19)))
+          .addTo(layer)
+      } else {
+        const store = visibleRef.current[f.properties.i]
+        L.circleMarker([lat, lng], { radius: 7, color: '#ffffff', weight: 1.5, fillColor: PIN_COLOR, fillOpacity: 0.92 })
+          .bindPopup(() => buildPopup(store), { maxWidth: 280, minWidth: 220, autoPanPadding: [24, 24] })
+          .addTo(layer)
+      }
+    })
+  }, [])
+
   // Khởi tạo bản đồ một lần
   useEffect(() => {
     const map = L.map(mapElRef.current, { zoomControl: true, preferCanvas: true }).setView([10.78, 106.7], 11)
@@ -118,16 +152,24 @@ export default function TradeMap({ user }) {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
-    const cluster = L.markerClusterGroup({ maxClusterRadius: 50, chunkedLoading: true })
-    map.addLayer(cluster)
+    const layer = L.layerGroup().addTo(map)
+    map.on('moveend', draw)
+    map.on('popupopen', () => {
+      popupOpenRef.current = true
+    })
+    map.on('popupclose', () => {
+      popupOpenRef.current = false
+      draw()
+    })
     mapRef.current = map
-    clusterRef.current = cluster
+    layerRef.current = layer
     return () => {
+      map.off('moveend', draw)
       map.remove()
       mapRef.current = null
-      clusterRef.current = null
+      layerRef.current = null
     }
-  }, [])
+  }, [draw])
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -145,29 +187,30 @@ export default function TradeMap({ user }) {
     return stores.filter((_, i) => searchKeys[i].includes(q))
   }, [stores, searchKeys, query])
 
-  // Vẽ lại điểm khi dữ liệu hoặc từ khóa tìm kiếm đổi
+  // Dựng lại chỉ mục điểm khi dữ liệu hoặc từ khóa tìm kiếm đổi
   useEffect(() => {
     const map = mapRef.current
-    const cluster = clusterRef.current
-    if (!map || !cluster) return
-    cluster.clearLayers()
-    const markers = visible.map((s) => {
-      const m = L.circleMarker([s.lat, s.lng], {
-        radius: 7,
-        color: '#ffffff',
-        weight: 1.5,
-        fillColor: PIN_COLOR,
-        fillOpacity: 0.92,
+    if (!map) return
+    visibleRef.current = visible
+    const index = new Supercluster({ radius: 60, maxZoom: 17 })
+    index.load(visible.map((s, i) => ({ type: 'Feature', properties: { i }, geometry: { type: 'Point', coordinates: [s.lng, s.lat] } })))
+    indexRef.current = index
+    if (fitRef.current && visible.length > 0) {
+      let minLat = 90
+      let maxLat = -90
+      let minLng = 180
+      let maxLng = -180
+      visible.forEach((s) => {
+        if (s.lat < minLat) minLat = s.lat
+        if (s.lat > maxLat) maxLat = s.lat
+        if (s.lng < minLng) minLng = s.lng
+        if (s.lng > maxLng) maxLng = s.lng
       })
-      m.bindPopup(() => buildPopup(s), { maxWidth: 280, minWidth: 220, autoPanPadding: [24, 24] })
-      return m
-    })
-    cluster.addLayers(markers)
-    if (fitRef.current && markers.length > 0) {
-      map.fitBounds(cluster.getBounds().pad(0.15), { maxZoom: 16 })
+      map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [40, 40], maxZoom: 16 })
       fitRef.current = false
     }
-  }, [visible])
+    draw()
+  }, [visible, draw])
 
   // Theo dõi chế độ toàn màn hình (kể cả khi thoát bằng phím Esc)
   useEffect(() => {
