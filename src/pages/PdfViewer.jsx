@@ -26,15 +26,35 @@ export default function PdfViewer({ lesson, onClose }) {
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [fullscreen, setFullscreen] = useState(false)
+  const [loadPct, setLoadPct] = useState(0)
 
   // Tải và mở file PDF
   useEffect(() => {
     let alive = true
     setStatus('loading')
+    setLoadPct(0)
     ;(async () => {
-      const [dl, lib] = await Promise.all([supabase.storage.from('lessons').download(lesson.file_path), loadPdfjs()])
-      if (dl.error || !dl.data) throw new Error('download')
-      const doc = await lib.getDocument({ data: await dl.data.arrayBuffer() }).promise
+      const lib = await loadPdfjs()
+      let doc = null
+      // Ưu tiên tải dần theo từng phần (range request) để trang đầu hiện nhanh dù file lớn
+      const signed = await supabase.storage.from('lessons').createSignedUrl(lesson.file_path, 3600)
+      if (signed.data && signed.data.signedUrl) {
+        try {
+          const task = lib.getDocument({ url: signed.data.signedUrl, disableAutoFetch: true, rangeChunkSize: 524288 })
+          task.onProgress = ({ loaded, total }) => {
+            if (alive && total) setLoadPct(Math.min(99, Math.round((loaded / total) * 100)))
+          }
+          doc = await task.promise
+        } catch {
+          doc = null
+        }
+      }
+      // Phương án dự phòng: tải trọn file nếu máy chủ không hỗ trợ tải theo phần
+      if (!doc) {
+        const dl = await supabase.storage.from('lessons').download(lesson.file_path)
+        if (dl.error || !dl.data) throw new Error('download')
+        doc = await lib.getDocument({ data: await dl.data.arrayBuffer() }).promise
+      }
       if (!alive) {
         doc.destroy()
         return
@@ -184,7 +204,7 @@ export default function PdfViewer({ lesson, onClose }) {
         </div>
       </div>
       <div className="ls-stage" ref={stageRef} title="Lăn chuột hoặc dùng phím mũi tên để chuyển slide">
-        {status === 'loading' && <p className="muted">Đang tải bài học...</p>}
+        {status === 'loading' && <p className="muted">{loadPct > 0 ? `Đang tải bài học ${loadPct}%` : 'Đang tải bài học...'}</p>}
         {status === 'error' && <p className="muted">Không mở được bài học. Vui lòng kiểm tra mạng và thử lại.</p>}
         <canvas ref={canvasRef} className="ls-canvas" hidden={status !== 'ready'} />
       </div>

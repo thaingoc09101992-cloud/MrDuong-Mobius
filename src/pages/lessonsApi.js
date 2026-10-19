@@ -30,6 +30,50 @@ export function displayTitle(title) {
   return raw.replace(/_+/g, ' ').replace(/\s+/g, ' ').replace(/\s(and)\s/gi, ' & ').trim()
 }
 
+/**
+ * Tải file PDF lên kho riêng tư và báo tiến độ (supabase-js không có sự kiện tiến độ nên gọi trực tiếp API lưu trữ).
+ * Trả về { promise, abort }. Khi hủy, promise bị từ chối bằng Error có thuộc tính aborted = true.
+ */
+export function uploadLessonFile(path, file, onProgress) {
+  const xhr = new XMLHttpRequest()
+  let cancelled = false
+  const cancelError = () => Object.assign(new Error('Đã hủy tải lên.'), { aborted: true })
+
+  const promise = (async () => {
+    const { data } = await supabase.auth.getSession()
+    const token = data.session && data.session.access_token
+    if (!token) throw new Error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
+    if (cancelled) throw cancelError()
+    await new Promise((resolve, reject) => {
+      xhr.open('POST', `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/${LESSON_BUCKET}/${path}`)
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_ANON_KEY)
+      xhr.setRequestHeader('Content-Type', 'application/pdf')
+      xhr.setRequestHeader('x-upsert', 'false')
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) onProgress(e.loaded, e.total)
+      }
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) return resolve()
+        if (xhr.status === 401 || xhr.status === 403) return reject(new Error('Tài khoản không có quyền thực hiện thao tác này.'))
+        if (xhr.status === 413) return reject(new Error('File quá lớn (tối đa 50 MB).'))
+        return reject(new Error('Không tải lên được. Vui lòng kiểm tra mạng và thử lại.'))
+      }
+      xhr.onerror = () => reject(new Error('Mất kết nối khi tải lên. Vui lòng kiểm tra mạng và thử lại.'))
+      xhr.onabort = () => reject(cancelError())
+      xhr.send(file)
+    })
+  })()
+
+  return {
+    promise,
+    abort: () => {
+      cancelled = true
+      xhr.abort()
+    },
+  }
+}
+
 /** Mới đăng nhất lên đầu, cũ nhất xuống cuối (theo ngày đăng). Cùng thời điểm thì giữ thứ tự ổn định theo id. */
 export function sortNewestFirst(list) {
   return [...list].sort((a, b) => {

@@ -6,6 +6,7 @@ import {
   LESSON_MAX_FILE,
   listLessons,
   renameLesson,
+  uploadLessonFile,
   lessonError,
   formatSize,
   displayTitle,
@@ -26,6 +27,9 @@ export default function Lessons() {
   const [file, setFile] = useState(null)
   const [busy, setBusy] = useState(false)
   const [active, setActive] = useState(null)
+  const [progress, setProgress] = useState(null) // { loaded, total } khi đang tải file lên
+  const [stage, setStage] = useState(null) // 'upload' | 'save' | null
+  const uploadRef = useRef(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -73,13 +77,24 @@ export default function Lessons() {
     if (!title.trim() || !file) return
     setBusy(true)
     setNotice('')
+    setStage('upload')
+    setProgress({ loaded: 0, total: file.size })
     const path = `${crypto.randomUUID()}.pdf`
-    const up = await supabase.storage.from(LESSON_BUCKET).upload(path, file, { contentType: 'application/pdf', upsert: false })
-    if (up.error) {
+    const upload = uploadLessonFile(path, file, (loaded, total) => setProgress({ loaded, total }))
+    uploadRef.current = upload
+    try {
+      await upload.promise
+    } catch (err) {
+      uploadRef.current = null
       setBusy(false)
-      setNotice(lessonError(up.error))
+      setStage(null)
+      setProgress(null)
+      setNotice(err && err.message ? err.message : 'Không tải lên được. Vui lòng thử lại.')
       return
     }
+    uploadRef.current = null
+    setProgress(null)
+    setStage('save')
     const { error: err } = await supabase.rpc('app_add_lesson', {
       p_title: title.trim(),
       p_description: description.trim(),
@@ -89,10 +104,12 @@ export default function Lessons() {
     if (err) {
       await supabase.storage.from(LESSON_BUCKET).remove([path]) // không để lại file mồ côi
       setBusy(false)
+      setStage(null)
       setNotice(lessonError(err))
       return
     }
     setBusy(false)
+    setStage(null)
     resetForm()
     setNotice('Đã thêm bài học.')
     load()
@@ -146,9 +163,31 @@ export default function Lessons() {
         </div>
         <div className="ls-form-actions">
           <button type="submit" className="ls-btn ls-btn-primary" disabled={busy || !title.trim() || !file}>
-            {busy ? 'Đang tải lên...' : 'Thêm bài học'}
+            {stage === 'save' ? 'Đang lưu...' : busy ? 'Đang tải lên...' : 'Thêm bài học'}
           </button>
+          {stage === 'upload' && (
+            <button type="button" className="ls-btn" onClick={() => uploadRef.current && uploadRef.current.abort()}>
+              Hủy tải lên
+            </button>
+          )}
         </div>
+        {progress && (
+          <div className="ls-progress">
+            <div
+              className="ls-progress-track"
+              role="progressbar"
+              aria-label="Tiến độ tải lên"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round((progress.loaded / progress.total) * 100)}
+            >
+              <div className="ls-progress-bar" style={{ width: `${Math.round((progress.loaded / progress.total) * 100)}%` }} />
+            </div>
+            <span className="ls-progress-text muted">
+              {Math.round((progress.loaded / progress.total) * 100)}% · {formatSize(progress.loaded)} / {formatSize(progress.total)}
+            </span>
+          </div>
+        )}
       </form>
 
       {loading && <p className="muted">Đang tải...</p>}
