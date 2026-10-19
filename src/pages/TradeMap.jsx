@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
-import Supercluster from 'supercluster'
 import { supabase } from '../supabase.js'
 import { fold } from '../admin/util.js'
 import Icon from '../icons.jsx'
@@ -9,11 +8,103 @@ import './tradeMap.css'
 
 const PIN_COLOR = '#0284c7'
 
-function clusterIcon(n) {
-  const size = n >= 10000 ? 52 : n >= 1000 ? 44 : n >= 100 ? 38 : 32
-  const label = n >= 1000 ? `${(n / 1000).toFixed(1).replace('.0', '')}k` : String(n)
-  return L.divIcon({ className: 'tm-cluster', html: `<span>${label}</span>`, iconSize: [size, size] })
-}
+/**
+ * Lớp vẽ từng điểm bán lên một canvas duy nhất (nhanh với hàng chục nghìn điểm). Chấm bán trong suốt nên
+ * chỗ nào dày thì màu đậm hơn, nhìn ra mật độ ngay. Bấm gần một chấm thì mở thông tin điểm bán đó.
+ */
+const DotLayer = L.Layer.extend({
+  initialize(onPick) {
+    this._pts = []
+    this._onPick = onPick
+  },
+  onAdd(map) {
+    this._map = map
+    const c = L.DomUtil.create('canvas', 'tm-dots leaflet-zoom-hide')
+    this._canvas = c
+    map.getPanes().overlayPane.appendChild(c)
+    this._redraw = () => {
+      if (this._raf) return
+      this._raf = requestAnimationFrame(() => {
+        this._raf = 0
+        this._draw()
+      })
+    }
+    this._click = (e) => this._pick(e.containerPoint)
+    map.on('move zoomend resize', this._redraw)
+    map.on('click', this._click)
+    this._draw()
+  },
+  onRemove(map) {
+    map.off('move zoomend resize', this._redraw)
+    map.off('click', this._click)
+    cancelAnimationFrame(this._raf)
+    L.DomUtil.remove(this._canvas)
+    this._canvas = null
+  },
+  setPoints(pts) {
+    this._pts = pts
+    if (this._canvas) this._draw()
+  },
+  _radius() {
+    const z = this._map.getZoom()
+    return z <= 9 ? 1.8 : z <= 12 ? 2.6 : z <= 14 ? 3.6 : 5
+  },
+  _draw() {
+    const map = this._map
+    const c = this._canvas
+    if (!map || !c) return
+    const size = map.getSize()
+    const dpr = window.devicePixelRatio || 1
+    L.DomUtil.setPosition(c, map.containerPointToLayerPoint([0, 0]))
+    if (c.width !== Math.round(size.x * dpr) || c.height !== Math.round(size.y * dpr)) {
+      c.width = Math.round(size.x * dpr)
+      c.height = Math.round(size.y * dpr)
+      c.style.width = `${size.x}px`
+      c.style.height = `${size.y}px`
+    }
+    const ctx = c.getContext('2d')
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.clearRect(0, 0, size.x, size.y)
+    const r = this._radius()
+    const near = map.getZoom() >= 15
+    ctx.fillStyle = near ? PIN_COLOR : 'rgba(2, 132, 199, 0.5)'
+    if (near) {
+      ctx.strokeStyle = '#ffffff'
+      ctx.lineWidth = 1.5
+    }
+    const bounds = map.getBounds().pad(0.05)
+    const s = bounds.getSouth()
+    const n = bounds.getNorth()
+    const w = bounds.getWest()
+    const e = bounds.getEast()
+    ctx.beginPath()
+    for (const p of this._pts) {
+      if (p.lat < s || p.lat > n || p.lng < w || p.lng > e) continue
+      const q = map.latLngToContainerPoint([p.lat, p.lng])
+      ctx.moveTo(q.x + r, q.y)
+      ctx.arc(q.x, q.y, r, 0, Math.PI * 2)
+    }
+    ctx.fill()
+    if (near) ctx.stroke()
+  },
+  _pick(point) {
+    const map = this._map
+    const limit = Math.max(this._radius() + 4, 8)
+    const bounds = map.getBounds().pad(0.05)
+    let best = null
+    let bestD = limit * limit
+    for (const p of this._pts) {
+      if (!bounds.contains([p.lat, p.lng])) continue
+      const q = map.latLngToContainerPoint([p.lat, p.lng])
+      const d = (q.x - point.x) ** 2 + (q.y - point.y) ** 2
+      if (d <= bestD) {
+        bestD = d
+        best = p
+      }
+    }
+    if (best) this._onPick(best)
+  },
+})
 
 const PAGE_SIZE = 1000 // máy chủ giới hạn số dòng mỗi lần đọc, nên đọc theo từng trang
 const READ_PARALLEL = 6
@@ -63,10 +154,7 @@ export default function TradeMap({ user }) {
   const wrapRef = useRef(null)
   const mapElRef = useRef(null)
   const mapRef = useRef(null)
-  const layerRef = useRef(null)
-  const indexRef = useRef(null)
-  const visibleRef = useRef([])
-  const popupOpenRef = useRef(false)
+  const dotsRef = useRef(null)
   const fitRef = useRef(false)
   const fileRef = useRef(null)
 
@@ -120,31 +208,6 @@ export default function TradeMap({ user }) {
     load()
   }, [load])
 
-  // Chỉ vẽ các điểm và cụm nằm trong vùng đang xem, để vài chục nghìn điểm bán vẫn mượt
-  const draw = useCallback(() => {
-    const map = mapRef.current
-    const layer = layerRef.current
-    const index = indexRef.current
-    if (!map || !layer || !index || popupOpenRef.current) return // đang mở popup thì giữ nguyên điểm để popup không bị đóng
-    const b = map.getBounds().pad(0.2)
-    const bbox = [Math.max(-180, b.getWest()), Math.max(-90, b.getSouth()), Math.min(180, b.getEast()), Math.min(90, b.getNorth())]
-    layer.clearLayers()
-    index.getClusters(bbox, Math.round(map.getZoom())).forEach((f) => {
-      const [lng, lat] = f.geometry.coordinates
-      if (f.properties.cluster) {
-        const id = f.properties.cluster_id
-        L.marker([lat, lng], { icon: clusterIcon(f.properties.point_count), keyboard: false })
-          .on('click', () => map.setView([lat, lng], Math.min(index.getClusterExpansionZoom(id), 19)))
-          .addTo(layer)
-      } else {
-        const store = visibleRef.current[f.properties.i]
-        L.circleMarker([lat, lng], { radius: 7, color: '#ffffff', weight: 1.5, fillColor: PIN_COLOR, fillOpacity: 0.92 })
-          .bindPopup(() => buildPopup(store), { maxWidth: 280, minWidth: 220, autoPanPadding: [24, 24] })
-          .addTo(layer)
-      }
-    })
-  }, [])
-
   // Khởi tạo bản đồ một lần
   useEffect(() => {
     const map = L.map(mapElRef.current, { zoomControl: true, preferCanvas: true }).setView([10.78, 106.7], 11)
@@ -152,24 +215,21 @@ export default function TradeMap({ user }) {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
-    const layer = L.layerGroup().addTo(map)
-    map.on('moveend', draw)
-    map.on('popupopen', () => {
-      popupOpenRef.current = true
+    const dots = new DotLayer((store) => {
+      L.popup({ maxWidth: 280, minWidth: 220, autoPanPadding: [24, 24] })
+        .setLatLng([store.lat, store.lng])
+        .setContent(buildPopup(store))
+        .openOn(map)
     })
-    map.on('popupclose', () => {
-      popupOpenRef.current = false
-      draw()
-    })
+    dots.addTo(map)
     mapRef.current = map
-    layerRef.current = layer
+    dotsRef.current = dots
     return () => {
-      map.off('moveend', draw)
       map.remove()
       mapRef.current = null
-      layerRef.current = null
+      dotsRef.current = null
     }
-  }, [draw])
+  }, [])
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -187,14 +247,12 @@ export default function TradeMap({ user }) {
     return stores.filter((_, i) => searchKeys[i].includes(q))
   }, [stores, searchKeys, query])
 
-  // Dựng lại chỉ mục điểm khi dữ liệu hoặc từ khóa tìm kiếm đổi
+  // Vẽ lại các chấm khi dữ liệu hoặc từ khóa tìm kiếm đổi
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
-    visibleRef.current = visible
-    const index = new Supercluster({ radius: 60, maxZoom: 17 })
-    index.load(visible.map((s, i) => ({ type: 'Feature', properties: { i }, geometry: { type: 'Point', coordinates: [s.lng, s.lat] } })))
-    indexRef.current = index
+    const dots = dotsRef.current
+    if (!map || !dots) return
+    dots.setPoints(visible)
     if (fitRef.current && visible.length > 0) {
       let minLat = 90
       let maxLat = -90
@@ -209,8 +267,7 @@ export default function TradeMap({ user }) {
       map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [40, 40], maxZoom: 16 })
       fitRef.current = false
     }
-    draw()
-  }, [visible, draw])
+  }, [visible])
 
   // Theo dõi chế độ toàn màn hình (kể cả khi thoát bằng phím Esc)
   useEffect(() => {

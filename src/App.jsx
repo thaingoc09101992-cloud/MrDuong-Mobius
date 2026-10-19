@@ -47,6 +47,24 @@ const PAGES = {
   },
 }
 
+// Vị trí đang xem được giữ trên địa chỉ (#/mục/công cụ hoặc mục con/màn hình) để F5 hay nút Back vẫn đứng đúng trang
+function readHash() {
+  const [sec, sub, scr] = window.location.hash.replace(/^#\/?/, '').split('/')
+  const section = NAV.some((n) => n.id === sec) ? sec : 'home'
+  return {
+    section,
+    tool: section === 'tools' && MODULES.some((m) => m.id === sub) ? sub : null,
+    knowledge: section === 'knowledge' && sub === 'lessons' ? 'lessons' : null,
+    tab: TABS.some((t) => t.id === scr) ? scr : 'capture',
+  }
+}
+
+function buildHash(section, tool, knowledge, tab) {
+  if (tool) return `#/tools/${tool}${tool === 'dinh-vi-diem-ban' ? `/${tab}` : ''}`
+  if (knowledge) return `#/knowledge/${knowledge}`
+  return `#/${section}`
+}
+
 function normalizeUser(data) {
   return { ...data, modules: data.isAdmin ? ALL_MODULE_IDS : modulesOf(data) }
 }
@@ -54,10 +72,10 @@ function normalizeUser(data) {
 export default function App() {
   const [user, setUser] = useState(null)
   const [booting, setBooting] = useState(true)
-  const [section, setSection] = useState('home')
-  const [tool, setTool] = useState(null) // null hoặc mã công cụ đang mở
-  const [knowledge, setKnowledge] = useState(null) // null hoặc mục đang mở trong Kiến thức
-  const [tab, setTab] = useState('capture')
+  const [section, setSection] = useState(() => readHash().section)
+  const [tool, setTool] = useState(() => readHash().tool) // null hoặc mã công cụ đang mở
+  const [knowledge, setKnowledge] = useState(() => readHash().knowledge) // null hoặc mục đang mở trong Kiến thức
+  const [tab, setTab] = useState(() => readHash().tab)
   const [theme, setTheme] = useState(
     () => document.documentElement.getAttribute('data-theme') || 'light',
   )
@@ -100,6 +118,34 @@ export default function App() {
       alive = false
       sub.subscription.unsubscribe()
     }
+  }, [])
+
+  // Đồng bộ vị trí đang xem với địa chỉ trang, và theo dõi nút Back/Forward
+  useEffect(() => {
+    if (!user || user.must_change_password) return
+    // Công cụ không được cấp quyền hoặc màn hình Chụp ảnh khi chưa có hồ sơ nhân viên: quay về mức hợp lệ
+    if (tool && !user.modules.includes(tool)) {
+      setTool(null)
+      return
+    }
+    if (tool === 'dinh-vi-diem-ban' && tab === 'capture' && !user.hasEmployee) {
+      setTab('history')
+      return
+    }
+    const next = buildHash(section, tool, knowledge, tab)
+    if (window.location.hash !== next) window.location.hash = next
+  }, [user, section, tool, knowledge, tab])
+
+  useEffect(() => {
+    function onHash() {
+      const h = readHash()
+      setSection(h.section)
+      setTool(h.tool)
+      setKnowledge(h.knowledge)
+      setTab(h.tab)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
   const ready = Boolean(user) && !user.must_change_password

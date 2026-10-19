@@ -39,7 +39,10 @@ export default function AdminApp() {
     () => document.documentElement.getAttribute('data-theme') || 'light',
   )
 
-  const [tab, setTab] = useState('overview')
+  const [tab, setTab] = useState(() => {
+    const id = window.location.hash.replace(/^#\/?/, '')
+    return TABS.some((t) => t.id === id) ? id : 'overview'
+  })
   const [outlets, setOutlets] = useState([])
   const [employees, setEmployees] = useState([])
   const [loading, setLoading] = useState(false)
@@ -175,6 +178,19 @@ export default function AdminApp() {
       })
     }
   }
+
+  // Giữ trang đang xem trên địa chỉ để F5 hay nút Back vẫn đứng đúng mục
+  useEffect(() => {
+    if (window.location.hash !== `#/${tab}`) window.location.hash = `#/${tab}`
+  }, [tab])
+  useEffect(() => {
+    function onHash() {
+      const id = window.location.hash.replace(/^#\/?/, '')
+      if (TABS.some((t) => t.id === id)) setTab(id)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
 
   function go(id) {
     setTab(id)
