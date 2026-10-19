@@ -55,6 +55,50 @@
   align-items: center;
   gap: var(--space-3);
 }
+.ls-mode {
+  display: inline-flex;
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.ls-mode-btn {
+  height: 40px;
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 0;
+  cursor: pointer;
+}
+.ls-mode-btn + .ls-mode-btn {
+  border-left: 1px solid var(--border);
+}
+.ls-mode-btn.is-active {
+  color: var(--bg);
+  background: var(--text);
+}
+.ls-mode-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+.ls-link-input {
+  width: 100%;
+  padding: var(--space-3);
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  resize: vertical;
+}
+.ls-hint {
+  display: block;
+  margin-top: var(--space-2);
+  line-height: 1.5;
+}
 .ls-form-actions {
   display: flex;
   gap: var(--space-2);
@@ -306,6 +350,19 @@
   display: block;
   background: #ffffff;
   border: 1px solid var(--border);
+}
+.ls-stage-embed {
+  display: block;
+}
+.ls-frame {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+}
+a.ls-btn {
+  text-decoration: none;
 }
 .ls-canvas[hidden] {
   display: none;

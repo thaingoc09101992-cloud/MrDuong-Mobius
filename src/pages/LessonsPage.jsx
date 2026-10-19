@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icon from '../icons.jsx'
-import PdfViewer from './PdfViewer.jsx'
+import LessonViewer from './LessonViewer.jsx'
 import LessonCard from './LessonCard.jsx'
 import { listLessons, lessonError } from './lessonsApi.js'
 import './lessons.css'
@@ -23,7 +23,7 @@ export default function LessonsPage({ onBack }) {
     }
   }, [])
 
-  if (active) return <PdfViewer lesson={active} onClose={() => setActive(null)} />
+  if (active) return <LessonViewer lesson={active} onClose={() => setActive(null)} />
 
   return (
     <section className="stack ls">

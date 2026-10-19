@@ -7,12 +7,14 @@ import {
   listLessons,
   renameLesson,
   uploadLessonFile,
+  addLessonLink,
+  parseEmbedInput,
   lessonError,
   formatSize,
   displayTitle,
 } from '../pages/lessonsApi.js'
 import LessonCard from '../pages/LessonCard.jsx'
-import PdfViewer from '../pages/PdfViewer.jsx'
+import LessonViewer from '../pages/LessonViewer.jsx'
 import '../pages/lessons.css'
 
 /** Quản lý bài học (PDF): chỉ admin tải lên và xóa. Nhân viên xem ở mục Kiến thức → Bài học. */
@@ -25,6 +27,8 @@ export default function Lessons() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [file, setFile] = useState(null)
+  const [mode, setMode] = useState('pdf') // 'pdf' = tải file lên Supabase, 'link' = dán liên kết nhúng OneDrive
+  const [linkInput, setLinkInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [active, setActive] = useState(null)
   const [progress, setProgress] = useState(null) // { loaded, total } khi đang tải file lên
@@ -69,11 +73,31 @@ export default function Lessons() {
     setTitle('')
     setDescription('')
     setFile(null)
+    setLinkInput('')
     if (fileRef.current) fileRef.current.value = ''
   }
 
   async function submit(e) {
     e.preventDefault()
+    if (mode === 'link') {
+      const parsed = parseEmbedInput(linkInput)
+      if (!title.trim() || parsed.error) {
+        setNotice(parsed.error || 'Hãy nhập tên bài học.')
+        return
+      }
+      setBusy(true)
+      setNotice('')
+      try {
+        await addLessonLink(title.trim(), description.trim(), parsed.url)
+        resetForm()
+        setNotice('Đã thêm bài học.')
+        load()
+      } catch (err) {
+        setNotice(err && err.message ? err.message : 'Không thêm được. Vui lòng thử lại.')
+      }
+      setBusy(false)
+      return
+    }
     if (!title.trim() || !file) return
     setBusy(true)
     setNotice('')
@@ -133,7 +157,7 @@ export default function Lessons() {
     setLessons((list) => list.map((l) => (l.id === lesson.id ? { ...l, title: saved } : l)))
   }
 
-  if (active) return <PdfViewer lesson={active} onClose={() => setActive(null)} />
+  if (active) return <LessonViewer lesson={active} onClose={() => setActive(null)} />
 
   return (
     <div className="stack ls">
@@ -153,17 +177,47 @@ export default function Lessons() {
           <span>Mô tả ngắn (không bắt buộc)</span>
           <input value={description} maxLength={1000} disabled={busy} onChange={(e) => setDescription(e.target.value)} />
         </label>
-        <div className="ls-file">
-          <button type="button" className="ls-btn" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
-            <Icon name="upload" size={18} />
-            <span>{file ? 'Chọn file khác' : 'Chọn file PDF'}</span>
+        <div className="ls-mode" role="group" aria-label="Cách thêm bài học">
+          <button type="button" className={`ls-mode-btn ${mode === 'pdf' ? 'is-active' : ''}`} aria-pressed={mode === 'pdf'} onClick={() => setMode('pdf')} disabled={busy}>
+            Tải file PDF lên
           </button>
-          <span className="muted">{file ? `${file.name} (${formatSize(file.size)})` : 'Chưa chọn file.'}</span>
-          <input ref={fileRef} type="file" accept="application/pdf,.pdf" hidden onChange={pickFile} />
+          <button type="button" className={`ls-mode-btn ${mode === 'link' ? 'is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode('link')} disabled={busy}>
+            Dán liên kết OneDrive
+          </button>
         </div>
+        {mode === 'pdf' ? (
+          <div className="ls-file">
+            <button type="button" className="ls-btn" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
+              <Icon name="upload" size={18} />
+              <span>{file ? 'Chọn file khác' : 'Chọn file PDF'}</span>
+            </button>
+            <span className="muted">{file ? `${file.name} (${formatSize(file.size)})` : 'Chưa chọn file. File lưu trong Supabase.'}</span>
+            <input ref={fileRef} type="file" accept="application/pdf,.pdf" hidden onChange={pickFile} />
+          </div>
+        ) : (
+          <label className="field">
+            <span>Mã nhúng hoặc liên kết OneDrive</span>
+            <textarea
+              className="ls-link-input"
+              rows={3}
+              value={linkInput}
+              disabled={busy}
+              onChange={(e) => setLinkInput(e.target.value)}
+              placeholder='Dán mã nhúng (bắt đầu bằng <iframe src="https://...") hoặc địa chỉ nhúng'
+            />
+            <small className="muted ls-hint">
+              Trên OneDrive: mở file, chọn Nhúng (Embed), bấm tạo rồi sao chép mã. File vẫn nằm ở OneDrive của bạn và không tốn dung lượng Supabase.
+              Lưu ý: nhân viên chỉ xem được nếu file được chia sẻ cho họ (hoặc cho bất kỳ ai có liên kết).
+            </small>
+          </label>
+        )}
         <div className="ls-form-actions">
-          <button type="submit" className="ls-btn ls-btn-primary" disabled={busy || !title.trim() || !file}>
-            {stage === 'save' ? 'Đang lưu...' : busy ? 'Đang tải lên...' : 'Thêm bài học'}
+          <button
+            type="submit"
+            className="ls-btn ls-btn-primary"
+            disabled={busy || !title.trim() || (mode === 'pdf' ? !file : !linkInput.trim())}
+          >
+            {stage === 'save' ? 'Đang lưu...' : busy ? (mode === 'link' ? 'Đang thêm...' : 'Đang tải lên...') : 'Thêm bài học'}
           </button>
           {stage === 'upload' && (
             <button type="button" className="ls-btn" onClick={() => uploadRef.current && uploadRef.current.abort()}>

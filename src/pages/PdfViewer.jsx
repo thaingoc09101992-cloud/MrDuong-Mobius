@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase.js'
 import Icon from '../icons.jsx'
+import useFullscreen from './useFullscreen.js'
 
 // pdf.js được nạp khi mở bài học đầu tiên để không làm nặng trang chính
 let pdfjsPromise = null
@@ -63,7 +64,7 @@ export default function PdfViewer({ lesson, onClose }) {
   const [status, setStatus] = useState('loading') // loading | ready | error
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
-  const [fullscreen, setFullscreen] = useState(false)
+  const [fullscreen, toggleFullscreen] = useFullscreen(wrapRef)
   const [loadPct, setLoadPct] = useState(0)
 
   // Tải và mở file PDF
@@ -200,27 +201,6 @@ export default function PdfViewer({ lesson, onClose }) {
     stage.addEventListener('wheel', onWheel, { passive: false })
     return () => stage.removeEventListener('wheel', onWheel)
   }, [status, go])
-
-  // Theo dõi chế độ toàn màn hình (kể cả khi thoát bằng phím Esc)
-  useEffect(() => {
-    function onChange() {
-      setFullscreen(document.fullscreenElement === wrapRef.current)
-    }
-    document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [])
-
-  async function toggleFullscreen() {
-    const node = wrapRef.current
-    if (!node) return
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen()
-      else if (node.requestFullscreen) await node.requestFullscreen()
-      else setFullscreen((v) => !v) // trình duyệt không hỗ trợ (ví dụ iPhone): dùng chế độ phủ kín
-    } catch {
-      setFullscreen((v) => !v)
-    }
-  }
 
   return (
     <section className={`ls-viewer ${fullscreen ? 'ls-full' : ''}`} ref={wrapRef}>

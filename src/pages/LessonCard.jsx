@@ -69,7 +69,7 @@ export default function LessonCard({ lesson, onOpen, admin = false, onRename, on
     }
   }
 
-  const meta = ['Tài liệu', new Date(lesson.created_at).toLocaleDateString('vi-VN'), formatSize(lesson.file_size)]
+  const meta = [lesson.source_url ? 'OneDrive' : 'Tài liệu', new Date(lesson.created_at).toLocaleDateString('vi-VN'), formatSize(lesson.file_size)]
     .filter(Boolean)
     .join(' · ')
 

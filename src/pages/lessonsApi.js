@@ -74,6 +74,41 @@ export function uploadLessonFile(path, file, onProgress) {
   }
 }
 
+// Chỉ nhận liên kết https của OneDrive, SharePoint, Office (khớp ràng buộc ở cơ sở dữ liệu)
+const EMBED_HOSTS = /^https:\/\/(onedrive\.live\.com|[a-z0-9-]+\.sharepoint\.com|[a-z0-9-]+\.officeapps\.live\.com|[a-z0-9-]+\.office\.com)\//i
+
+/**
+ * Lấy địa chỉ nhúng từ nội dung admin dán vào: có thể là cả mã <iframe ...> hoặc chỉ là địa chỉ.
+ * Trả về { url } hoặc { error } với thông báo thân thiện.
+ */
+export function parseEmbedInput(input) {
+  const raw = String(input || '').trim()
+  if (!raw) return { error: 'Hãy dán mã nhúng hoặc liên kết OneDrive.' }
+  const m = /<iframe[^>]*\ssrc\s*=\s*["']([^"']+)["']/i.exec(raw)
+  const url = (m ? m[1] : raw).replace(/&amp;/g, '&').trim()
+  if (/^https:\/\/1drv\.ms\//i.test(url)) {
+    return { error: 'Liên kết rút gọn 1drv.ms không nhúng được. Hãy dùng chức năng Nhúng (Embed) của OneDrive và dán mã nhúng.' }
+  }
+  if (!EMBED_HOSTS.test(url)) {
+    return { error: 'Chỉ nhận liên kết https của OneDrive, SharePoint hoặc Office. Hãy dùng chức năng Nhúng (Embed) của OneDrive.' }
+  }
+  if (url.length > 1500) return { error: 'Liên kết quá dài.' }
+  return { url }
+}
+
+/** Thêm bài học dạng liên kết nhúng (chỉ admin). */
+export async function addLessonLink(title, description, url) {
+  const { error } = await supabase.rpc('app_add_lesson_link', {
+    p_title: title,
+    p_description: description,
+    p_source_url: url,
+  })
+  if (error) {
+    if (/lien ket khong hop le/i.test(error.message || '')) throw new Error('Liên kết không hợp lệ. Hãy dùng mã nhúng (Embed) của OneDrive.')
+    throw new Error(lessonError(error))
+  }
+}
+
 /** Mới đăng nhất lên đầu, cũ nhất xuống cuối (theo ngày đăng). Cùng thời điểm thì giữ thứ tự ổn định theo id. */
 export function sortNewestFirst(list) {
   return [...list].sort((a, b) => {
