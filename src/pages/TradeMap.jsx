@@ -47,7 +47,7 @@ const DotLayer = L.Layer.extend({
   },
   _radius() {
     const z = this._map.getZoom()
-    return z <= 9 ? 1.8 : z <= 12 ? 2.6 : z <= 14 ? 3.6 : 5
+    return z <= 9 ? 2.2 : z <= 12 ? 3 : z <= 14 ? 4 : 5.5
   },
   _draw() {
     const map = this._map
@@ -67,7 +67,7 @@ const DotLayer = L.Layer.extend({
     ctx.clearRect(0, 0, size.x, size.y)
     const r = this._radius()
     const near = map.getZoom() >= 15
-    ctx.fillStyle = near ? PIN_COLOR : 'rgba(2, 132, 199, 0.5)'
+    ctx.fillStyle = near ? PIN_COLOR : 'rgba(2, 100, 160, 0.92)'
     if (near) {
       ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 1.5
