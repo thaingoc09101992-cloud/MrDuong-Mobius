@@ -424,31 +424,35 @@ export default function TradeMap({ user }) {
         </div>
 
         <div className="tm-style">
-          <span className="tm-style-title">Kiểu chấm</span>
-          <div className="tm-swatches" role="group" aria-label="Màu chấm">
-            {DOT_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
-                style={{ background: c }}
-                aria-label={`Màu ${c}`}
-                aria-pressed={dotStyle.color.toLowerCase() === c}
-                onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
-              />
-            ))}
-            <input
-              type="color"
-              className="tm-colorpick"
-              value={dotStyle.color}
-              aria-label="Chọn màu khác"
-              onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
-            />
+          <div className="tm-field">
+            <span className="tm-field-label">Màu chấm</span>
+            <div className="tm-swatches" role="group" aria-label="Màu chấm">
+              {DOT_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
+                  style={{ background: c }}
+                  aria-label={`Màu ${c}`}
+                  aria-pressed={dotStyle.color.toLowerCase() === c}
+                  onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
+                />
+              ))}
+              <label className={`tm-swatch tm-swatch-custom ${DOT_COLORS.includes(dotStyle.color.toLowerCase()) ? '' : 'is-active'}`} title="Chọn màu khác">
+                <input
+                  type="color"
+                  value={dotStyle.color}
+                  aria-label="Chọn màu khác"
+                  onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
+                />
+              </label>
+            </div>
           </div>
-          <label className="tm-size">
-            <span>Cỡ chấm</span>
+          <label className="tm-field">
+            <span className="tm-field-label">Cỡ chấm</span>
             <input
               type="range"
+              className="tm-range"
               min="0.5"
               max="4"
               step="0.1"
