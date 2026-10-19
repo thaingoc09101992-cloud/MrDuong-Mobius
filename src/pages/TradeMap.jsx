@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { supabase, safeGet, safeSet } from '../supabase.js'
-import { fold } from '../admin/util.js'
 import Icon from '../icons.jsx'
 import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExcel.js'
 import './tradeMap.css'
@@ -239,8 +238,6 @@ export default function TradeMap({ user }) {
   const [stores, setStores] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [search, setSearch] = useState('')
-  const [query, setQuery] = useState('') // từ khóa đã chờ ngừng gõ, để danh sách lớn không vẽ lại mỗi phím
   const [preview, setPreview] = useState(null) // kết quả đọc file đang chờ xác nhận
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState(null) // { loaded, total } khi đang lưu danh sách lên máy chủ
@@ -310,34 +307,18 @@ export default function TradeMap({ user }) {
     }
   }, [])
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      fitRef.current = true
-      setQuery(search)
-    }, 300)
-    return () => clearTimeout(t)
-  }, [search])
-
-  const searchKeys = useMemo(() => stores.map((s) => fold(`${s.name} ${s.store_code || ''} ${s.address || ''}`)), [stores])
-
-  const visible = useMemo(() => {
-    const q = fold(query.trim())
-    if (!q) return stores
-    return stores.filter((_, i) => searchKeys[i].includes(q))
-  }, [stores, searchKeys, query])
-
-  // Vẽ lại các chấm khi dữ liệu hoặc từ khóa tìm kiếm đổi
+  // Vẽ lại các chấm khi dữ liệu đổi
   useEffect(() => {
     const map = mapRef.current
     const dots = dotsRef.current
     if (!map || !dots) return
-    dots.setPoints(visible)
-    if (fitRef.current && visible.length > 0) {
+    dots.setPoints(stores)
+    if (fitRef.current && stores.length > 0) {
       let minLat = 90
       let maxLat = -90
       let minLng = 180
       let maxLng = -180
-      visible.forEach((s) => {
+      stores.forEach((s) => {
         if (s.lat < minLat) minLat = s.lat
         if (s.lat > maxLat) maxLat = s.lat
         if (s.lng < minLng) minLng = s.lng
@@ -346,7 +327,7 @@ export default function TradeMap({ user }) {
       map.fitBounds([[minLat, minLng], [maxLat, maxLng]], { padding: [40, 40], maxZoom: 16 })
       fitRef.current = false
     }
-  }, [visible])
+  }, [stores])
 
   useEffect(() => {
     if (dotsRef.current) dotsRef.current.setStyle(dotStyle.color, dotStyle.scale)
@@ -442,17 +423,42 @@ export default function TradeMap({ user }) {
           </span>
         </div>
 
-        <label className="tm-search">
-          <Icon name="search" size={18} />
-          <input
-            type="search"
-            value={search}
-            placeholder="Tên, mã hoặc địa chỉ"
-            aria-label="Tìm điểm bán"
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
-
+        <div className="tm-style">
+          <span className="tm-style-title">Kiểu chấm</span>
+          <div className="tm-swatches" role="group" aria-label="Màu chấm">
+            {DOT_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
+                style={{ background: c }}
+                aria-label={`Màu ${c}`}
+                aria-pressed={dotStyle.color.toLowerCase() === c}
+                onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
+              />
+            ))}
+            <input
+              type="color"
+              className="tm-colorpick"
+              value={dotStyle.color}
+              aria-label="Chọn màu khác"
+              onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
+            />
+          </div>
+          <label className="tm-size">
+            <span>Cỡ chấm</span>
+            <input
+              type="range"
+              min="0.5"
+              max="4"
+              step="0.1"
+              value={dotStyle.scale}
+              aria-label="Cỡ chấm"
+              onChange={(e) => setDotStyle((d) => ({ ...d, scale: Number(e.target.value) }))}
+            />
+            <span className="tm-size-val">{dotStyle.scale.toFixed(1)}x</span>
+          </label>
+        </div>
         <div className="tm-actions">
           {user.isAdmin && (
             <>
@@ -531,46 +537,6 @@ export default function TradeMap({ user }) {
 
       <div className="tm-mapbox">
         <div ref={mapElRef} className="tm-map" />
-        <div className="tm-style">
-          <span className="tm-style-title">Kiểu chấm</span>
-          <div className="tm-swatches" role="group" aria-label="Màu chấm">
-            {DOT_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
-                style={{ background: c }}
-                aria-label={`Màu ${c}`}
-                aria-pressed={dotStyle.color.toLowerCase() === c}
-                onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
-              />
-            ))}
-            <input
-              type="color"
-              className="tm-colorpick"
-              value={dotStyle.color}
-              aria-label="Chọn màu khác"
-              onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
-            />
-          </div>
-          <label className="tm-size">
-            <span>Cỡ chấm</span>
-            <input
-              type="range"
-              min="0.5"
-              max="4"
-              step="0.1"
-              value={dotStyle.scale}
-              aria-label="Cỡ chấm"
-              onChange={(e) => setDotStyle((d) => ({ ...d, scale: Number(e.target.value) }))}
-            />
-            <span className="tm-size-val">{dotStyle.scale.toFixed(1)}x</span>
-          </label>
-        </div>
-        <div className="tm-badge" aria-live="polite">
-          <span className="tm-badge-dot" />
-          {nf.format(visible.length)} điểm đang hiển thị
-        </div>
       </div>
 
       {!loading && !error && total === 0 && (
