@@ -172,7 +172,7 @@
   min-height: 0;
 }
 .tm-map {
-  height: clamp(420px, 68vh, 780px);
+  height: clamp(420px, calc(68 * var(--v1)), 780px);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -367,7 +367,7 @@
   min-height: 320px;
 }
 .tm:fullscreen {
-  height: 100vh;
+  height: calc(100 * var(--v1));
 }
 .tm-full:not(:fullscreen) {
   position: fixed;

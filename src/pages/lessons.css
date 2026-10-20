@@ -332,8 +332,8 @@
   display: grid;
   place-items: center;
   /* Khung xem chiếm gần hết chiều cao màn hình còn lại dưới thanh tiêu đề và thanh điều khiển */
-  height: max(360px, calc(100vh - 252px));
-  height: max(360px, calc(100dvh - 252px));
+  height: max(360px, calc(calc(100 * var(--v1)) - 252px));
+  height: max(360px, calc(calc(100 * var(--dv1)) - 252px));
   overflow: hidden;
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -369,15 +369,15 @@ a.ls-btn {
 }
 @media (max-width: 900px) {
   .ls-stage {
-    height: max(300px, calc(100vh - 270px));
-    height: max(300px, calc(100dvh - 270px));
+    height: max(300px, calc(calc(100 * var(--v1)) - 270px));
+    height: max(300px, calc(calc(100 * var(--dv1)) - 270px));
   }
 }
 .ls-full .ls-stage {
   height: auto;
 }
 .ls-viewer:fullscreen {
-  height: 100vh;
+  height: calc(100 * var(--v1));
 }
 .ls-full:not(:fullscreen) {
   position: fixed;

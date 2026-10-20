@@ -40,10 +40,24 @@
   --motion-slow: 400ms;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 
-  --container: 1440px;
+  --container: 1600px; /* = 1440px thực tế sau khi giao diện thu nhỏ còn 90% trên máy tính */
+  --ui-zoom: 1; /* tỉ lệ thu phóng giao diện, xem khối @media ngay dưới */
+  --v1: calc(1vh / var(--ui-zoom)); /* 1vh đã bù tỉ lệ thu phóng: dùng calc(N * var(--v1)) thay cho Nvh */
+  --dv1: calc(1dvh / var(--ui-zoom));
   --z-header: 20;
   --z-overlay: 50;
   --z-modal: 100;
+}
+
+/* Thu nhỏ toàn bộ giao diện còn 90% trên máy tính để hiển thị nhiều nội dung hơn.
+   Đơn vị vh/vw KHÔNG tự bù tỉ lệ này, nên chiều cao theo màn hình phải viết calc(N * var(--v1)). */
+@media (min-width: 1024px) {
+  :root {
+    --ui-zoom: 0.9;
+  }
+  html {
+    zoom: var(--ui-zoom);
+  }
 }
 
 /* ---------- 2. Semantic tokens (sáng) ---------- */
@@ -611,7 +625,7 @@ h2 {
     border: 1px solid rgba(201, 169, 110, 0.18);
   }
   .login-brand-lockup {
-    top: -3vh; /* nằm hơi cao hơn tâm dọc */
+    top: calc(-3 * var(--v1)); /* nằm hơi cao hơn tâm dọc */
     width: min(92%, 820px);
     margin: auto;
     grid-template-columns: clamp(120px, 12.5vw, 190px) minmax(0, 1fr);
@@ -714,7 +728,7 @@ h2 {
 .camera {
   position: relative;
   aspect-ratio: 4 / 5;
-  max-height: 62vh;
+  max-height: calc(62 * var(--v1));
   width: 100%;
   background: #0b0b0b;
   border-radius: var(--radius-md);
@@ -763,7 +777,7 @@ h2 {
 }
 .preview {
   width: 100%;
-  max-height: 46vh;
+  max-height: calc(46 * var(--v1));
   object-fit: contain;
   background: #0b0b0b;
   border-radius: var(--radius-sm);
@@ -840,7 +854,7 @@ h2 {
   align-items: end;
 }
 .map-canvas {
-  height: 58vh;
+  height: calc(58 * var(--v1));
   min-height: 320px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -991,7 +1005,7 @@ h2 {
     grid-template-columns: repeat(5, 1fr);
   }
   .map-canvas {
-    height: 64vh;
+    height: calc(64 * var(--v1));
   }
 }
 @media (min-width: 900px) {
@@ -1542,7 +1556,7 @@ a.ad-navbtn {
   overflow: hidden;
   width: 100%;
   aspect-ratio: 12 / 5;
-  max-height: 440px;
+  max-height: 490px; /* = 440px thực tế sau khi giao diện thu nhỏ còn 90% */
   min-height: 190px;
   border-radius: var(--radius-md);
   background: #14100d;

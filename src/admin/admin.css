@@ -352,7 +352,7 @@
 
 /* ---------- Bản đồ ---------- */
 .ad-map {
-  height: 68vh;
+  height: calc(68 * var(--v1));
   min-height: 380px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -375,7 +375,7 @@
 .ad-modal-box {
   max-width: 520px;
   width: 100%;
-  max-height: 92vh;
+  max-height: calc(92 * var(--v1));
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -385,7 +385,7 @@
 }
 .ad-modal-img {
   width: 100%;
-  max-height: 55vh;
+  max-height: calc(55 * var(--v1));
   object-fit: contain;
   background: #0b0b0b;
   border-radius: var(--radius-sm);
@@ -533,7 +533,7 @@
   max-width: 1100px;
 }
 .ad-modal-table {
-  max-height: 46vh;
+  max-height: calc(46 * var(--v1));
   overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -580,7 +580,7 @@
   --ad-sb: 264px;
   display: grid;
   grid-template-columns: var(--ad-sb) minmax(0, 1fr);
-  min-height: 100vh;
+  min-height: calc(100 * var(--v1));
   transition: grid-template-columns var(--motion-normal) var(--ease);
 }
 .ad-shell.is-collapsed {
@@ -589,7 +589,7 @@
 .ad-sidebar {
   position: sticky;
   top: 0;
-  height: 100vh;
+  height: calc(100 * var(--v1));
   display: flex;
   flex-direction: column;
   background: var(--bg);

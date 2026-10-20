@@ -41,7 +41,8 @@ Token ngữ nghĩa dùng trong component: `--bg`, `--surface`, `--surface-2`, `-
 
 ## Bố cục và responsive
 - App có **thanh bên** (`AppShell`, dùng chung cho app nhân viên và trang quản trị): tên MOBIUS và tài khoản ở thanh trên, menu bên trái, nút đổi giao diện và đăng xuất ở chân menu. Dưới 900px thanh bên thành menu trượt.
-- Khung nội dung `max-width: var(--container)` (1440px), căn giữa, padding 48px (desktop). Mọi trang phải co giãn tốt theo bề ngang.
+- **Giao diện thu nhỏ còn 90% trên máy tính** (từ 1024px trở lên, `html { zoom: var(--ui-zoom) }` với `--ui-zoom: 0.9`) để hiển thị nhiều nội dung hơn. Điện thoại và máy tính bảng giữ 100%. Hệ quả cho khi viết CSS: **đơn vị `vh`/`dvh`/`vw` không tự bù tỉ lệ này**, nên chiều cao theo màn hình phải viết `calc(N * var(--v1))` (hoặc `var(--dv1)` cho `dvh`) thay cho `Nvh`, nếu không khối chỉ cao 90% màn hình. Kích thước đo bằng JS (`clientWidth`, `clientHeight`) đã ở đơn vị đã bù, còn `getBoundingClientRect` trả về giá trị đã nhân 0,9 (Leaflet tự xử lý được, đã thử).
+- Khung nội dung `max-width: var(--container)` (1600px, tương đương 1440px thực tế sau khi thu nhỏ), căn giữa, padding 48px (desktop). Mọi trang phải co giãn tốt theo bề ngang.
 - Điểm ngắt: `720px` (bộ lọc 5 cột), `900px` (đăng nhập chia đôi, thanh bên thu gọn), `1024px` (admin giảm padding). Điện thoại: một cột, padding 16px.
 - Không được tràn ngang ở 390px, 1024px, 1440px.
 
