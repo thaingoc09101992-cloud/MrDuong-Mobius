@@ -441,7 +441,109 @@
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
-.tm-pop-sku {
+/* Hai tab nhỏ của popup: Profile và Lịch sử */
+.tm-pop-tabs {
+  display: flex;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.tm-pop-tab {
+  padding: 6px 0;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+}
+.tm-pop-tab:hover {
+  color: var(--text);
+}
+.tm-pop-tab.is-active {
+  color: var(--text);
+  border-bottom-color: var(--gold);
+}
+.tm-pop-tab:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.tm-pop-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.tm-pop-panel[hidden] {
+  display: none;
+}
+.tm-pop-photo {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 9;
+  font-size: 0.8rem;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+.tm-pop-empty,
+.tm-pop-note {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.tm-pop-months {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: repeat(6, auto);
+  grid-auto-flow: column; /* cột trái 6 tháng gần nhất, cột phải 6 tháng cũ hơn */
+  gap: 0 var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tm-pop-months li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 3px 0;
+  font-size: 0.8rem;
+  border-bottom: 1px solid var(--border);
+}
+.tm-pop-months li span {
+  color: var(--muted);
+}
+.tm-pop-months li strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.tm-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: var(--space-1);
+}
+.tm-chart-bar {
+  fill: var(--text-2);
+  opacity: 0.55;
+}
+.tm-chart-bar.is-current {
+  fill: var(--gold);
+  opacity: 1;
+}
+.tm-chart-label {
+  font-size: 8px;
+  fill: var(--muted);
+}
+.tm-chart-axis {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}.tm-pop-sku {
   display: flex;
   flex-direction: column;
   gap: 2px;

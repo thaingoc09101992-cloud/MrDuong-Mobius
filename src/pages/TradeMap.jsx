@@ -3,6 +3,7 @@ import L from 'leaflet'
 import { supabase, safeGet, safeSet } from '../supabase.js'
 import Icon from '../icons.jsx'
 import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExcel.js'
+import { buildPopup } from './tradePopup.js'
 import './tradeMap.css'
 
 const PIN_COLOR = '#0264a0'
@@ -181,42 +182,6 @@ const READ_PARALLEL = 6
 const UPLOAD_CHUNK = 2000
 
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 })
-const fmt = (v) => (v === null || v === undefined ? '-' : nf.format(v))
-
-function el(tag, className, text) {
-  const node = document.createElement(tag)
-  if (className) node.className = className
-  if (text !== undefined && text !== null) node.textContent = text
-  return node
-}
-
-/** Popup dựng bằng DOM + textContent để dữ liệu từ Excel không thể chèn mã HTML. */
-function buildPopup(s) {
-  const box = el('div', 'tm-pop')
-  if (s.store_code) box.appendChild(el('span', 'tm-pop-eyebrow', `Mã ${s.store_code}`))
-  box.appendChild(el('strong', 'tm-pop-title', s.name))
-  if (s.address) box.appendChild(el('p', 'tm-pop-address', s.address))
-  const list = el('dl', 'tm-pop-stats')
-  ;[
-    ['Doanh số tháng này', s.revenue_current],
-    ['Doanh thu 6 tháng', s.revenue_6m],
-    ['Trung bình 6 tháng', s.avg_6m],
-    ['Số đơn mỗi tháng', s.orders_per_month],
-  ].forEach(([label, value]) => {
-    const row = el('div', 'tm-pop-row')
-    row.appendChild(el('dt', null, label))
-    row.appendChild(el('dd', null, fmt(value)))
-    list.appendChild(row)
-  })
-  box.appendChild(list)
-  if (s.top_skus) {
-    const sku = el('p', 'tm-pop-sku')
-    sku.appendChild(el('span', 'tm-pop-eyebrow', 'SKU hay mua'))
-    sku.appendChild(document.createTextNode(s.top_skus))
-    box.appendChild(sku)
-  }
-  return box
-}
 
 function friendlyError(error) {
   const msg = (error && error.message) || ''
@@ -300,10 +265,8 @@ export default function TradeMap({ user }) {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map)
     const dots = new DotLayer((store) => {
-      L.popup({ maxWidth: 300, minWidth: 260, autoPanPadding: [24, 24] })
-        .setLatLng([store.lat, store.lng])
-        .setContent(buildPopup(store))
-        .openOn(map)
+      const popup = L.popup({ maxWidth: 340, minWidth: 300, maxHeight: 460, autoPanPadding: [24, 24] })
+      popup.setLatLng([store.lat, store.lng]).setContent(buildPopup(store, () => popup.update())).openOn(map)
     })
     dots.addTo(map)
     mapRef.current = map
@@ -539,7 +502,15 @@ export default function TradeMap({ user }) {
           <p className="muted">
             {preview.total} dòng dữ liệu: <strong>{preview.rows.length}</strong> hợp lệ
             {preview.errors.length > 0 && <>, <strong>{preview.errors.length}</strong> lỗi sẽ bị bỏ qua</>}.
-            Khi xác nhận, toàn bộ danh sách hiện có sẽ được thay bằng danh sách này (tối đa {MAX_STORES} điểm bán).
+            {preview.history && (
+              <>
+                {' '}Sheet "{preview.history.sheet}": đọc {nf.format(preview.history.rowsRead)} dòng, ghép được doanh thu theo tháng cho{' '}
+                <strong>{nf.format(preview.history.stores)}</strong> điểm bán
+                {preview.history.unmatched > 0 && <> ({nf.format(preview.history.unmatched)} mã không có trong danh sách điểm bán)</>}.
+              </>
+            )}
+            {!preview.history && <> Không có sheet "Doanh thu tháng" nên tab Lịch sử của popup sẽ trống.</>}
+            {' '}Khi xác nhận, toàn bộ danh sách hiện có sẽ được thay bằng danh sách này (tối đa {MAX_STORES} điểm bán).
           </p>
           {preview.errors.length > 0 && (
             <ul className="tm-errors">
