@@ -44,6 +44,7 @@
   --ui-zoom: 1; /* tỉ lệ thu phóng giao diện, xem khối @media ngay dưới */
   --v1: calc(1vh / var(--ui-zoom)); /* 1vh đã bù tỉ lệ thu phóng: dùng calc(N * var(--v1)) thay cho Nvh */
   --dv1: calc(1dvh / var(--ui-zoom));
+  --vw1: calc(1vw / var(--ui-zoom)); /* 1vw đã bù tỉ lệ thu phóng */
   --z-header: 20;
   --z-overlay: 50;
   --z-modal: 100;
@@ -57,6 +58,11 @@
   }
   html {
     zoom: var(--ui-zoom);
+  }
+  /* Bản đồ vẽ ở tỉ lệ 1:1 (hủy thu nhỏ bên trong khung bản đồ): nếu để bản đồ chịu thu nhỏ 0,9 thì các ô bản đồ lệch điểm ảnh và hiện sọc kẻ ở mép ô.
+     Khung bản đồ vẫn có đúng kích thước thực nhờ tỉ lệ nghịch; vì vậy chiều cao theo màn hình của khung bản đồ viết thẳng Nvh (không nhân --v1). */
+  .leaflet-container {
+    zoom: calc(1 / var(--ui-zoom));
   }
 }
 
@@ -854,7 +860,7 @@ h2 {
   align-items: end;
 }
 .map-canvas {
-  height: calc(58 * var(--v1));
+  height: 58vh;
   min-height: 320px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1005,7 +1011,7 @@ h2 {
     grid-template-columns: repeat(5, 1fr);
   }
   .map-canvas {
-    height: calc(64 * var(--v1));
+    height: 64vh;
   }
 }
 @media (min-width: 900px) {

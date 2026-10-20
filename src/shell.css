@@ -270,7 +270,7 @@
 }
 
 .ad-shell {
-  --ad-sb: 248px;
+  --ad-sb: clamp(214px, calc(14 * var(--vw1)), 248px);
 }
 
 .ad-shell.is-collapsed {
@@ -618,5 +618,20 @@
   .ad-bar-account .ad-account-info,
   .ad-shell.is-collapsed .ad-bar-account .ad-account-info {
     display: none;
+  }
+}
+/* Công cụ cần nhiều diện tích (Bố trận điểm bán): vùng làm việc chiếm hết bề ngang còn lại và lấp đầy chiều cao */
+.ad-shell .ad-main.is-wide {
+  max-width: none;
+  flex: 1 1 auto;
+  padding: clamp(16px, calc(2 * var(--vw1)), 32px);
+}
+/* Thanh bên hẹp (màn hình dưới 1600px): mục menu gọn hơn để nhãn dài nhất ("Thông tin nhân viên") vẫn nằm vừa, không bị cắt */
+@media (min-width: 901px) and (max-width: 1599px) {
+  .ad-shell:not(.is-collapsed) .ad-navbtn {
+    gap: var(--space-3);
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+    letter-spacing: 0.06em;
   }
 }

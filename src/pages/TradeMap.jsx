@@ -308,7 +308,16 @@ export default function TradeMap({ user }) {
     dots.addTo(map)
     mapRef.current = map
     dotsRef.current = dots
+    // Tự cập nhật khi khung bản đồ đổi kích thước (đổi cỡ cửa sổ, thu gọn thanh bên, toàn màn hình, thanh công cụ đổi dạng)
+    let raf = 0
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => map.invalidateSize())
+    })
+    ro.observe(mapElRef.current)
     return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
       map.remove()
       mapRef.current = null
       dotsRef.current = null
@@ -495,13 +504,13 @@ export default function TradeMap({ user }) {
         <div className="tm-actions">
           {user.isAdmin && (
             <>
-              <button type="button" className="tm-btn" onClick={downloadStoresTemplate} title="Tải file Excel mẫu">
+              <button type="button" className="tm-btn tm-btn-soft" onClick={downloadStoresTemplate} title="Tải file Excel mẫu" aria-label="Tải file Excel mẫu">
                 <Icon name="download" size={18} />
-                <span>File mẫu</span>
+                <span className="tm-btn-label tm-btn-label-soft">File mẫu</span>
               </button>
-              <button type="button" className="tm-btn tm-btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title="Nhập danh sách điểm bán từ file Excel">
+              <button type="button" className="tm-btn tm-btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title="Nhập danh sách điểm bán từ file Excel" aria-label="Nhập danh sách điểm bán từ file Excel">
                 <Icon name="upload" size={18} />
-                <span>Nhập Excel</span>
+                <span className="tm-btn-label">Nhập Excel</span>
               </button>
               <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
             </>

@@ -1,9 +1,14 @@
 /* Bố trận điểm bán: mọi luật đều nằm dưới .tm để không ảnh hưởng bản đồ của "Định vị điểm bán" */
 .tm {
+  --tm-gap: clamp(8px, calc(1 * var(--vw1)), 20px);
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-4);
+  min-width: 0;
+  min-height: 0;
   background: var(--bg);
+  container-type: inline-size; /* thanh công cụ đổi dạng theo bề rộng thực tế của vùng làm việc, không theo cửa sổ */
 }
 
 /* Thanh lệnh gọn: số điểm bán, ô tìm kiếm, các nút thao tác */
@@ -168,19 +173,22 @@
 /* Bản đồ */
 .tm-mapbox {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 520px;
 }
+/* Bản đồ lấp đầy phần chiều cao còn lại của màn hình, không dùng chiều cao cố định */
 .tm-map {
-  height: clamp(420px, calc(68 * var(--v1)), 780px);
+  flex: 1 1 auto;
+  min-height: 520px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
   z-index: 0;
 }
-/* Hàng điều khiển chấm: đủ rộng thì nằm cùng hàng với số điểm và nút, hẹp thì xuống hàng riêng phía dưới */
+/* Thanh công cụ: đủ rộng thì cả bốn nhóm nằm trên MỘT hàng (xem các @container bên dưới), hẹp thì nhóm chấm xuống hàng riêng */
 .tm-bar {
-  container-type: inline-size;
   position: relative;
 }
 /* Thanh tiến độ tải điểm bán: mảnh, nằm sát mép dưới thanh công cụ nên không làm đổi chiều cao */
@@ -228,15 +236,89 @@
   border-top: 1px solid var(--border);
   color: var(--text);
 }
-@container (min-width: 1120px) {
+/* Một hàng: trạng thái | màu chấm | cỡ chấm | File mẫu, Nhập Excel, Làm mới, Toàn màn hình */
+@container (min-width: 830px) {
+  .tm-bar {
+    flex-wrap: nowrap;
+    gap: var(--tm-gap);
+    padding: 10px clamp(12px, calc(1.4 * var(--vw1)), 24px);
+    white-space: nowrap;
+  }
+  .tm-count {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding-right: var(--tm-gap);
+  }
+  .tm-count-text {
+    min-width: 0;
+  }
+  .tm-count-text strong,
+  .tm-count-text small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .tm-style {
     order: 2;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: var(--tm-gap);
     padding-top: 0;
+    padding-right: var(--tm-gap);
     border-top: 0;
+    border-right: 1px solid var(--border);
   }
   .tm-actions {
     order: 3;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+}
+/* Gọn 1: ẩn dòng phụ của trạng thái, "File mẫu" chỉ còn biểu tượng (vẫn có tooltip và aria-label), thu hẹp chấm màu và thanh cỡ */
+@container (max-width: 1239px) {
+  .tm-count-text small,
+  .tm-btn-label-soft {
+    display: none;
+  }
+  .tm-btn-soft {
+    width: 44px;
+    padding: 0;
+  }
+  .tm-swatch {
+    width: 22px;
+    height: 22px;
+  }
+  .tm-range {
+    width: 72px;
+  }
+}
+/* Gọn 3: vùng làm việc rất hẹp (dưới 900px): ẩn biểu tượng tròn của trạng thái để tiêu đề không bị cắt */
+@container (max-width: 899px) {
+  .tm-count-icon {
+    display: none;
+  }
+}
+/* Gọn 2: ẩn nhãn chữ của hai nhóm chấm (nhóm vẫn có aria-label) */
+@container (max-width: 1039px) {
+  .tm-field-label {
+    display: none;
+  }
+  .tm-swatches {
+    gap: 6px;
+  }
+  .tm-range {
+    width: 60px;
+  }
+  .tm-size-val {
+    min-width: 2em;
+  }
+  .tm-bar {
+    gap: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .tm-count,
+  .tm-style {
+    padding-right: 8px;
   }
 }
 .tm-field {
@@ -387,12 +469,9 @@
   overflow: auto;
 }
 .tm-full .tm-mapbox {
-  display: flex;
-  flex-direction: column;
+  min-height: 0;
 }
 .tm-full .tm-map {
-  flex: 1;
-  height: auto;
   min-height: 320px;
 }
 .tm:fullscreen {

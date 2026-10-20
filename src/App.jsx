@@ -270,6 +270,7 @@ export default function App() {
       eyebrow={tool ? `${PLATFORM_NAME} · Công cụ` : PLATFORM_NAME}
       title={tool ? toolName : section === 'knowledge' && knowledge === 'lessons' ? 'Bài học' : sectionName}
       hasTabbar={inLocate}
+      wide={tool === 'bo-tran-diem-ban'}
       bottomBar={bottomBar}
     >
       {!tool && section === 'home' && <HomePage user={user} onOpenTool={openTool} />}

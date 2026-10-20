@@ -352,7 +352,7 @@
 
 /* ---------- Bản đồ ---------- */
 .ad-map {
-  height: calc(68 * var(--v1));
+  height: 68vh;
   min-height: 380px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -1050,7 +1050,7 @@
    Nới khoảng thở: nhiều không gian giữa các khối và quanh chữ
    ========================================================== */
 .ad-shell {
-  --ad-sb: 248px;
+  --ad-sb: clamp(214px, calc(14 * var(--vw1)), 248px);
 }
 .ad-shell.is-collapsed {
   --ad-sb: 76px;

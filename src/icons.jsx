@@ -102,12 +102,6 @@ const PATHS = {
   ),
   download: <path d="M12 4v11M7 11l5 5 5-5M4 20h16" />,
   upload: <path d="M12 16V5M7 9l5-5 5 5M4 20h16" />,
-  refresh: (
-    <>
-      <path d="M20 11a8 8 0 1 0-2.3 5.7" />
-      <path d="M20 4v7h-7" />
-    </>
-  ),
   'chevron-left': <path d="M15 5l-7 7 7 7" />,
   'chevron-right': <path d="M9 5l7 7-7 7" />,
   'arrow-right': <path d="M5 12h14M13 6l6 6-6 6" />,
