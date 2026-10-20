@@ -238,6 +238,7 @@ export default function TradeMap({ user }) {
   const [stores, setStores] = useState([])
   const [loading, setLoading] = useState(true)
   const [loaded, setLoaded] = useState(0) // số điểm đã nhận được trong lúc đang tải
+  const [expected, setExpected] = useState(null) // tổng số điểm theo máy chủ (null khi chưa biết), dùng để tính % tiến độ
   const [error, setError] = useState('')
   const [preview, setPreview] = useState(null) // kết quả đọc file đang chờ xác nhận
   const [busy, setBusy] = useState(false)
@@ -249,6 +250,7 @@ export default function TradeMap({ user }) {
   const load = useCallback(async () => {
     setLoading(true)
     setLoaded(0)
+    setExpected(null)
     setError('')
     const all = []
     let failed = null
@@ -256,11 +258,14 @@ export default function TradeMap({ user }) {
     for (let start = 0; !failed; start += PAGE_SIZE * READ_PARALLEL) {
       const results = await Promise.all(
         Array.from({ length: READ_PARALLEL }, (_, i) =>
-          supabase.rpc('app_list_trade_stores').range(start + i * PAGE_SIZE, start + (i + 1) * PAGE_SIZE - 1),
+          supabase
+            .rpc('app_list_trade_stores', undefined, start === 0 && i === 0 ? { count: 'exact' } : undefined)
+            .range(start + i * PAGE_SIZE, start + (i + 1) * PAGE_SIZE - 1),
         ),
       )
       failed = results.find((r) => r.error) || null
       if (failed) break
+      if (start === 0 && typeof results[0].count === 'number') setExpected(results[0].count)
       let last = false
       for (const r of results) {
         const rows = Array.isArray(r.data) ? r.data : []
@@ -411,11 +416,24 @@ export default function TradeMap({ user }) {
   }
 
   const total = stores.length
+  const loadPct = expected ? Math.min(99, Math.round((loaded / expected) * 100)) : 0 // chưa xong thì không hiện 100%
   const uploadedAt = stores[0] && stores[0].uploaded_at
 
   return (
     <section className={`tm ${fullscreen ? 'tm-full' : ''}`} ref={wrapRef}>
       <div className="tm-bar">
+        {loading && (
+          <div
+            className="tm-loadbar"
+            role="progressbar"
+            aria-label="Tiến độ tải điểm bán"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={expected ? loadPct : undefined}
+          >
+            <div className={`tm-loadbar-fill ${expected ? '' : 'is-indeterminate'}`} style={expected ? { width: `${loadPct}%` } : undefined} />
+          </div>
+        )}
         <div className="tm-count">
           <span className="tm-count-icon">
             <Icon name="map" size={22} />
@@ -424,7 +442,11 @@ export default function TradeMap({ user }) {
             <strong>{loading ? 'Đang tải điểm bán...' : `${nf.format(total)} điểm bán`}</strong>
             <small>
               {loading
-                ? loaded > 0 ? `Đã nhận ${nf.format(loaded)} điểm` : 'Vui lòng chờ trong giây lát'
+                ? loaded > 0
+                  ? expected
+                    ? `Đã nhận ${nf.format(loaded)} / ${nf.format(expected)} điểm (${loadPct}%)`
+                    : `Đã nhận ${nf.format(loaded)} điểm`
+                  : 'Vui lòng chờ trong giây lát'
                 : uploadedAt ? `Cập nhật ${new Date(uploadedAt).toLocaleDateString('vi-VN')}` : 'Chưa có dữ liệu'}
             </small>
           </span>

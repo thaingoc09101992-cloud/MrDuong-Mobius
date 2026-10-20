@@ -181,6 +181,35 @@
 /* Hàng điều khiển chấm: đủ rộng thì nằm cùng hàng với số điểm và nút, hẹp thì xuống hàng riêng phía dưới */
 .tm-bar {
   container-type: inline-size;
+  position: relative;
+}
+/* Thanh tiến độ tải điểm bán: mảnh, nằm sát mép dưới thanh công cụ nên không làm đổi chiều cao */
+.tm-loadbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  overflow: hidden;
+  background: var(--surface-2);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+.tm-loadbar-fill {
+  height: 100%;
+  background: var(--gold);
+  transition: width 0.25s linear;
+}
+.tm-loadbar-fill.is-indeterminate {
+  width: 35%;
+  animation: tm-load-slide 1.2s ease-in-out infinite;
+}
+@keyframes tm-load-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
 }
 .tm-count {
   order: 1;
