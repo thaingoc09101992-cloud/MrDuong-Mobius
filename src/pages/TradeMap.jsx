@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { supabase, safeGet, safeSet } from '../supabase.js'
 import Icon from '../icons.jsx'
 import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExcel.js'
 import { buildPopup } from './tradePopup.js'
+import { COLOR_FIELDS, buildScheme } from './tradeColor.js'
 import './tradeMap.css'
 
 const PIN_COLOR = '#0264a0'
 const DOT_COLORS = ['#0264a0', '#dc2626', '#16a34a', '#ea580c', '#7c3aed', '#111111']
 const DOT_STYLE_KEY = 'tm-dot-style'
+const COLOR_FIELD_KEY = 'tm-color-field'
 
 function loadDotStyle() {
   try {
@@ -33,6 +35,23 @@ const DotLayer = L.Layer.extend({
     this._onPick = onPick
     this._color = PIN_COLOR
     this._scale = 1
+    this._scheme = null // phương án tô màu theo trường dữ liệu: { bands, assign }
+    this._hidden = new Set() // các nhóm đang ẩn
+    this._sprites = new Map()
+  },
+  /** Tô màu theo nhóm: mỗi điểm lấy màu của nhóm mình; nhóm nằm trong hidden thì không vẽ và không bấm được. */
+  setScheme(scheme, hidden) {
+    this._scheme = scheme
+    this._hidden = hidden || new Set()
+    if (this._canvas) this._draw()
+  },
+  /** Phương án tô màu đang dùng được: phải khớp số điểm hiện có, nếu chưa khớp (đang nạp lại dữ liệu) thì vẽ một màu. */
+  _active() {
+    return this._scheme && this._scheme.assign.length === this._mx.length ? this._scheme : null
+  },
+  _hideFlags() {
+    const s = this._active()
+    return s ? s.bands.map((b) => this._hidden.has(b.id)) : null
   },
   setStyle(color, scale) {
     this._color = color
@@ -118,9 +137,14 @@ const DotLayer = L.Layer.extend({
     ctx.clearRect(0, 0, w, h)
     const r = this._radius()
     const near = map.getZoom() >= 15
-    // Chấm được vẽ sẵn một lần thành ảnh nhỏ rồi dán lên từng vị trí, nhanh hơn nhiều so với vẽ hàng chục nghìn hình tròn
-    const sprite = this._sprite(r, near, dpr)
-    const side = sprite.width / dpr
+    // Chấm được vẽ sẵn một lần thành ảnh nhỏ rồi dán lên từng vị trí, nhanh hơn nhiều so với vẽ hàng chục nghìn hình tròn.
+    // Khi tô màu theo nhóm thì mỗi nhóm có một ảnh chấm riêng.
+    const scheme = this._active()
+    const assign = scheme ? scheme.assign : null
+    const hide = this._hideFlags()
+    const sprites = scheme ? scheme.bands.map((b) => this._sprite(r, near, dpr, b.color)) : null
+    const plain = scheme ? null : this._sprite(r, near, dpr, this._color)
+    const side = (plain || sprites[0]).width / dpr
     const half = side / 2
     ctx.globalAlpha = near ? 1 : 0.92
     const { _mx: mx, _my: my } = this
@@ -128,19 +152,27 @@ const DotLayer = L.Layer.extend({
       const x = mx[i] * scale - ox
       const y = my[i] * scale - oy
       if (x < -half || y < -half || x > w + half || y > h + half) continue
+      let sprite = plain
+      if (assign) {
+        const b = assign[i]
+        if (hide[b]) continue
+        sprite = sprites[b]
+      }
       ctx.drawImage(sprite, x - half, y - half, side, side)
     }
     ctx.globalAlpha = 1
   },
-  _sprite(r, near, dpr) {
-    const key = `${this._color}|${r}|${near}|${dpr}`
-    if (this._spriteKey === key) return this._spriteImg
+  _sprite(r, near, dpr, color) {
+    const key = `${color}|${r}|${near}|${dpr}`
+    const cached = this._sprites.get(key)
+    if (cached) return cached
+    if (this._sprites.size > 60) this._sprites.clear()
     const side = Math.ceil((r * 2 + 4) * dpr)
     const c = document.createElement('canvas')
     c.width = side
     c.height = side
     const g = c.getContext('2d')
-    g.fillStyle = this._color
+    g.fillStyle = color
     g.beginPath()
     g.arc(side / 2, side / 2, r * dpr, 0, Math.PI * 2)
     g.fill()
@@ -149,8 +181,7 @@ const DotLayer = L.Layer.extend({
       g.lineWidth = 1.5 * dpr
       g.stroke()
     }
-    this._spriteKey = key
-    this._spriteImg = c
+    this._sprites.set(key, c)
     return c
   },
   _pick(point) {
@@ -161,9 +192,13 @@ const DotLayer = L.Layer.extend({
     const px = point.x + padX
     const py = point.y + padY
     const { _mx: mx, _my: my } = this
+    const active = this._active()
+    const assign = active ? active.assign : null
+    const hide = this._hideFlags()
     let best = -1
     let bestD = limit * limit
     for (let i = 0; i < mx.length; i += 1) {
+      if (assign && hide[assign[i]]) continue
       const dx = mx[i] * scale - ox - px
       if (dx > limit || dx < -limit) continue
       const dy = my[i] * scale - oy - py
@@ -199,6 +234,8 @@ export default function TradeMap({ user }) {
   const dotsRef = useRef(null)
   const fitRef = useRef(false)
   const fileRef = useRef(null)
+  const colorMenuRef = useRef(null)
+  const [colorMenuOpen, setColorMenuOpen] = useState(false)
 
   const [stores, setStores] = useState([])
   const [loading, setLoading] = useState(true)
@@ -210,6 +247,11 @@ export default function TradeMap({ user }) {
   const [progress, setProgress] = useState(null) // { loaded, total } khi đang lưu danh sách lên máy chủ
   const [notice, setNotice] = useState('')
   const [fullscreen, setFullscreen] = useState(false)
+  const [colorField, setColorField] = useState(() => {
+    const v = safeGet(COLOR_FIELD_KEY) || ''
+    return COLOR_FIELDS.some((c) => c.id === v) ? v : ''
+  }) // trường dữ liệu dùng để tô màu ('' = một màu)
+  const [hiddenBands, setHiddenBands] = useState(() => new Set()) // các nhóm màu đang ẩn trên bản đồ
   const [dotStyle, setDotStyle] = useState(loadDotStyle) // { color, scale }: màu và cỡ chấm do người xem chọn
 
   const load = useCallback(async () => {
@@ -308,6 +350,42 @@ export default function TradeMap({ user }) {
       fitRef.current = false
     }
   }, [stores])
+
+  // Tô màu theo trường dữ liệu: chia nhóm một lần khi dữ liệu hoặc trường đổi, rồi giao cho lớp vẽ
+  useEffect(() => {
+    if (!colorMenuOpen) return undefined
+    const close = (e) => {
+      if (colorMenuRef.current && !colorMenuRef.current.contains(e.target)) setColorMenuOpen(false)
+    }
+    const esc = (e) => e.key === 'Escape' && setColorMenuOpen(false)
+    document.addEventListener('mousedown', close)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('mousedown', close)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [colorMenuOpen])
+
+  const scheme = useMemo(() => (colorField ? buildScheme(stores, colorField) : null), [stores, colorField])
+  useEffect(() => {
+    if (dotsRef.current) dotsRef.current.setScheme(scheme, hiddenBands)
+  }, [scheme, hiddenBands, stores])
+  useEffect(() => {
+    safeSet(COLOR_FIELD_KEY, colorField || null)
+  }, [colorField])
+
+  function changeColorField(id) {
+    setColorField(id)
+    setHiddenBands(new Set())
+  }
+  function toggleBand(id) {
+    setHiddenBands((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   useEffect(() => {
     if (dotsRef.current) dotsRef.current.setStyle(dotStyle.color, dotStyle.scale)
@@ -425,28 +503,59 @@ export default function TradeMap({ user }) {
         </div>
 
         <div className="tm-style">
-          <div className="tm-field">
-            <span className="tm-field-label">Màu chấm</span>
-            <div className="tm-swatches" role="group" aria-label="Màu chấm">
-              {DOT_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
-                  style={{ background: c }}
-                  aria-label={`Màu ${c}`}
-                  aria-pressed={dotStyle.color.toLowerCase() === c}
-                  onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
-                />
+          <label className="tm-field">
+            <span className="tm-field-label">Tô màu theo</span>
+            <select className="tm-select" value={colorField} onChange={(e) => changeColorField(e.target.value)} aria-label="Tô màu điểm bán theo trường dữ liệu">
+              <option value="">Một màu</option>
+              {COLOR_FIELDS.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
               ))}
-              <label className={`tm-swatch tm-swatch-custom ${DOT_COLORS.includes(dotStyle.color.toLowerCase()) ? '' : 'is-active'}`} title="Chọn màu khác">
-                <input
-                  type="color"
-                  value={dotStyle.color}
-                  aria-label="Chọn màu khác"
-                  onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
-                />
-              </label>
+            </select>
+          </label>
+          <div className={`tm-field ${scheme ? 'is-off' : ''}`} title={scheme ? 'Đang tô màu theo dữ liệu, chọn "Một màu" ở ô "Tô màu theo" để đổi màu chấm' : undefined}>
+            <span className="tm-field-label">Màu chấm</span>
+            <div className="tm-colordd" ref={colorMenuRef}>
+              <button
+                type="button"
+                className="tm-select-btn"
+                aria-haspopup="listbox"
+                aria-expanded={colorMenuOpen}
+                aria-label="Màu chấm"
+                disabled={Boolean(scheme)}
+                onClick={() => setColorMenuOpen((o) => !o)}
+              >
+                <span className="tm-swatch tm-swatch-sm" style={{ background: dotStyle.color }} />
+                <Icon name="chevron-down" size={16} />
+              </button>
+              {colorMenuOpen && (
+                <div className="tm-colormenu" role="listbox" aria-label="Màu chấm">
+                  {DOT_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      role="option"
+                      aria-selected={dotStyle.color.toLowerCase() === c}
+                      className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
+                      style={{ background: c }}
+                      aria-label={`Màu ${c}`}
+                      onClick={() => {
+                        setDotStyle((d) => ({ ...d, color: c }))
+                        setColorMenuOpen(false)
+                      }}
+                    />
+                  ))}
+                  <label className={`tm-swatch tm-swatch-custom ${DOT_COLORS.includes(dotStyle.color.toLowerCase()) ? '' : 'is-active'}`} title="Chọn màu khác">
+                    <input
+                      type="color"
+                      value={dotStyle.color}
+                      aria-label="Chọn màu khác"
+                      onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
           </div>
           <label className="tm-field">
@@ -550,6 +659,33 @@ export default function TradeMap({ user }) {
 
       <div className="tm-mapbox">
         <div ref={mapElRef} className="tm-map" />
+        {scheme && (
+          <div className="tm-colorpanel">
+            <span className="tm-field-label">{scheme.label}</span>
+              <ul className="tm-legend" aria-label={`Chú giải: ${scheme.label}`}>
+                {scheme.bands.map((b) => (
+                  <li key={b.id}>
+                    <button
+                      type="button"
+                      className={`tm-legend-item ${hiddenBands.has(b.id) ? 'is-off' : ''}`}
+                      aria-pressed={!hiddenBands.has(b.id)}
+                      title={hiddenBands.has(b.id) ? 'Bấm để hiện lại nhóm này' : 'Bấm để ẩn nhóm này'}
+                      onClick={() => toggleBand(b.id)}
+                    >
+                      <span className="tm-legend-dot" style={{ background: b.color }} />
+                      <span className="tm-legend-label">{b.label}</span>
+                      <span className="tm-legend-count">{nf.format(b.count)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {hiddenBands.size > 0 && (
+                <button type="button" className="tm-legend-reset" onClick={() => setHiddenBands(new Set())}>
+                  Hiện tất cả nhóm
+                </button>
+              )}
+          </div>
+        )}
       </div>
 
       {!loading && !error && total === 0 && (

@@ -552,6 +552,175 @@
   color: var(--text-2);
 }
 
+/* Chọn màu chấm bị mờ khi đang tô màu theo dữ liệu (màu do chú giải quyết định) */
+.tm-field.is-off .tm-colordd {
+  opacity: 0.4;
+}
+.tm-colordd {
+  position: relative;
+}
+.tm-select-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.tm-select-btn:disabled {
+  cursor: not-allowed;
+}
+.tm-select-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.tm-swatch-sm {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+}
+.tm-colormenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.tm-select {
+  max-width: 220px;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.tm-select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+/* Bảng "Tô màu theo" nằm trên bản đồ (góc phải trên): chọn trường dữ liệu và xem chú giải; bấm một nhóm để ẩn hoặc hiện */
+.tm-colorpanel {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(270px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  padding: var(--space-3);
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.tm-colorpanel-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tm-colorpanel select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.tm-colorpanel select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+.tm-legend {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tm-legend-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 6px var(--space-1);
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.tm-legend-item:hover {
+  background: var(--surface-2);
+}
+.tm-legend-item:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+}
+.tm-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+.tm-legend-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tm-legend-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+.tm-legend-item.is-off {
+  opacity: 0.45;
+}
+.tm-legend-item.is-off .tm-legend-label {
+  text-decoration: line-through;
+}
+.tm-legend-reset {
+  align-self: flex-start;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--gold-deep);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+:root[data-theme='dark'] .tm-legend-reset {
+  color: var(--gold);
+}
+@media (max-width: 720px) {
+  .tm-colorpanel {
+    top: auto;
+    bottom: var(--space-3);
+    max-height: 45%;
+  }
+}
 /* Cụm điểm màu xanh nhất quán với ghim */
 .tm .marker-cluster-small,
 .tm .marker-cluster-medium,
