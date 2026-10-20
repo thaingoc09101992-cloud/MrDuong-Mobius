@@ -1,29 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Icon from './icons.jsx'
 import Logo from './Logo.jsx'
 import { safeGet, safeSet } from './supabase.js'
 import { PLATFORM_NAME } from './modules.js'
 import useReveal from './useReveal.js'
+import useNarrowRail from './useNarrowRail.js'
 import './shell.css'
 
 /**
  * Khung có thanh bên của app nhân viên (cùng kiểu với trang quản trị):
  * thông tin tài khoản ở góc trái trên, menu chính, mục Trang quản trị (chỉ admin), đổi giao diện và đăng xuất.
  */
-const RAIL_QUERY = '(min-width: 901px) and (max-width: 1099px)'
-
 export default function AppShell({ user, nav, active, onNavigate, theme, onToggleTheme, onLogout, eyebrow, title, hasTabbar, bottomBar, wide = false, children }) {
   useReveal()
   const [collapsed, setCollapsed] = useState(() => safeGet('mb-collapsed') === '1')
   const [mobileOpen, setMobileOpen] = useState(false)
   // Màn hình 901-1099px: thanh bên tự thu gọn thành cột biểu tượng để nhường chỗ cho nội dung
-  const [narrow, setNarrow] = useState(() => window.matchMedia(RAIL_QUERY).matches)
-  useEffect(() => {
-    const mq = window.matchMedia(RAIL_QUERY)
-    const onChange = () => setNarrow(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
+  const narrow = useNarrowRail()
 
   const who = user.full_name || user.email || user.code || ''
   const initial = who.trim().charAt(0).toUpperCase() || '?'

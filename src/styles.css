@@ -1562,7 +1562,7 @@ a.ad-navbtn {
   overflow: hidden;
   width: 100%;
   aspect-ratio: 12 / 5;
-  max-height: 490px; /* = 440px thực tế sau khi giao diện thu nhỏ còn 90% */
+  max-height: min(490px, calc(46 * var(--v1))); /* tối đa 440px thực tế, và không quá 46% chiều cao màn hình để còn thấy nội dung bên dưới */
   min-height: 190px;
   border-radius: var(--radius-md);
   background: #14100d;

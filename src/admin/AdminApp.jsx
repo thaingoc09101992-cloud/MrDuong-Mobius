@@ -13,6 +13,7 @@ import { applyFilters, EMPTY_FILTERS } from './util.js'
 import Icon from '../icons.jsx'
 import Logo from '../Logo.jsx'
 import useReveal from '../useReveal.js'
+import useNarrowRail from '../useNarrowRail.js'
 import '../shell.css'
 import './admin.css'
 
@@ -53,6 +54,7 @@ export default function AdminApp() {
   const [isFs, setIsFs] = useState(false)
   const [collapsed, setCollapsed] = useState(() => safeGet('ad-collapsed') === '1')
   const [mobileOpen, setMobileOpen] = useState(false)
+  const narrow = useNarrowRail() // 901-1099px: thanh bên tự thu gọn thành cột biểu tượng
 
   useEffect(() => {
     document.title = 'Quản trị - MOBIUS'
@@ -108,6 +110,19 @@ export default function AdminApp() {
     return () => document.removeEventListener('fullscreenchange', f)
   }, [])
 
+  // (Các hook phải đứng trước mọi lệnh return sớm bên dưới, nếu không React báo "Rendered more hooks" và trang trắng.)
+  // Giữ trang đang xem trên địa chỉ để F5 hay nút Back vẫn đứng đúng mục
+  useEffect(() => {
+    if (window.location.hash !== `#/${tab}`) window.location.hash = `#/${tab}`
+  }, [tab])
+  useEffect(() => {
+    function onHash() {
+      const id = window.location.hash.replace(/^#\/?/, '')
+      if (TABS.some((t) => t.id === id)) setTab(id)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
   async function logout() {
     await sb.auth.signOut()
     window.location.assign('/')
@@ -179,18 +194,6 @@ export default function AdminApp() {
     }
   }
 
-  // Giữ trang đang xem trên địa chỉ để F5 hay nút Back vẫn đứng đúng mục
-  useEffect(() => {
-    if (window.location.hash !== `#/${tab}`) window.location.hash = `#/${tab}`
-  }, [tab])
-  useEffect(() => {
-    function onHash() {
-      const id = window.location.hash.replace(/^#\/?/, '')
-      if (TABS.some((t) => t.id === id)) setTab(id)
-    }
-    window.addEventListener('hashchange', onHash)
-    return () => window.removeEventListener('hashchange', onHash)
-  }, [])
 
   function go(id) {
     setTab(id)
@@ -198,7 +201,7 @@ export default function AdminApp() {
   }
 
   return (
-    <div className={`ad-shell ${collapsed ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
+    <div className={`ad-shell ${collapsed || narrow ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
       <aside className="ad-sidebar" aria-label="Menu quản trị">
         <div className="ad-brandbar">
           <Logo size={46} />
@@ -252,21 +255,23 @@ export default function AdminApp() {
         </div>
       </aside>
       <div className="ad-backdrop" onClick={() => setMobileOpen(false)} aria-hidden="true" />
-      <button
-        type="button"
-        className="ad-edge-toggle"
-        onClick={toggleSidebar}
-        aria-label={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
-        aria-expanded={!collapsed}
-        title={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
-      >
-        <span className="ico-l">
-          <Icon name="chevron-left" size={16} />
-        </span>
-        <span className="ico-r">
-          <Icon name="chevron-right" size={16} />
-        </span>
-      </button>
+      {!narrow && (
+        <button
+          type="button"
+          className="ad-edge-toggle"
+          onClick={toggleSidebar}
+          aria-label={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+          aria-expanded={!collapsed}
+          title={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+        >
+          <span className="ico-l">
+            <Icon name="chevron-left" size={16} />
+          </span>
+          <span className="ico-r">
+            <Icon name="chevron-right" size={16} />
+          </span>
+        </button>
+      )}
 
       <div className="ad-content">
         <header className="ad-bar">
@@ -299,7 +304,7 @@ export default function AdminApp() {
           </div>
         </header>
 
-        <main className="ad-main">
+        <main className={`ad-main ${tab === 'map' ? 'is-wide' : ''}`}>
           {loadError && (
             <div className="alert alert-error" role="alert">
               {loadError}

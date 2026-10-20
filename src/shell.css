@@ -635,3 +635,21 @@
     letter-spacing: 0.06em;
   }
 }
+/* Tab Bản đồ (Định vị điểm bán, trang quản trị): bản đồ lấp đầy phần chiều cao còn lại của màn hình.
+   Khung bản đồ tự hủy thu nhỏ 90% nên chiều cao tối thiểu tính theo px vật lý. */
+.ad-main.is-wide {
+  gap: var(--space-4);
+}
+.ad-main.is-wide > .page-head {
+  margin-bottom: 0;
+}
+.ad-main.is-wide > .map-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.ad-main.is-wide .map-canvas,
+.ad-main.is-wide > .ad-map {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 420px;
+}
