@@ -258,7 +258,7 @@ h2 {
 .page-title {
   font-family: var(--font-editorial);
   font-weight: 500;
-  font-size: clamp(2.2rem, 8vw, 3.2rem);
+  font-size: clamp(2rem, calc(2.6 * var(--vw1)), 2.8rem);
   line-height: 1.02;
   letter-spacing: -0.015em;
 }

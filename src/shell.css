@@ -621,10 +621,12 @@
   }
 }
 /* Công cụ cần nhiều diện tích (Bố trận điểm bán): vùng làm việc chiếm hết bề ngang còn lại và lấp đầy chiều cao */
+.ad-shell .ad-main.is-wide,
+.ad-shell .ad-main:has(> .ls-viewer) {
+  max-width: none; /* trình xem bài học (app nhân viên và trang quản trị) cũng dùng vùng rộng như Bố trận điểm bán */
+}
 .ad-shell .ad-main.is-wide {
-  max-width: none;
   flex: 1 1 auto;
-  padding: clamp(16px, calc(2 * var(--vw1)), 32px);
 }
 /* Thanh bên hẹp (màn hình dưới 1600px): mục menu gọn hơn để nhãn dài nhất ("Thông tin nhân viên") vẫn nằm vừa, không bị cắt */
 @media (min-width: 901px) and (max-width: 1599px) {
@@ -637,12 +639,6 @@
 }
 /* Tab Bản đồ (Định vị điểm bán, trang quản trị): bản đồ lấp đầy phần chiều cao còn lại của màn hình.
    Khung bản đồ tự hủy thu nhỏ 90% nên chiều cao tối thiểu tính theo px vật lý. */
-.ad-main.is-wide {
-  gap: var(--space-4);
-}
-.ad-main.is-wide > .page-head {
-  margin-bottom: 0;
-}
 .ad-main.is-wide > .map-wrap {
   flex: 1 1 auto;
   min-height: 0;
@@ -652,4 +648,37 @@
   flex: 1 1 auto;
   height: auto;
   min-height: 420px;
+}
+/* ==========================================================
+   Bố cục thống nhất cho MỌI trang trong menu (Home, Công cụ, Video, Kiến thức, Bài học, Thông tin nhân viên, Trang quản trị):
+   cùng một bộ lề và khoảng cách, co giãn theo bề rộng màn hình; giới hạn bề ngang vẫn là --container (1440px thực tế).
+   Chỉ trang cần nhiều diện tích (Bố trận điểm bán, các tab Bản đồ) dùng thêm .is-wide để bỏ giới hạn bề ngang.
+   ========================================================== */
+.ad-shell {
+  --ad-pad: clamp(20px, calc(2.4 * var(--vw1)), 40px); /* lề ngoài: màn 4:3 hẹp thì gọn, màn lớn thì thoáng */
+  --ad-gap: clamp(16px, calc(1.5 * var(--vw1)), 24px); /* khoảng cách giữa các khối trong trang */
+}
+@media (max-width: 900px) {
+  .ad-shell {
+    --ad-pad: var(--space-4);
+    --ad-gap: var(--space-6);
+  }
+}
+.ad-shell main.ad-main {
+  padding: var(--ad-pad) var(--ad-pad) calc(var(--ad-pad) + var(--space-6));
+  gap: var(--ad-gap);
+}
+.ad-shell main.ad-main > .stack {
+  gap: var(--ad-gap);
+}
+.ad-shell header.ad-bar {
+  padding-left: var(--ad-pad);
+  padding-right: var(--ad-pad);
+}
+/* Đầu trang (nhãn, tiêu đề, mô tả) cách khối sau đúng một khoảng --ad-gap, không cộng thêm lề riêng */
+.ad-shell .page-head {
+  margin-bottom: 0;
+}
+.ad-shell .module-grid {
+  gap: var(--ad-gap);
 }
