@@ -145,7 +145,7 @@ export function buildPopup(s, onResize) {
   if (s.store_code) box.appendChild(el('span', 'tm-pop-eyebrow', `Mã ${s.store_code}`))
   box.appendChild(el('strong', 'tm-pop-title', s.name))
 
-  const tabs = el('div', 'tm-pop-tabs')
+  const tabs = el('div', 'tabs tabs-sm')
   tabs.setAttribute('role', 'tablist')
   const panels = { profile: profilePanel(s), history: historyPanel(s) }
   const buttons = {}
@@ -162,7 +162,7 @@ export function buildPopup(s, onResize) {
     ['profile', 'Profile'],
     ['history', 'Lịch sử'],
   ].forEach(([key, label]) => {
-    const b = el('button', 'tm-pop-tab', label)
+    const b = el('button', 'tab-item', label)
     b.type = 'button'
     b.setAttribute('role', 'tab')
     b.addEventListener('click', () => show(key))

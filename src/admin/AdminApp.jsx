@@ -12,6 +12,7 @@ import { exportExcel } from './exportExcel.js'
 import { applyFilters, EMPTY_FILTERS } from './util.js'
 import Icon from '../icons.jsx'
 import Logo from '../Logo.jsx'
+import Loading from '../Loading.jsx'
 import useReveal from '../useReveal.js'
 import useNarrowRail from '../useNarrowRail.js'
 import '../shell.css'
@@ -163,7 +164,7 @@ export default function AdminApp() {
 
   const themeToggle = () => setTheme(theme === 'dark' ? 'light' : 'dark')
 
-  if (phase === 'loading') return <div className="boot">Đang tải...</div>
+  if (phase === 'loading') return <Loading full />
   if (phase === 'out') return <div className="boot">Đang chuyển về trang đăng nhập...</div>
   if (phase === 'denied') {
     return (

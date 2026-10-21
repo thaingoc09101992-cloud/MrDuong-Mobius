@@ -12,14 +12,44 @@
   --color-white: #ffffff;
   --color-ivory: #f8f7f4;
   --color-cream: #f3f0e9;
-  --color-beige: #e8e2d8;
+  --color-beige: #e4ded1; /* viền khối kem (form, bộ lọc), viền ô nhập ở đăng nhập */
   --color-taupe: #b8ada0;
   --color-border: #e7e5e0;
   --color-muted: #737373;
+  --color-black: #0b0b0b; /* nền ảnh, camera, khung xem ảnh */
   --color-accent: #0284c7; /* màu nhấn duy nhất, dùng tiết chế */
+
+  /* Vàng champagne: nhận diện MOBIUS (nhãn, đường nhấn, nút chính của thẻ). Chữ trên nền vàng là --color-ink */
+  --gold: #c9a96e;
+  --gold-soft: #d9c49b;
+  --gold-deep: #8f723a;
+  --gold-line: color-mix(in srgb, var(--gold) 28%, transparent); /* viền vàng mảnh trên nền thương hiệu */
+  --gold-glow: color-mix(in srgb, var(--gold) 12%, transparent); /* quầng sáng rất nhẹ, nền hover */
+
+  /* Khung thương hiệu (đăng nhập, banner mặc định): luôn tối ở cả hai chế độ */
+  --brand-dark: #14100d;
+  --on-brand: #f4f1ea;
+  --on-brand-muted: #d2cbbd;
 
   --font-ui: 'Be Vietnam Pro', 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-editorial: 'Cormorant Garamond', 'Times New Roman', Georgia, serif;
+
+  /* Thang cỡ chữ (body 15px). Tiêu đề lớn co giãn theo màn hình (clamp) viết riêng tại chỗ */
+  --fs-2xs: 0.64rem; /* badge, chip, nhãn nhóm menu, tiêu đề cột bảng gọn */
+  --fs-xs: 0.72rem; /* eyebrow, nhãn form, tab, mục menu, tiêu đề cột */
+  --fs-sm: 0.78rem; /* nút, metadata, chú thích */
+  --fs-md: 0.88rem; /* chữ phụ, bảng, thông báo */
+  --fs-base: 0.95rem; /* mô tả, đoạn văn phụ */
+  --fs-lg: 1.05rem; /* tên thẻ dạng hàng, tiêu đề hộp thoại */
+  --fs-xl: 1.2rem; /* h2, tiêu đề popup */
+  --fs-2xl: 1.6rem; /* tiêu đề mục */
+  --fs-3xl: 2rem; /* tiêu đề trang gọn, tên thương hiệu */
+
+  /* Giãn chữ cho chữ hoa nhỏ */
+  --tracking-wide: 0.1em; /* nút, chip, nhãn form */
+  --tracking-label: 0.12em; /* tab, mục menu, tiêu đề cột, nhãn phân loại */
+  --tracking-eyebrow: 0.16em; /* eyebrow đầu trang, nhãn nhóm menu */
+  --tracking-brand: 0.24em; /* chỉ cho nhãn ở khung thương hiệu (đăng nhập, banner) */
 
   --space-1: 4px;
   --space-2: 8px;
@@ -84,6 +114,9 @@
   --bar: var(--color-ink);
   --focus-ring: 0 0 0 3px rgba(17, 17, 17, 0.1);
   --overlay: rgba(17, 17, 17, 0.5);
+  --canvas: var(--color-ivory); /* nền vùng làm việc (bên trong khung có thanh bên) */
+  --tint: var(--color-cream); /* khối nhấn tông kem: form tạo mới, bộ lọc */
+  --tint-border: var(--color-beige);
 
   --ok-bg: #eef3ee;
   --ok-text: #3f6b4f;
@@ -114,6 +147,9 @@
   --bar: #f2f0ec;
   --focus-ring: 0 0 0 3px rgba(242, 240, 236, 0.16);
   --overlay: rgba(0, 0, 0, 0.65);
+  --canvas: var(--color-black);
+  --tint: #1f1e1b;
+  --tint-border: #2e2c28;
 
   --ok-bg: #16231a;
   --ok-text: #8fc4a0;
@@ -150,7 +186,7 @@ h3 {
   letter-spacing: -0.01em;
 }
 h2 {
-  font-size: 1.15rem;
+  font-size: var(--fs-xl);
 }
 
 .icon {
@@ -160,7 +196,7 @@ h2 {
   color: var(--muted);
 }
 .small {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
 }
 .center,
 .center-text {
@@ -185,9 +221,9 @@ h2 {
 
 .eyebrow {
   display: block;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--tracking-eyebrow);
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -199,46 +235,12 @@ h2 {
   flex-direction: column;
 }
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-header);
-  height: var(--topbar-h);
-  padding: 0 var(--space-4);
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-.brand-mark {
-  border-radius: var(--radius-md);
-  flex-shrink: 0;
-}
 .brand {
   display: flex;
   flex-direction: column;
   min-width: 0;
   flex: 1;
   line-height: 1.3;
-}
-.brand-title {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.brand-sub {
-  font-size: 0.74rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.topbar-actions {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
 }
 
 .content {
@@ -266,7 +268,7 @@ h2 {
   margin: 0;
   max-width: 46ch;
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: var(--fs-base);
 }
 
 .tabbar {
@@ -288,9 +290,9 @@ h2 {
   border: 0;
   color: var(--muted);
   font: inherit;
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   cursor: pointer;
   display: flex;
@@ -336,8 +338,8 @@ h2 {
   place-items: center;
   background: var(--ink-solid);
   color: var(--on-ink);
-  border-radius: 999px;
-  font-size: 0.6rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--fs-2xs);
   font-weight: 600;
   letter-spacing: 0;
   line-height: 1;
@@ -376,8 +378,8 @@ h2 {
   flex-direction: column;
   gap: var(--space-2);
   font-weight: 500;
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--text-2);
 }
@@ -397,8 +399,10 @@ h2 {
   width: 100%;
   transition: border-color var(--motion-fast) var(--ease), box-shadow var(--motion-fast) var(--ease);
 }
+/* Gợi ý chỉ mờ vừa đủ thấy (30% màu chữ), tự đúng ở cả hai chế độ */
 .field input::placeholder {
-  color: var(--color-taupe);
+  color: color-mix(in srgb, var(--text) 30%, transparent);
+  opacity: 1;
 }
 .field input:hover,
 .field select:hover {
@@ -414,21 +418,23 @@ h2 {
 .field-sm select {
   min-height: 42px;
   padding: 6px 12px;
-  font-size: 0.92rem;
+  font-size: var(--fs-base);
 }
 .req {
   color: var(--danger-text);
 }
 
-/* Nút */
+/* Nút: một bộ duy nhất cho toàn app (cao chuẩn 44px, bo --radius-sm, chữ hoa nhỏ). Xem DESIGN_SYSTEM.md */
 .btn {
+  position: relative;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  min-height: 48px;
-  padding: 0 var(--space-6);
+  white-space: nowrap;
+  min-height: 44px;
+  padding: 0 var(--space-4);
   gap: var(--space-2);
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
@@ -442,7 +448,6 @@ h2 {
 }
 .btn:focus-visible,
 .tab:focus-visible,
-.ad-tab:focus-visible,
 .link:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 2px;
@@ -470,25 +475,86 @@ h2 {
 }
 .btn-sm {
   min-height: 40px;
-  padding: 0 var(--space-4);
-  font-size: 0.72rem;
-}
-.btn-icon {
-  width: 40px;
-  padding: 0;
+  padding: 0 var(--space-3);
+  font-size: var(--fs-xs);
 }
 .btn-lg {
-  min-height: 56px;
-  font-size: 0.82rem;
+  min-height: 48px;
+  padding: 0 var(--space-6);
+  font-size: var(--fs-sm);
+}
+/* Nút chỉ có icon: vuông theo chiều cao nút, bắt buộc có aria-label và title */
+.btn-icon {
+  width: 44px;
+  padding: 0;
+}
+.btn-sm.btn-icon {
+  width: 40px;
 }
 .btn-block {
   width: 100%;
+}
+/* Hành động chính của thẻ: vàng champagne, chữ #111111 */
+.btn-gold {
+  color: var(--color-ink);
+  background: var(--gold);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+.btn-gold:hover:not(:disabled) {
+  background: var(--gold-soft);
+  border-color: var(--gold-soft);
+}
+.btn-gold:focus-visible {
+  outline-color: var(--gold-deep);
+}
+:root[data-theme='dark'] .btn-gold:focus-visible {
+  outline-color: var(--gold-soft);
+}
+/* Nút xóa dạng viền: chỉ đổi sang màu cảnh báo khi rê chuột, không đỏ sẵn */
+.btn-danger:hover:not(:disabled) {
+  color: var(--danger-text);
+  border-color: var(--danger-text);
+}
+/* Nút xác nhận thao tác không hoàn tác được (hộp xác nhận xóa) */
+.btn-primary.is-danger {
+  background: var(--danger-text);
+  color: var(--on-ink);
+}
+.btn-primary.is-danger:hover:not(:disabled) {
+  background: var(--danger-text);
+  opacity: 0.88;
+}
+/* Chú thích nhỏ khi rê chuột hoặc focus vào nút chỉ có icon: thêm data-tip="..." */
+.btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 10px;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--bg);
+  background: var(--text);
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-fast) var(--ease);
+  z-index: 5;
+}
+.btn[data-tip]:hover::after,
+.btn[data-tip]:focus-visible::after {
+  opacity: 1;
 }
 
 .alert {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   border-left: 2px solid currentColor;
 }
 .alert-error {
@@ -501,11 +567,11 @@ h2 {
   max-width: 100%;
   padding: 2px 10px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   color: var(--text-2);
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -529,11 +595,11 @@ h2 {
   display: flex;
   flex-direction: column;
   padding: 56px var(--space-6) var(--space-6);
-  color: #f2f0ec;
+  color: var(--on-brand);
   background:
-    radial-gradient(520px 420px at 38% 48%, rgba(201, 169, 110, 0.12), transparent 72%),
-    #14100d;
-  border-bottom: 1px solid rgba(201, 169, 110, 0.28);
+    radial-gradient(520px 420px at 38% 48%, var(--gold-glow), transparent 72%),
+    var(--brand-dark);
+  border-bottom: 1px solid var(--gold-line);
 }
 /* Nền luôn tối: dùng bản logo cho nền tối */
 .login-aside .logo .logo-on-light {
@@ -562,8 +628,8 @@ h2 {
 }
 .login-aside .eyebrow {
   color: var(--gold);
-  font-size: 0.68rem;
-  letter-spacing: 0.24em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-brand);
 }
 .login-display {
   margin: 4px 0 0;
@@ -572,7 +638,7 @@ h2 {
   font-size: clamp(2.4rem, 11vw, 3rem);
   line-height: 0.95;
   letter-spacing: -0.025em;
-  color: #f6f3ec;
+  color: var(--on-brand);
 }
 .login-display-sm {
   font-size: clamp(1.8rem, 8vw, 2.4rem);
@@ -588,7 +654,7 @@ h2 {
 .login-lead {
   margin: 0;
   max-width: 46ch;
-  color: #d2cbbd;
+  color: var(--on-brand-muted);
   font-size: 1rem;
   line-height: 1.55;
   text-wrap: balance;
@@ -606,7 +672,7 @@ h2 {
   .login-aside {
     padding: var(--space-12);
     border-bottom: 0;
-    border-right: 1px solid rgba(201, 169, 110, 0.28);
+    border-right: 1px solid var(--gold-line);
   }
   /* Hai đường cong mảnh bao quanh lockup, không đi qua logo hoặc chữ */
   .login-aside::before,
@@ -622,13 +688,13 @@ h2 {
     width: 120%;
     left: -70%;
     top: -65%;
-    border: 1px solid rgba(201, 169, 110, 0.28);
+    border: 1px solid var(--gold-line);
   }
   .login-aside::after {
     width: 105%;
     right: -60%;
     bottom: -70%;
-    border: 1px solid rgba(201, 169, 110, 0.18);
+    border: 1px solid color-mix(in srgb, var(--gold) 18%, transparent);
   }
   .login-brand-lockup {
     top: calc(-3 * var(--v1)); /* nằm hơi cao hơn tâm dọc */
@@ -642,7 +708,7 @@ h2 {
     height: clamp(120px, 12.5vw, 190px);
   }
   .login-aside .eyebrow {
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
   }
   .login-display {
     font-size: clamp(3.4rem, 4.6vw, 5rem);
@@ -658,7 +724,7 @@ h2 {
     font-size: clamp(1rem, 1.25vw, 1.2rem);
     line-height: 1.5;
     letter-spacing: 0.01em;
-    color: #e4ddcf;
+    color: var(--on-brand-muted);
   }
 
 }
@@ -668,12 +734,12 @@ h2 {
   right: var(--space-3);
   z-index: 2;
   background: transparent;
-  color: #f2f0ec;
-  border-color: rgba(242, 240, 236, 0.3);
+  color: var(--on-brand);
+  border-color: color-mix(in srgb, var(--on-brand) 30%, transparent);
 }
 .login-theme:hover:not(:disabled) {
   background: transparent;
-  border-color: #f2f0ec;
+  border-color: var(--on-brand);
 }
 .login-card {
   width: 100%;
@@ -689,7 +755,7 @@ h2 {
 }
 .login-title {
   font-family: var(--font-editorial);
-  font-size: 2rem;
+  font-size: var(--fs-3xl);
   font-weight: 500;
 }
 .login-card p {
@@ -703,7 +769,7 @@ h2 {
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
-  font-size: 0.84rem;
+  font-size: var(--fs-md);
   font-weight: 500;
 }
 .gps-chip::before {
@@ -736,7 +802,7 @@ h2 {
   aspect-ratio: 4 / 5;
   max-height: calc(62 * var(--v1));
   width: 100%;
-  background: #0b0b0b;
+  background: var(--color-black);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -753,7 +819,7 @@ h2 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  background: #0b0b0b;
+  background: var(--color-black);
   pointer-events: none;
 }
 .camera video::-webkit-media-controls,
@@ -773,19 +839,19 @@ h2 {
   justify-content: center;
   gap: var(--space-3);
   padding: var(--space-6);
-  color: #fff;
+  color: var(--color-white);
   text-align: center;
-  background: rgba(11, 11, 11, 0.78);
+  background: color-mix(in srgb, var(--color-black) 78%, transparent);
 }
 .camera-msg .btn-primary {
-  background: #fff;
-  color: #111;
+  background: var(--color-white);
+  color: var(--color-ink);
 }
 .preview {
   width: 100%;
   max-height: calc(46 * var(--v1));
   object-fit: contain;
-  background: #0b0b0b;
+  background: var(--color-black);
   border-radius: var(--radius-sm);
 }
 
@@ -825,7 +891,7 @@ h2 {
 }
 .item-title {
   font-family: var(--font-editorial);
-  font-size: 1.45rem;
+  font-size: var(--fs-2xl);
   font-weight: 600;
   line-height: 1.1;
   overflow-wrap: anywhere;
@@ -863,13 +929,13 @@ h2 {
   height: 58vh;
   min-height: 320px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   overflow: hidden;
   z-index: 0;
 }
 .map-empty {
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
 }
 .map-full {
   position: fixed;
@@ -894,7 +960,7 @@ h2 {
   width: 24px;
   height: 24px;
   background: var(--color-accent);
-  border: 3px solid #fff;
+  border: 3px solid var(--color-white);
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
@@ -911,7 +977,7 @@ h2 {
 .leaflet-popup-content {
   margin: var(--space-4);
   font-family: var(--font-ui);
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   line-height: 1.5;
 }
 .leaflet-popup-tip {
@@ -935,30 +1001,30 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   color: var(--text);
 }
 .popup-img {
   width: 100%;
   height: 120px;
   object-fit: cover;
-  border-radius: 2px;
-  background: #f3f0e9;
+  border-radius: var(--radius-sm);
+  background: var(--track);
 }
 .popup-title {
   font-family: var(--font-editorial);
-  font-size: 1.2rem;
+  font-size: var(--fs-xl);
   font-weight: 600;
   line-height: 1.15;
 }
 .popup-muted {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
-  color: #111;
+  color: var(--color-ink);
   font-weight: 700;
 }
 
@@ -1040,37 +1106,93 @@ h2 {
   justify-content: center;
   color: var(--muted);
 }
+/* Đang tải (component Loading): vòng quay + chữ xám */
+.loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-md);
+}
+.loading-full {
+  min-height: 100%;
+  justify-content: center;
+  padding: var(--space-8);
+}
+.spinner {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+/* Hộp xác nhận (confirmDialog): thay hộp thoại mặc định của trình duyệt */
+.dialog {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--overlay);
+  animation: fade var(--motion-normal) var(--ease) both;
+}
+.dialog-box {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  animation: rise var(--motion-normal) var(--ease) both;
+}
+.dialog-title {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.dialog-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-base);
+  white-space: pre-line;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
 .chip-ok {
   background: var(--ok-bg);
   color: var(--ok-text);
   border-color: transparent;
 }
-.chip-warn {
-  background: var(--warn-bg);
-  color: var(--warn-text);
-  border-color: transparent;
-}
 
 /* ==========================================================
-   Cùng nguyên tắc với trang quản trị: nền ngà, khối tạo tông kem,
-   gợi ý mờ, khoảng thở rộng
+   Cùng nguyên tắc với trang quản trị: nền ngà (--canvas), khối tạo tông kem (--tint),
+   khoảng thở rộng
    ========================================================== */
-:root {
-  --page-bg: #f6f5f1;
-  --tint: #f1eee6;
-  --tint-border: #e4ded1;
-}
-:root[data-theme='dark'] {
-  --page-bg: #0b0b0b;
-  --tint: #1f1e1b;
-  --tint-border: #2e2c28;
-}
-.field input::placeholder {
-  color: color-mix(in srgb, var(--text) 30%, transparent);
-  opacity: 1;
-}
 .app {
-  background: var(--page-bg);
+  background: var(--canvas);
 }
 .content .stack {
   gap: 20px;
@@ -1096,7 +1218,7 @@ h2 {
 }
 /* Bản đồ: khối bộ lọc tông kem */
 .map-wrap {
-  background: var(--page-bg);
+  background: var(--canvas);
 }
 .map-toolbar {
   background: var(--tint);
@@ -1119,25 +1241,6 @@ h2 {
 /* ==========================================================
    MOBIUS: trang chủ chức năng và thương hiệu
    ========================================================== */
-.brand-home {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-}
-.brand-home:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
 .content.no-tabbar {
   padding-bottom: var(--space-12);
 }
@@ -1188,7 +1291,7 @@ h2 {
   align-items: flex-end;
   min-height: 150px;
   padding-bottom: var(--space-4);
-  color: #ffffff;
+  color: var(--color-white);
   background-size: cover;
   background-position: center;
   background-color: #1a1a1a;
@@ -1227,9 +1330,9 @@ h2 {
 }
 .module-kicker {
   color: var(--gold-deep);
-  font-size: 0.68rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 .module-name {
@@ -1243,7 +1346,7 @@ h2 {
 .module-desc {
   margin-top: var(--space-2);
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -1260,9 +1363,9 @@ h2 {
   border-top: 1px solid var(--border);
 }
 .module-go {
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 .module-arrow {
@@ -1271,7 +1374,7 @@ h2 {
   height: 40px;
   display: grid;
   place-items: center;
-  color: #111111;
+  color: var(--color-ink);
   background: var(--gold-deep);
   border-radius: 50%;
   transition: background var(--motion-normal) var(--ease);
@@ -1326,26 +1429,21 @@ h2 {
 /* ==========================================================
    Đăng nhập kiểu sang trọng: nền đen ấm, điểm nhấn vàng gold, vòng cung phát sáng
    ========================================================== */
-:root {
-  --gold: #c9a96e;
-  --gold-soft: #d9c49b;
-  --gold-deep: #8f723a;
-}
 .login-wrap {
-  --lg-text: #111111;
-  --lg-muted: #737373;
-  --lg-input-bg: #ffffff;
-  --lg-input-border: #e4ded1;
+  --lg-text: var(--text);
+  --lg-muted: var(--muted);
+  --lg-input-bg: var(--color-white);
+  --lg-input-border: var(--color-beige);
   --lg-link: var(--gold-deep);
-  background: var(--page-bg);
+  background: var(--canvas);
 }
 :root[data-theme='dark'] .login-wrap {
-  --lg-text: #f3f1ec;
-  --lg-muted: #b4ada1;
-  --lg-input-bg: #f3f1ec;
+  --lg-text: var(--on-brand);
+  --lg-muted: var(--on-brand-muted);
+  --lg-input-bg: var(--on-brand);
   --lg-input-border: transparent;
   --lg-link: var(--gold);
-  background: #110e0c;
+  background: var(--brand-dark);
 }
 
 /* Biểu mẫu bên phải */
@@ -1366,63 +1464,43 @@ h2 {
 }
 .login-wrap .login-card .muted {
   color: var(--lg-muted);
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
 }
 .login-wrap .field {
   color: var(--lg-text);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
-  letter-spacing: 0.24em;
 }
 .login-wrap .field input {
   min-height: 54px;
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
   letter-spacing: 0;
-  color: #111111;
+  color: var(--color-ink);
   background: var(--lg-input-bg);
   border: 1px solid var(--lg-input-border);
-  border-radius: 0;
 }
 .login-wrap .field input::placeholder {
-  color: rgba(17, 17, 17, 0.38);
+  color: color-mix(in srgb, var(--color-ink) 38%, transparent);
 }
 .login-wrap .field input:hover {
   border-color: var(--gold);
 }
 .login-wrap .field input:focus {
   border-color: var(--gold);
-  box-shadow: 0 0 0 2px rgba(201, 169, 110, 0.55);
-}
-.login-wrap .btn-primary {
-  min-height: 54px;
-  border-radius: 0;
-  font-weight: 600;
-  letter-spacing: 0.26em;
-  color: #14100d;
-  background: var(--gold);
-}
-.login-wrap .btn-primary:hover:not(:disabled) {
-  background: var(--gold-soft);
-}
-.login-wrap .btn-primary:disabled {
-  opacity: 0.72;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 55%, transparent);
 }
 .login-wrap .link {
   color: var(--lg-link);
   text-decoration-color: var(--gold);
 }
 .login-wrap .login-theme {
-  letter-spacing: 0.22em;
   color: var(--lg-text);
-  border-color: rgba(201, 169, 110, 0.6);
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
   background: transparent;
 }
 .login-wrap .login-theme:hover:not(:disabled) {
   border-color: var(--gold);
-  background: rgba(201, 169, 110, 0.12);
-}
-.login-wrap .alert {
-  border-radius: 0;
+  background: var(--gold-glow);
 }
 
 /* Thẻ chức năng dạng liên kết (Trang quản trị) và mục thanh bên dạng liên kết */
@@ -1441,40 +1519,56 @@ a.ad-navbtn {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tool-tabs {
+/* Tab chữ: một kiểu duy nhất cho toàn app (chữ hoa nhỏ, tab đang chọn có vạch mực 2px). Thanh tab dưới của điện thoại là .tabbar riêng */
+.tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-6);
-  margin-bottom: var(--space-6);
   border-bottom: 1px solid var(--border);
 }
-.tool-tab {
+.tab-item {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: 12px 0;
+  padding: var(--space-3) 0;
   margin-bottom: -1px;
   border: 0;
   border-bottom: 2px solid transparent;
   background: none;
   font: inherit;
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
+  white-space: nowrap;
   color: var(--muted);
   cursor: pointer;
   transition: color var(--motion-fast) var(--ease), border-color var(--motion-fast) var(--ease);
 }
-.tool-tab:hover {
+.tab-item:hover:not(:disabled) {
   color: var(--text);
 }
-.tool-tab.is-active {
+.tab-item.is-active {
   color: var(--text);
   border-bottom-color: var(--text);
 }
-.tool-tab:focus-visible {
+.tab-item:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 2px;
+}
+.tab-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+/* Tab nhỏ (trong popup, trong form) */
+.tabs-sm {
+  gap: var(--space-4);
+}
+.tabs-sm .tab-item {
+  padding: 6px 0;
+}
+.tool-tabs {
+  margin-bottom: var(--space-6);
 }
 /* Điện thoại: tab công cụ nằm ở thanh dưới; máy tính: tab nằm trên đầu nội dung */
 @media (max-width: 900px) {
@@ -1512,7 +1606,7 @@ a.ad-navbtn {
 }
 .empty-title {
   font-family: var(--font-editorial);
-  font-size: 1.5rem;
+  font-size: var(--fs-2xl);
   font-weight: 500;
 }
 .profile-list {
@@ -1532,9 +1626,9 @@ a.ad-navbtn {
   border-top: 0;
 }
 .profile-row dt {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--muted);
   align-self: center;
@@ -1565,13 +1659,13 @@ a.ad-navbtn {
   max-height: min(490px, calc(46 * var(--v1))); /* tối đa 440px thực tế, và không quá 46% chiều cao màn hình để còn thấy nội dung bên dưới */
   min-height: 190px;
   border-radius: var(--radius-md);
-  background: #14100d;
+  background: var(--brand-dark);
 }
 .hero-slide {
   position: absolute;
   inset: 0;
   display: block;
-  color: #ffffff;
+  color: var(--color-white);
   text-decoration: none;
   opacity: 0;
   pointer-events: none;
@@ -1640,8 +1734,8 @@ a.ad-navbtn {
   display: block;
   margin-top: 6px;
   max-width: 60ch;
-  font-size: 0.95rem;
-  color: #e8e2d6;
+  font-size: var(--fs-base);
+  color: var(--on-brand-muted);
 }
 .hero-nav {
   position: absolute;
@@ -1655,7 +1749,7 @@ a.ad-navbtn {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 50%;
   background: rgba(17, 17, 17, 0.45);
-  color: #ffffff;
+  color: var(--color-white);
   cursor: pointer;
   opacity: 0;
   transition: opacity var(--motion-normal) var(--ease), background var(--motion-fast) var(--ease);
@@ -1686,7 +1780,7 @@ a.ad-navbtn {
   height: 8px;
   padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: width var(--motion-normal) var(--ease), background var(--motion-normal) var(--ease);
@@ -1698,24 +1792,24 @@ a.ad-navbtn {
 .hero-default {
   display: flex;
   align-items: flex-end;
-  border: 1px solid rgba(201, 169, 110, 0.28);
+  border: 1px solid var(--gold-line);
   background:
-    radial-gradient(640px 380px at 88% 125%, rgba(201, 169, 110, 0.34), transparent 70%),
-    radial-gradient(520px 320px at 8% -10%, rgba(201, 169, 110, 0.12), transparent 70%),
-    #14100d;
+    radial-gradient(640px 380px at 88% 125%, color-mix(in srgb, var(--gold) 34%, transparent), transparent 70%),
+    radial-gradient(520px 320px at 8% -10%, var(--gold-glow), transparent 70%),
+    var(--brand-dark);
 }
 .hero-caption-default {
   position: relative;
   background: none;
   padding-bottom: var(--space-8);
-  color: #f6f3ec;
+  color: var(--on-brand);
 }
 .hero-eyebrow {
   display: block;
   margin-bottom: var(--space-2);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
-  letter-spacing: 0.26em;
+  letter-spacing: var(--tracking-brand);
   text-transform: uppercase;
   color: var(--gold);
 }

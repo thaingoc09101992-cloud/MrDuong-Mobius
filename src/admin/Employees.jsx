@@ -5,6 +5,7 @@ import { fold } from './util.js'
 import BulkImport from './BulkImport.jsx'
 import { exportEmployees } from './employeeExcel.js'
 import Icon from '../icons.jsx'
+import { confirmDialog } from '../ConfirmDialog.jsx'
 import { SortLabel, SORT_HINT, compareValues } from './tableKit.jsx'
 import { MODULES, ALL_MODULE_IDS, modulesOf, moduleNames } from '../modules.js'
 
@@ -379,7 +380,12 @@ function EmployeeRow({ emp, count, managerName, onSaved, onDeleted, onError, onS
   const hasAccount = Boolean(emp.user_id)
 
   async function resetPassword() {
-    if (!window.confirm(`Reset mật khẩu cho ${emp.email}? Mật khẩu cũ sẽ không dùng được nữa.`)) return
+    const ok = await confirmDialog({
+      title: `Reset mật khẩu cho ${emp.email}?`,
+      message: 'Mật khẩu cũ sẽ không dùng được nữa.',
+      confirmLabel: 'Reset mật khẩu',
+    })
+    if (!ok) return
     setBusy(true)
     onError('')
     try {
@@ -406,8 +412,14 @@ function EmployeeRow({ emp, count, managerName, onSaved, onDeleted, onError, onS
       return
     }
     const label = emp.full_name ? `${emp.full_name} (${emp.code})` : emp.code
-    const extra = emp.email ? `\nTài khoản đăng nhập ${emp.email} cũng sẽ bị xóa.` : ''
-    if (!window.confirm(`Xóa vĩnh viễn nhân viên ${label}?${extra}\nThao tác này không thể hoàn tác.`)) return
+    const extra = emp.email ? `Tài khoản đăng nhập ${emp.email} cũng sẽ bị xóa.\n` : ''
+    const ok = await confirmDialog({
+      title: `Xóa vĩnh viễn nhân viên ${label}?`,
+      message: `${extra}Thao tác này không thể hoàn tác.`,
+      confirmLabel: 'Xóa',
+      danger: true,
+    })
+    if (!ok) return
     setBusy(true)
     onError('')
     try {

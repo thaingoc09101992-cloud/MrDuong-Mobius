@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabase.js'
 import Icon from '../icons.jsx'
+import Loading from '../Loading.jsx'
+import { confirmDialog } from '../ConfirmDialog.jsx'
 import {
   LESSON_BUCKET,
   LESSON_MAX_FILE,
@@ -147,7 +149,13 @@ export default function Lessons() {
   }
 
   async function remove(lesson) {
-    if (!window.confirm(`Xóa bài học "${lesson.title}"? Không thể hoàn tác.`)) return
+    const ok = await confirmDialog({
+      title: `Xóa bài học "${lesson.title}"?`,
+      message: 'Bài học sẽ bị xóa khỏi mục Kiến thức. Thao tác này không thể hoàn tác.',
+      confirmLabel: 'Xóa',
+      danger: true,
+    })
+    if (!ok) return
     setNotice('')
     const { data, error: err } = await supabase.rpc('app_delete_lesson', { p_id: lesson.id })
     if (err) {
@@ -184,17 +192,17 @@ export default function Lessons() {
           <span>Mô tả ngắn (không bắt buộc)</span>
           <input value={description} maxLength={1000} disabled={busy} onChange={(e) => setDescription(e.target.value)} />
         </label>
-        <div className="ls-mode" role="group" aria-label="Cách thêm bài học">
-          <button type="button" className={`ls-mode-btn ${mode === 'link' ? 'is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode('link')} disabled={busy}>
+        <div className="tabs tabs-sm ls-mode" role="group" aria-label="Cách thêm bài học">
+          <button type="button" className={`tab-item ${mode === 'link' ? 'is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode('link')} disabled={busy}>
             Dán liên kết Google Drive
           </button>
-          <button type="button" className={`ls-mode-btn ${mode === 'pdf' ? 'is-active' : ''}`} aria-pressed={mode === 'pdf'} onClick={() => setMode('pdf')} disabled={busy}>
+          <button type="button" className={`tab-item ${mode === 'pdf' ? 'is-active' : ''}`} aria-pressed={mode === 'pdf'} onClick={() => setMode('pdf')} disabled={busy}>
             Tải file PDF lên
           </button>
         </div>
         {mode === 'pdf' ? (
           <div className="ls-file">
-            <button type="button" className="ls-btn" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
+            <button type="button" className="btn btn-ghost" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
               <Icon name="upload" size={18} />
               <span>{file ? 'Chọn file khác' : 'Chọn file PDF'}</span>
             </button>
@@ -220,15 +228,11 @@ export default function Lessons() {
           </label>
         )}
         <div className="ls-form-actions">
-          <button
-            type="submit"
-            className="ls-btn ls-btn-primary"
-            disabled={busy}
-          >
+          <button type="submit" className="btn btn-primary" disabled={busy}>
             {stage === 'save' ? 'Đang lưu...' : busy ? (mode === 'link' ? 'Đang thêm...' : 'Đang tải lên...') : 'Thêm bài học'}
           </button>
           {stage === 'upload' && (
-            <button type="button" className="ls-btn" onClick={() => uploadRef.current && uploadRef.current.abort()}>
+            <button type="button" className="btn btn-ghost" onClick={() => uploadRef.current && uploadRef.current.abort()}>
               Hủy tải lên
             </button>
           )}
@@ -252,7 +256,7 @@ export default function Lessons() {
         )}
       </form>
 
-      {loading && <p className="muted">Đang tải...</p>}
+      {loading && <Loading />}
       {!loading && !error && lessons.length === 0 && <p className="muted">Chưa có bài học nào.</p>}
 
       <ul className="ls-list">

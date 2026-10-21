@@ -6,44 +6,6 @@
   justify-content: space-between;
   gap: var(--space-3);
 }
-.ls-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  height: 44px;
-  padding: 0 var(--space-4);
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color var(--motion-fast) var(--ease);
-}
-.ls-btn:hover:not(:disabled) {
-  border-color: var(--border-strong);
-}
-.ls-btn:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
-.ls-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-.ls-btn-primary {
-  color: var(--bg);
-  background: var(--text);
-  border-color: var(--text);
-}
-.ls-btn-icon {
-  width: 44px;
-  padding: 0;
-}
 .ls-form {
   display: flex;
   flex-direction: column;
@@ -56,42 +18,17 @@
   gap: var(--space-3);
 }
 .ls-mode {
-  display: inline-flex;
   align-self: flex-start;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-.ls-mode-btn {
-  height: 40px;
-  padding: 0 var(--space-4);
-  font: inherit;
-  font-size: 0.88rem;
-  color: var(--muted);
-  background: var(--surface);
-  border: 0;
-  cursor: pointer;
-}
-.ls-mode-btn + .ls-mode-btn {
-  border-left: 1px solid var(--border);
-}
-.ls-mode-btn.is-active {
-  color: var(--bg);
-  background: var(--text);
-}
-.ls-mode-btn:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: -2px;
 }
 .ls-link-input {
   width: 100%;
   padding: var(--space-3);
   font: inherit;
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   resize: vertical;
 }
 .ls-hint {
@@ -121,7 +58,7 @@
   transition: width 0.2s linear;
 }
 .ls-progress-text {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
 }
 .ls-list {
@@ -139,7 +76,7 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-4) var(--space-5, 20px);
+  padding: var(--space-4) calc(var(--space-4) + var(--space-1));
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -181,7 +118,7 @@
   gap: 4px;
 }
 .ls-name {
-  font-size: 1.05rem;
+  font-size: var(--fs-lg);
   font-weight: 600;
   line-height: 1.3;
   overflow: hidden;
@@ -190,7 +127,7 @@
 }
 .ls-desc {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -198,33 +135,13 @@
 }
 .ls-meta {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
 }
 .ls-actions {
   display: flex;
   align-items: center;
   gap: var(--space-2);
   cursor: default;
-}
-/* Nút "Mở tài liệu" màu vàng champagne của MOBIUS (cùng màu với nút mũi tên ở thẻ công cụ) */
-.ls-btn.ls-open-btn {
-  color: #111111;
-  background: var(--gold);
-  border-color: var(--gold);
-  font-weight: 600;
-}
-.ls-btn.ls-open-btn:hover:not(:disabled) {
-  background: var(--gold-soft);
-  border-color: var(--gold-soft);
-}
-.ls-btn.ls-open-btn:focus-visible {
-  outline-color: var(--gold-deep);
-}
-:root[data-theme='dark'] .ls-btn.ls-open-btn:focus-visible {
-  outline-color: var(--gold-soft);
-}.ls-btn-danger:hover:not(:disabled) {
-  color: var(--danger-text);
-  border-color: var(--danger-text);
 }
 .ls-edit {
   display: flex;
@@ -246,7 +163,7 @@
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 .ls-edit-input:focus-visible {
   outline: 2px solid var(--gold);
@@ -258,20 +175,7 @@
 .ls-err {
   margin: 0;
   color: var(--danger-text);
-  font-size: 0.85rem;
-}
-.ls-spin {
-  width: 16px;
-  height: 16px;
-  border: 2px solid currentColor;
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: ls-spin 0.7s linear infinite;
-}
-@keyframes ls-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  font-size: var(--fs-md);
 }
 
 @media (max-width: 640px) {
@@ -326,7 +230,7 @@
   min-width: 72px;
   text-align: center;
   font-variant-numeric: tabular-nums;
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
 }
 .ls-stage {
   display: grid;
@@ -341,7 +245,7 @@
 }
 .ls-canvas {
   display: block;
-  background: #ffffff;
+  background: var(--color-white); /* trang tài liệu luôn nền trắng */
   border: 1px solid var(--border);
 }
 .ls-stage-embed {
@@ -352,10 +256,7 @@
   height: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  background: #ffffff;
-}
-a.ls-btn {
-  text-decoration: none;
+  background: var(--color-white); /* trang tài liệu luôn nền trắng */
 }
 .ls-canvas[hidden] {
   display: none;

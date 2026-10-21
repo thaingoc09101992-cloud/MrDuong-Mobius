@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { sb } from './adminClient.js'
+import Loading from '../Loading.jsx'
+import { confirmDialog } from '../ConfirmDialog.jsx'
 import {
   BANNER_BUCKET,
   BANNER_SLOTS,
@@ -107,7 +109,13 @@ function Slot({ slot, row, onChanged }) {
       setFile(null)
       return
     }
-    if (!window.confirm(`Xóa banner ${slot}? Ảnh sẽ bị xóa khỏi trang chủ.`)) return
+    const ok = await confirmDialog({
+      title: `Xóa banner ${slot}?`,
+      message: 'Ảnh sẽ bị xóa khỏi trang chủ.',
+      confirmLabel: 'Xóa',
+      danger: true,
+    })
+    if (!ok) return
     setBusy(true)
     setError('')
     try {
@@ -224,7 +232,7 @@ export default function Banners() {
     })
   }
 
-  if (loading) return <div className="muted">Đang tải banner...</div>
+  if (loading) return <Loading label="Đang tải banner..." />
 
   return (
     <div className="stack">

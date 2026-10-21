@@ -101,7 +101,7 @@ export default function ChangePassword({ user, onDone, onLogout, theme, onToggle
           </div>
         )}
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={busy || !password || !confirm}>
+        <button type="submit" className="btn btn-gold btn-block btn-lg" disabled={busy || !password || !confirm}>
           {busy ? 'Đang lưu...' : 'Lưu mật khẩu'}
         </button>
         <p className="center-text small">

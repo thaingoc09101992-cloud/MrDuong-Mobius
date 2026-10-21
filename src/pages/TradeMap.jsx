@@ -482,7 +482,7 @@ export default function TradeMap({ user }) {
 
   return (
     <section className={`tm ${fullscreen ? 'tm-full' : ''}`} ref={wrapRef}>
-      <div className="tm-tabs" role="tablist" aria-label="Màn hình của công cụ">
+      <div className="tabs tm-tabs" role="tablist" aria-label="Màn hình của công cụ">
         {TM_TABS.map((x) => (
           <button
             key={x.id}
@@ -491,7 +491,7 @@ export default function TradeMap({ user }) {
             id={`tm-tab-${x.id}`}
             aria-selected={tab === x.id}
             aria-controls={`tm-panel-${x.id}`}
-            className={`tm-tab ${tab === x.id ? 'is-active' : ''}`}
+            className={`tab-item ${tab === x.id ? 'is-active' : ''}`}
             onClick={() => setTab(x.id)}
           >
             <Icon name={x.icon} size={18} />
@@ -614,23 +614,23 @@ export default function TradeMap({ user }) {
         <div className="tm-actions">
           {user.isAdmin && (
             <>
-              <button type="button" className="tm-btn tm-btn-soft" onClick={downloadStoresTemplate} title="Tải file Excel mẫu" aria-label="Tải file Excel mẫu">
+              <button type="button" className="btn btn-ghost tm-btn-soft" onClick={downloadStoresTemplate} title="Tải file Excel mẫu" aria-label="Tải file Excel mẫu">
                 <Icon name="download" size={18} />
                 <span className="tm-btn-label tm-btn-label-soft">File mẫu</span>
               </button>
-              <button type="button" className="tm-btn tm-btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title="Nhập danh sách điểm bán từ file Excel" aria-label="Nhập danh sách điểm bán từ file Excel">
+              <button type="button" className="btn btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title="Nhập danh sách điểm bán từ file Excel" aria-label="Nhập danh sách điểm bán từ file Excel">
                 <Icon name="upload" size={18} />
                 <span className="tm-btn-label">Nhập Excel</span>
               </button>
               <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
             </>
           )}
-          <button type="button" className="tm-btn tm-btn-icon" data-tip="Tải lại" aria-label="Tải lại dữ liệu" onClick={load} disabled={loading}>
+          <button type="button" className="btn btn-ghost btn-icon" data-tip="Tải lại" aria-label="Tải lại dữ liệu" onClick={load} disabled={loading}>
             <Icon name="refresh" size={18} />
           </button>
           <button
             type="button"
-            className="tm-btn tm-btn-icon"
+            className="btn btn-ghost btn-icon"
             data-tip={fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
             aria-label={fullscreen ? 'Thoát toàn màn hình' : 'Xem toàn màn hình'}
             onClick={toggleFullscreen}
@@ -685,10 +685,10 @@ export default function TradeMap({ user }) {
             </div>
           )}
           <div className="tm-actions">
-            <button type="button" className="tm-btn tm-btn-primary" onClick={confirmReplace} disabled={busy || preview.rows.length === 0}>
+            <button type="button" className="btn btn-primary" onClick={confirmReplace} disabled={busy || preview.rows.length === 0}>
               {busy ? 'Đang lưu...' : `Thay thế bằng ${preview.rows.length} điểm bán`}
             </button>
-            <button type="button" className="tm-btn" onClick={() => setPreview(null)} disabled={busy}>
+            <button type="button" className="btn btn-ghost" onClick={() => setPreview(null)} disabled={busy}>
               Hủy
             </button>
           </div>

@@ -16,9 +16,8 @@ Thẻ mới phải **tái sử dụng** component và CSS sẵn có khi cùng lo
 > Token màu, bo góc, khoảng cách, chuyển động nằm ở [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) (nguồn duy nhất). Phần dưới chỉ nêu **cách áp dụng cho thẻ**.
 
 ### Độ bo góc (quan trọng, hay sai)
-- **Thẻ: `--radius-md` (4px). Ô vuông chứa icon bên trong thẻ: `--radius-lg` (8px).** Nút và ô nhập trong thẻ: `--radius-sm`/`--radius-md` theo component nền. Không bao giờ viết số px rời, không bo 12px hay dạng viên thuốc, không bo quá 8px.
+- **Thẻ: `--radius-md` (4px). Ô vuông chứa icon bên trong thẻ: `--radius-lg` (8px).** Nút và ô nhập trong thẻ: `--radius-sm` (2px), giống nút và ô nhập ở mọi nơi khác. Không bao giờ viết số px rời, không bo 12px hay dạng viên thuốc, không bo quá 8px.
 - Hình tròn (`50%`) chỉ cho nút mũi tên tròn của thẻ công cụ, avatar, chấm trạng thái, vòng quay loading; không dùng cho khung thẻ hay nút chữ.
-- Thẻ và nút ở cùng một khu vực phải cùng mức bo.
 
 ### Viền, bóng, nền
 - Viền 1px: `--border` (mặc định), `--border-strong` khi hover hoặc focus. Thẻ công cụ dùng `--color-taupe` ở chế độ sáng theo quy tắc riêng.
@@ -40,10 +39,11 @@ Thẻ mới phải **tái sử dụng** component và CSS sẵn có khi cùng lo
 Dùng token khoảng cách (xem DESIGN_SYSTEM.md; không có `--space-5`).
 
 ### Nút trong thẻ
-- Nút phụ (đổi tên, xóa, hủy): nền `--surface`, viền `--border`, bo `--radius-md`, cao 44px, hover viền `--border-strong`.
-- Nút hành động chính của thẻ (ví dụ "Mở tài liệu"): **vàng champagne** (`--gold`, chữ `#111111`, đậm 600), hover `--gold-soft`.
-- Nút xóa: hover đổi sang `--danger-text`, không đỏ sẵn.
-- Nút chỉ có icon: bắt buộc có `aria-label` và `title` (tooltip); vùng bấm tối thiểu 40 × 40px (hiện dùng 44px).
+Dùng bộ nút chung `.btn` (xem DESIGN_SYSTEM.md), không tạo class nút riêng cho thẻ.
+- Nút phụ (đổi tên, hủy): `btn btn-ghost` (cao 44px, bo `--radius-sm`, hover viền `--border-strong`).
+- Nút hành động chính của thẻ (ví dụ "Mở tài liệu"): `btn btn-gold` (vàng champagne `--gold`, chữ `#111111`, đậm 600, hover `--gold-soft`).
+- Nút xóa: `btn btn-ghost btn-icon btn-danger`, hover đổi sang `--danger-text`, không đỏ sẵn. Xác nhận trước khi xóa bằng `confirmDialog`, không dùng `window.confirm`.
+- Nút chỉ có icon: `btn-icon`, bắt buộc có `aria-label` và `title` (tooltip); vùng bấm tối thiểu 40 × 40px (hiện dùng 44px).
 - Không lồng `<button>` trong `<button>`. Khi cả thẻ bấm được, các nút con phải chặn lan sự kiện (`stopPropagation`) để bấm đổi tên hoặc xóa không kích hoạt việc mở.
 
 ### Tương tác và truy cập

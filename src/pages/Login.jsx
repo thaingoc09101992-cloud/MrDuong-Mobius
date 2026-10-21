@@ -89,7 +89,7 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
 
         <button
           type="submit"
-          className="btn btn-primary btn-block"
+          className="btn btn-gold btn-block btn-lg"
           disabled={busy || !email.trim() || !password}
         >
           {busy ? 'Đang đăng nhập...' : 'Đăng nhập'}

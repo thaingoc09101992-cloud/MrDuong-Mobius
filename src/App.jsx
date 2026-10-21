@@ -10,6 +10,7 @@ import MapReport from './pages/MapReport.jsx'
 import TradeMap from './pages/TradeMap.jsx'
 import LessonsPage from './pages/LessonsPage.jsx'
 import Icon from './icons.jsx'
+import Loading from './Loading.jsx'
 import AppShell from './AppShell.jsx'
 import { loadProfile } from './profile.js'
 
@@ -205,7 +206,7 @@ export default function App() {
     setTool(id)
   }
 
-  if (booting) return <div className="boot">Đang tải...</div>
+  if (booting) return <Loading full />
 
   if (!user) {
     return <Login onLogin={handleLogin} theme={theme} onToggleTheme={toggleTheme} />
@@ -291,14 +292,14 @@ export default function App() {
 
       {inLocate && (
         <>
-          <div className="tool-tabs" role="tablist" aria-label="Màn hình của công cụ">
+          <div className="tabs tool-tabs" role="tablist" aria-label="Màn hình của công cụ">
             {tabs.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 role="tab"
                 aria-selected={tab === t.id}
-                className={`tool-tab ${tab === t.id ? 'is-active' : ''}`}
+                className={`tab-item ${tab === t.id ? 'is-active' : ''}`}
                 onClick={() => setTab(t.id)}
               >
                 <Icon name={t.icon} size={18} />

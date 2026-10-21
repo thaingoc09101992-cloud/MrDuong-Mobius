@@ -38,19 +38,19 @@ export default function EmbedViewer({ lesson, onClose }) {
   return (
     <section className={`ls-viewer ${fullscreen ? 'ls-full' : ''}`} ref={wrapRef}>
       <div className="ls-vbar">
-        <button type="button" className="ls-btn" onClick={onClose}>
+        <button type="button" className="btn btn-ghost" onClick={onClose}>
           <Icon name="chevron-left" size={18} />
           <span>Danh sách</span>
         </button>
         <strong className="ls-vtitle" title={name}>{name}</strong>
         <div className="ls-pager">
-          <a className="ls-btn" href={lesson.source_url} target="_blank" rel="noopener noreferrer" aria-label={`Mở trong ${source} (tab mới)`} title={`Mở trong ${source}`}>
+          <a className="btn btn-ghost" href={lesson.source_url} target="_blank" rel="noopener noreferrer" aria-label={`Mở trong ${source} (tab mới)`} title={`Mở trong ${source}`}>
             <Icon name="open" size={18} />
             <span>Mở trong {source}</span>
           </a>
           <button
             type="button"
-            className="ls-btn ls-btn-icon"
+            className="btn btn-ghost btn-icon"
             aria-label={fullscreen ? 'Thoát toàn màn hình' : 'Xem toàn màn hình'}
             title={fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
             onClick={toggleFullscreen}

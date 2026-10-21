@@ -11,45 +11,10 @@
   container-type: inline-size; /* thanh công cụ đổi dạng theo bề rộng thực tế của vùng làm việc, không theo cửa sổ */
 }
 
-/* Hai tab của công cụ (Phân tích nguồn lực | Bản đồ bố trận): cùng kiểu với nút menu bên trái (.ad-navbtn): chữ xám, đang chọn thì nền kem và vạch đen dưới chân */
+/* Hai tab của công cụ (Phân tích nguồn lực | Bản đồ bố trận): dùng tab chung .tabs / .tab-item */
 .tm-tabs {
-  display: flex;
   flex: none;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4) 0;
-}
-.tm-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  white-space: nowrap;
-  text-transform: uppercase;
-  color: var(--muted);
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
-}
-.tm-tab:hover {
-  color: var(--text);
-  background: var(--surface-2);
-}
-.tm-tab.is-active,
-.tm-tab.is-active:hover {
-  color: var(--text);
-  background: var(--surface-2);
-  box-shadow: inset 0 -2px 0 var(--text);
-}
-.tm-tab:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 1px;
+  padding: 0 var(--space-4);
 }
 .tm-panel {
   display: flex;
@@ -100,11 +65,11 @@
   line-height: 1.25;
 }
 .tm-count-text strong {
-  font-size: 1.05rem;
+  font-size: var(--fs-lg);
 }
 .tm-count-text small {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
 }
 .tm-actions {
   margin-left: auto;
@@ -113,71 +78,10 @@
   align-items: center;
   gap: var(--space-2);
 }
-.tm-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  height: 44px;
-  padding: 0 var(--space-3);
-  font: inherit;
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
-}
-.tm-btn:hover:not(:disabled) {
-  border-color: var(--border-strong);
-}
-.tm-btn:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
-.tm-btn:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-.tm-btn-primary {
-  color: var(--bg);
-  background: var(--text);
-  border-color: var(--text);
-}
-.tm-btn-icon {
-  width: 44px;
-  padding: 0;
-}
-/* Chú thích nhỏ khi rê chuột hoặc focus vào nút chỉ có biểu tượng */
-.tm-btn[data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 4px 10px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  color: var(--bg);
-  background: var(--text);
-  border-radius: var(--radius-sm);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--motion-fast) var(--ease);
-  z-index: 5;
-}
-.tm-actions .tm-btn-icon:last-child::after {
+.tm-actions .btn-icon:last-child::after {
   left: auto;
   right: 0;
   transform: none;
-}
-.tm-btn[data-tip]:hover::after,
-.tm-btn[data-tip]:focus-visible::after {
-  opacity: 1;
 }
 
 .tm-preview {
@@ -212,13 +116,13 @@
   transition: width 0.2s linear;
 }
 .tm-progress-text {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
 }
 .tm-errors {
   margin: 0;
   padding-left: var(--space-6);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   color: var(--muted);
 }
 
@@ -354,9 +258,6 @@
   .tm-field-label {
     display: none;
   }
-  .tm-swatches {
-    gap: 6px;
-  }
   .tm-range {
     width: 60px;
   }
@@ -380,16 +281,11 @@
   min-height: 32px;
 }
 .tm-field-label {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--muted);
-}
-.tm-swatches {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 .tm-swatch {
   position: relative;
@@ -423,14 +319,14 @@
 }
 .tm-size-val {
   min-width: 2.4em;
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
 .tm-empty {
   margin: 0;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
 }
 .tm-pop {
   display: flex;
@@ -438,15 +334,15 @@
   gap: var(--space-2);
 }
 .tm-pop-eyebrow {
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--gold-deep);
 }
 .tm-pop-title {
   font-family: var(--font-editorial);
-  font-size: 1.45rem;
+  font-size: var(--fs-2xl);
   font-weight: 600;
   line-height: 1.1;
   color: var(--text);
@@ -461,7 +357,7 @@
 }
 .tm-pop-address {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   line-height: 1.5;
   color: var(--text-2);
 }
@@ -480,50 +376,20 @@
   border-bottom: 1px solid var(--border);
 }
 .tm-pop-row dt {
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--muted);
 }
 .tm-pop-row dd {
   margin: 0;
   font-family: var(--font-editorial);
-  font-size: 1.2rem;
+  font-size: var(--fs-xl);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
 /* Hai tab nhỏ của popup: Profile và Lịch sử */
-.tm-pop-tabs {
-  display: flex;
-  gap: var(--space-4);
-  border-bottom: 1px solid var(--border);
-}
-.tm-pop-tab {
-  padding: 6px 0;
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  cursor: pointer;
-}
-.tm-pop-tab:hover {
-  color: var(--text);
-}
-.tm-pop-tab.is-active {
-  color: var(--text);
-  border-bottom-color: var(--gold);
-}
-.tm-pop-tab:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 2px;
-}
 .tm-pop-panel {
   display: flex;
   flex-direction: column;
@@ -536,7 +402,7 @@
   display: grid;
   place-items: center;
   aspect-ratio: 16 / 9;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--muted);
   background: var(--surface-2);
   border: 1px dashed var(--border-strong);
@@ -545,7 +411,7 @@
 .tm-pop-empty,
 .tm-pop-note {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--muted);
 }
@@ -564,7 +430,7 @@
   justify-content: space-between;
   gap: var(--space-2);
   padding: 3px 0;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   border-bottom: 1px solid var(--border);
 }
 .tm-pop-months li span {
@@ -600,7 +466,7 @@
   flex-direction: column;
   gap: 2px;
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   color: var(--text-2);
 }
 
@@ -653,7 +519,7 @@
   min-height: 36px;
   padding: 0 var(--space-2);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -681,17 +547,12 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
 }
-.tm-colorpanel-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
 .tm-colorpanel select {
   width: 100%;
   min-height: 40px;
   padding: 0 var(--space-3);
   font: inherit;
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -716,7 +577,7 @@
   width: 100%;
   padding: 6px var(--space-1);
   font: inherit;
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
   text-align: left;
   color: var(--text);
   background: transparent;
@@ -756,7 +617,7 @@
   align-self: flex-start;
   padding: 4px 0;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   color: var(--gold-deep);
   background: transparent;
   border: 0;
@@ -777,13 +638,13 @@
 .tm .marker-cluster-small,
 .tm .marker-cluster-medium,
 .tm .marker-cluster-large {
-  background: rgba(2, 132, 199, 0.28);
+  background: color-mix(in srgb, var(--color-accent) 28%, transparent);
 }
 .tm .marker-cluster-small div,
 .tm .marker-cluster-medium div,
 .tm .marker-cluster-large div {
-  color: #ffffff;
-  background: #0284c7;
+  color: var(--color-white);
+  background: var(--color-accent);
 }
 
 /* Toàn màn hình (Fullscreen API, hoặc chế độ phủ kín khi trình duyệt không hỗ trợ) */
@@ -815,7 +676,7 @@
   .tm-actions {
     width: 100%;
   }
-  .tm-actions .tm-btn:not(.tm-btn-icon) {
+  .tm-actions .btn:not(.btn-icon) {
     flex: 1 1 auto;
   }
 }

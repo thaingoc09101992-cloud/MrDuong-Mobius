@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Icon from '../icons.jsx'
+import Loading from '../Loading.jsx'
 import LessonViewer from './LessonViewer.jsx'
 import LessonCard from './LessonCard.jsx'
 import { listLessons, lessonError } from './lessonsApi.js'
@@ -34,14 +35,14 @@ export default function LessonsPage({ onBack }) {
       </header>
 
       <div className="ls-top">
-        <button type="button" className="ls-btn" onClick={onBack}>
+        <button type="button" className="btn btn-ghost" onClick={onBack}>
           <Icon name="chevron-left" size={18} />
           <span>Kiến thức</span>
         </button>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
-      {loading && <p className="muted">Đang tải...</p>}
+      {loading && <Loading />}
       {!loading && !error && lessons.length === 0 && (
         <div className="empty-state">
           <span className="module-icon">

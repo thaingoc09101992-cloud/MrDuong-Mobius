@@ -1,131 +1,13 @@
 /* ==========================================================
    Trang quản trị - dùng chung design tokens với styles.css
    ========================================================== */
-.boot {
-  min-height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-}
-
-.ad-app {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Header: wordmark + điều hướng chữ hoa giãn nhẹ, gạch chân tab đang chọn */
-.ad-topbar {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-header);
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  flex-wrap: wrap;
-  padding: 0 var(--space-12);
-  min-height: 72px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-.ad-brand {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-}
-.ad-brand strong {
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
 .ad-email {
   overflow-wrap: anywhere;
 }
-.ad-tabs {
-  display: flex;
-  gap: var(--space-6);
-  flex-wrap: wrap;
-  align-self: stretch;
-}
-.ad-tab {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color var(--motion-fast) var(--ease);
-}
-.ad-tab::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--text);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--motion-normal) var(--ease);
-}
-.ad-tab:hover {
-  color: var(--text);
-}
-.ad-tab-active,
-.ad-tab-active:hover {
-  color: var(--text);
-}
-.ad-tab-active::after {
-  transform: scaleX(1);
-}
-.ad-topbar > .row {
-  margin-left: auto;
-  padding: var(--space-3) 0;
-}
 
-.ad-main {
-  width: 100%;
-  max-width: var(--container);
-  margin: 0 auto;
-  padding: var(--space-12);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  animation: rise var(--motion-slow) var(--ease) both;
-}
 .ad-notice {
   background: var(--ok-bg);
   color: var(--ok-text);
-}
-.ad-main h2 {
-  font-family: var(--font-editorial);
-  font-size: 1.7rem;
-  font-weight: 500;
-}
-
-/* ---------- Bộ lọc ---------- */
-.ad-filters {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  background: var(--surface-2);
-  border: 0;
-}
-.ad-filter-grid {
-  display: grid;
-  grid-template-columns: 2fr repeat(4, 1fr);
-  gap: var(--space-4);
-  align-items: end;
 }
 
 /* ---------- KPI: số liệu dẫn dắt bằng typography ---------- */
@@ -152,8 +34,8 @@
   border-left: 0;
 }
 .ad-kpi.card > .small:first-child {
-  font-size: 0.7rem;
-  letter-spacing: 0.14em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
 }
 .ad-kpi-value {
@@ -185,7 +67,7 @@
   min-width: 0;
 }
 .ad-daycol-val {
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   font-weight: 500;
   min-height: 1em;
   font-variant-numeric: tabular-nums;
@@ -208,7 +90,7 @@
   transition: height var(--motion-slow) var(--ease);
 }
 .ad-daycol-label {
-  font-size: 0.68rem;
+  font-size: var(--fs-xs);
   letter-spacing: 0.04em;
   color: var(--muted);
 }
@@ -227,7 +109,7 @@
   grid-template-columns: minmax(90px, 38%) 1fr 36px;
   align-items: center;
   gap: var(--space-3);
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
 }
 .ad-hbar-label {
   overflow-wrap: anywhere;
@@ -257,7 +139,7 @@
 .ad-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
 }
 .ad-table th,
 .ad-table td {
@@ -279,10 +161,10 @@
   position: sticky;
   top: 0;
   background: var(--bg);
-  font-size: 0.68rem;
+  font-size: var(--fs-xs);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--tracking-label);
   color: var(--muted);
   white-space: nowrap;
   border-bottom: 1px solid var(--border-strong);
@@ -323,31 +205,11 @@
 .ad-thumb-btn:hover .ad-thumb {
   transform: scale(1.06);
 }
-.ad-input {
-  font: inherit;
-  min-height: 40px;
-  padding: 4px 12px;
-  width: 100%;
-  min-width: 140px;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: border-color var(--motion-fast) var(--ease), box-shadow var(--motion-fast) var(--ease);
-}
-.ad-input:focus {
-  outline: none;
-  border-color: var(--border-strong);
-  box-shadow: var(--focus-ring);
-}
 .ad-addform {
   display: grid;
   grid-template-columns: repeat(3, 1fr) auto;
   gap: var(--space-4);
   align-items: end;
-}
-.ad-search {
-  min-width: 220px;
 }
 
 /* ---------- Bản đồ ---------- */
@@ -355,7 +217,7 @@
   height: 68vh;
   min-height: 380px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   overflow: hidden;
   z-index: 0;
 }
@@ -387,32 +249,11 @@
   width: 100%;
   max-height: calc(55 * var(--v1));
   object-fit: contain;
-  background: #0b0b0b;
+  background: var(--color-black);
   border-radius: var(--radius-sm);
 }
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-}
-
 /* ---------- Responsive ---------- */
-@media (max-width: 1024px) {
-  .ad-topbar {
-    padding: 0 var(--space-6);
-    gap: var(--space-6);
-  }
-  .ad-main {
-    padding: var(--space-8) var(--space-6);
-  }
-}
 @media (max-width: 900px) {
-  .ad-filter-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .ad-search {
-    grid-column: 1 / -1;
-  }
   .ad-kpis {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -430,40 +271,11 @@
   .ad-addform {
     grid-template-columns: 1fr;
   }
-  .ad-topbar {
-    padding: var(--space-3) var(--space-4);
-    gap: var(--space-3) var(--space-6);
-  }
-  .ad-tabs {
-    order: 3;
-    width: 100%;
-    padding: var(--space-3) 0;
-    overflow-x: auto;
-  }
-  .ad-topbar > .row {
-    margin-left: 0;
-    flex-wrap: wrap;
-  }
-  .ad-main {
-    padding: var(--space-6) var(--space-4);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ad-main,
-  .ad-modal,
-  .ad-modal-box {
-    animation: none !important;
-  }
 }
 
 /* ---------- Quản lý nhân viên ---------- */
 .ad-addform {
   grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
-}
-.ad-addform-note {
-  grid-column: 1 / -1;
-  margin: 0;
-  max-width: 80ch;
 }
 .ad-emailcell {
   display: flex;
@@ -471,9 +283,6 @@
   gap: var(--space-2);
   margin-bottom: var(--space-1);
   min-width: 220px;
-}
-.ad-emailcell .ad-input {
-  min-width: 160px;
 }
 .ad-secret {
   margin: 0;
@@ -486,8 +295,8 @@
   gap: var(--space-2) var(--space-4);
 }
 .ad-secret dt {
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
   color: var(--muted);
   align-self: center;
@@ -498,7 +307,7 @@
 }
 .ad-secret-pass {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 1.15rem;
+  font-size: var(--fs-xl);
   font-weight: 600;
   letter-spacing: 0.04em;
   user-select: all;
@@ -517,11 +326,6 @@
 /* ---------- Số điện thoại, xóa, import hàng loạt ---------- */
 .ad-addform {
   grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
-}
-.ad-actions {
-  display: flex;
-  gap: var(--space-2);
-  flex-wrap: nowrap;
 }
 .ad-danger {
   color: var(--danger-text);
@@ -560,7 +364,7 @@
   transition: width var(--motion-normal) var(--ease);
 }
 .ad-modal-box .ad-secret-pass {
-  font-size: 0.95rem;
+  font-size: var(--fs-base);
 }
 @media (max-width: 1280px) {
   .ad-addform {
@@ -573,237 +377,17 @@
   }
 }
 
-/* ==========================================================
-   Khung quản trị: sidebar trái (ẩn/hiện được) + vùng nội dung
-   ========================================================== */
-.ad-shell {
-  --ad-sb: 264px;
-  display: grid;
-  grid-template-columns: var(--ad-sb) minmax(0, 1fr);
-  min-height: calc(100 * var(--v1));
-  transition: grid-template-columns var(--motion-normal) var(--ease);
-}
-.ad-shell.is-collapsed {
-  --ad-sb: 76px;
-}
-.ad-sidebar {
-  position: sticky;
-  top: 0;
-  height: calc(100 * var(--v1));
-  display: flex;
-  flex-direction: column;
-  background: var(--bg);
-  border-right: 1px solid var(--border);
-  overflow: hidden;
-  z-index: var(--z-header);
-}
-.ad-account {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: 88px;
-  padding: var(--space-6) var(--space-4);
-  border-bottom: 1px solid var(--border);
-}
-.ad-avatar {
-  flex: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--ink-solid);
-  color: var(--on-ink);
-  font-weight: 600;
-}
-.ad-account-info {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  line-height: 1.35;
-}
-.ad-account-info strong {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.ad-account-info span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.ad-nav {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-4) var(--space-3);
-  overflow-y: auto;
-}
-.ad-sidebar-foot {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-3);
-  border-top: 1px solid var(--border);
-}
-.ad-navbtn {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
-  border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
-}
-.ad-navbtn:hover:not(:disabled) {
-  color: var(--text);
-  background: var(--surface-2);
-}
-.ad-navbtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.ad-navbtn:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: -2px;
-}
-.ad-navbtn.is-active {
-  color: var(--text);
-  background: var(--surface-2);
-  box-shadow: inset 2px 0 0 var(--text);
-}
-.ad-shell.is-collapsed .ad-label,
-.ad-shell.is-collapsed .ad-account-info {
-  display: none;
-}
-.ad-shell.is-collapsed .ad-account {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-.ad-shell.is-collapsed .ad-navbtn {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.ad-content {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.ad-bar {
-  position: sticky;
-  top: 0;
-  z-index: 15;
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  min-height: 88px;
-  padding: var(--space-3) var(--space-8);
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-.ad-bar-title {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.ad-pagetitle {
-  font-family: var(--font-editorial);
-  font-size: 2rem;
-  font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-}
-.ad-shell .ad-main {
-  padding: var(--space-8);
-}
-.ad-backdrop {
-  display: none;
-}
-
-@media (max-width: 900px) {
-  .ad-shell {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .ad-sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: 280px;
-    transform: translateX(-100%);
-    transition: transform var(--motion-normal) var(--ease);
-    z-index: 40;
-  }
-  .ad-shell.is-open .ad-sidebar {
-    transform: none;
-  }
-  .ad-shell.is-open .ad-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    background: var(--overlay);
-    z-index: 35;
-  }
-  /* Trên điện thoại sidebar luôn hiện đủ chữ, bỏ chế độ thu gọn */
-  .ad-shell.is-collapsed .ad-label {
-    display: inline;
-  }
-  .ad-shell.is-collapsed .ad-account-info {
-    display: flex;
-  }
-  .ad-shell.is-collapsed .ad-account {
-    justify-content: flex-start;
-    padding-left: var(--space-4);
-    padding-right: var(--space-4);
-  }
-  .ad-shell.is-collapsed .ad-navbtn {
-    justify-content: flex-start;
-    padding-left: var(--space-4);
-    padding-right: var(--space-4);
-  }
-  .ad-bar {
-    padding: var(--space-3) var(--space-4);
-    min-height: 72px;
-  }
-  .ad-pagetitle {
-    font-size: 1.6rem;
-  }
-  .ad-shell .ad-main {
-    padding: var(--space-4);
-  }
-}
-
 /* ---------- Form tạo nhân viên: lưới 12 cột, nhóm nút cân đối ---------- */
 .ad-addform {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: var(--space-4);
   align-items: end;
 }
-.ad-col-2 {
-  grid-column: span 2;
-}
 .ad-col-3 {
   grid-column: span 3;
 }
 .ad-col-4 {
   grid-column: span 4;
-}
-.ad-col-6 {
-  grid-column: span 6;
 }
 .ad-addform-actions {
   display: flex;
@@ -816,20 +400,14 @@
   white-space: nowrap;
 }
 @media (max-width: 1280px) {
-  .ad-col-2,
   .ad-col-3,
   .ad-col-4 {
     grid-column: span 6;
   }
-  .ad-col-6 {
-    grid-column: span 12;
-  }
 }
 @media (max-width: 700px) {
-  .ad-col-2,
   .ad-col-3,
-  .ad-col-4,
-  .ad-col-6 {
+  .ad-col-4 {
     grid-column: span 12;
   }
 }
@@ -860,7 +438,7 @@
   outline-offset: 2px;
 }
 .ad-sort-ico {
-  font-size: 0.66rem;
+  font-size: var(--fs-2xs);
   opacity: 0.55;
 }
 .ad-table th[aria-sort='ascending'] .ad-sort,
@@ -879,7 +457,7 @@
   margin-top: var(--space-2);
   padding: 4px 8px;
   font: inherit;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -907,16 +485,12 @@
 .ad-table-fixed td:first-child {
   padding-left: var(--space-4);
 }
-.ad-table-fixed .ad-input,
 .ad-table-fixed .ad-colfilter {
   min-width: 0;
 }
 .ad-table-fixed .ad-emailcell {
   min-width: 0;
   flex-wrap: wrap;
-}
-.ad-table-fixed .ad-emailcell .ad-input {
-  flex: 1 1 120px;
 }
 .ad-table-fixed .ad-emailcell .btn {
   white-space: nowrap;
@@ -928,15 +502,6 @@
   white-space: normal;
   text-align: left;
 }
-.ad-table-fixed .ad-actions {
-  flex-direction: column;
-  align-items: stretch;
-}
-.ad-table-fixed .ad-actions .btn {
-  width: 100%;
-  padding: 0 var(--space-2);
-  white-space: nowrap;
-}
 
 .ad-table-fixed th {
   vertical-align: bottom;
@@ -946,60 +511,34 @@
    Bảng nhân viên gọn: mỗi nhân viên một dòng thấp, chữ nhỏ vừa đọc
    ========================================================== */
 .ad-table-fixed {
-  font-size: 0.84rem;
+  font-size: var(--fs-md);
 }
 .ad-table-fixed th,
 .ad-table-fixed td {
   padding: 6px var(--space-2);
 }
 .ad-table-fixed th {
-  font-size: 0.64rem;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-wide);
   line-height: 1.3;
 }
 .ad-table-fixed .ad-sort-ico {
-  font-size: 0.6rem;
+  font-size: var(--fs-2xs);
 }
 .ad-table-fixed .ad-colfilter {
   min-height: 28px;
   margin-top: 6px;
   padding: 2px 8px;
-  font-size: 0.76rem;
-}
-/* Ô nhập trong bảng trông như chữ thường, chỉ hiện khung khi rê chuột hoặc đang sửa */
-.ad-table-fixed .ad-input {
-  min-height: 30px;
-  padding: 2px 8px;
-  font-size: 0.84rem;
-  background: transparent;
-  border-color: transparent;
-  border-radius: var(--radius-sm);
-}
-.ad-table-fixed tbody tr:hover .ad-input,
-.ad-table-fixed .ad-input:focus {
-  background: var(--surface);
-  border-color: var(--border);
-}
-.ad-table-fixed .ad-input::placeholder {
-  color: var(--color-taupe);
+  font-size: var(--fs-sm);
 }
 .ad-table-fixed .btn-sm {
   min-height: 28px;
   padding: 0 var(--space-3);
-  font-size: 0.64rem;
+  font-size: var(--fs-2xs);
 }
 .ad-table-fixed .ad-nowrap {
   white-space: nowrap;
-  font-size: 0.78rem;
-}
-.ad-table-fixed .ad-actions {
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
-}
-.ad-table-fixed .ad-actions .btn {
-  width: auto;
-  flex: 0 0 auto;
+  font-size: var(--fs-sm);
 }
 .ad-table-fixed .ad-emailcell {
   flex-wrap: nowrap;
@@ -1013,10 +552,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.ad-table-fixed .ad-emailcell .ad-input {
-  flex: 1 1 0;
-  min-width: 0;
 }
 .ad-dot {
   flex: none;
@@ -1049,45 +584,6 @@
 /* ==========================================================
    Nới khoảng thở: nhiều không gian giữa các khối và quanh chữ
    ========================================================== */
-.ad-shell {
-  --ad-sb: clamp(214px, calc(14 * var(--vw1)), 248px);
-}
-.ad-shell.is-collapsed {
-  --ad-sb: 76px;
-}
-.ad-account {
-  min-height: 96px;
-  padding: var(--space-6) var(--space-6);
-}
-.ad-nav {
-  gap: 6px;
-  padding: var(--space-6) var(--space-3);
-}
-.ad-navbtn {
-  padding: 14px var(--space-4);
-}
-.ad-sidebar-foot {
-  gap: 4px;
-  padding: var(--space-4) var(--space-3);
-}
-.ad-bar {
-  min-height: 96px;
-  padding: var(--space-4) 40px;
-}
-.ad-shell .ad-main {
-  padding: 40px 40px 64px;
-  gap: 32px;
-}
-.ad-main > .stack {
-  gap: 32px;
-}
-.ad-shell .card:not(.ad-tablewrap):not(.ad-kpi) {
-  padding: 28px;
-}
-.ad-shell .ad-addform {
-  padding: 32px;
-  gap: 24px 20px;
-}
 .ad-addform .field {
   gap: 10px;
 }
@@ -1128,63 +624,19 @@
   padding-top: 18px;
   padding-bottom: 14px;
 }
-.ad-table-fixed .ad-input {
-  min-height: 34px;
-}
 .ad-table-fixed {
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
 }
 .ad-table-fixed .ad-nowrap {
-  font-size: 0.82rem;
+  font-size: var(--fs-sm);
 }
 
 /* Tổng quan, bộ lọc, danh sách */
 .ad-kpis {
   margin-bottom: var(--space-2);
 }
-.ad-shell .ad-kpi.card {
-  padding: 32px;
-  margin-left: 0;
-}
-.ad-shell .ad-kpi.card:first-child {
-  padding-left: 0;
-}
 .ad-two {
   gap: 32px;
-}
-.ad-filters {
-  gap: var(--space-6);
-}
-.ad-filter-grid {
-  gap: var(--space-4) var(--space-6);
-}
-
-@media (max-width: 900px) {
-  .ad-bar {
-    min-height: 76px;
-    padding: var(--space-3) var(--space-4);
-  }
-  .ad-shell .ad-main {
-    padding: var(--space-6) var(--space-4) var(--space-12);
-    gap: var(--space-6);
-  }
-  .ad-main > .stack {
-    gap: var(--space-6);
-  }
-  .ad-shell .card:not(.ad-tablewrap):not(.ad-kpi) {
-    padding: var(--space-6);
-  }
-  .ad-shell .ad-addform {
-    padding: var(--space-6);
-    gap: var(--space-4);
-  }
-  .ad-shell .ad-kpi.card {
-    padding: var(--space-6);
-  }
-  .ad-shell .ad-kpi.card:first-child,
-  .ad-shell .ad-kpi.card:nth-child(3) {
-    padding-left: 0;
-  }
 }
 
 /* Vừa khít ở màn hình 1440px: cột gọn, nút thao tác nhỏ hơn */
@@ -1204,23 +656,10 @@
 .ad-table-fixed td:last-child {
   padding-right: 16px;
 }
-.ad-table-fixed select.ad-input {
-  padding-left: 4px;
-  padding-right: 2px;
-}
-.ad-table-fixed .ad-actions .btn {
-  padding: 0 8px;
-  font-size: 0.62rem;
-}
 
 /* ==========================================================
    Form tạo nhân viên: ô nhập bên trái, nút chức năng bên phải
    ========================================================== */
-.ad-shell .ad-addform {
-  grid-template-columns: minmax(0, 1fr) 208px;
-  gap: 40px;
-  align-items: stretch;
-}
 .ad-addform-fields {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -1236,32 +675,7 @@
 .ad-addform-fields .ad-col-5 {
   grid-column: span 5;
 }
-.ad-shell .ad-addform-actions {
-  flex-direction: column;
-  justify-content: center;
-  gap: var(--space-3);
-  padding-left: 40px;
-  border-left: 1px solid var(--border);
-}
-.ad-shell .ad-addform-actions .btn {
-  flex: none;
-  width: 100%;
-  min-height: 46px;
-}
 @media (max-width: 1280px) {
-  .ad-shell .ad-addform {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-6);
-  }
-  .ad-shell .ad-addform-actions {
-    flex-direction: row;
-    padding-left: 0;
-    border-left: 0;
-  }
-  .ad-shell .ad-addform-actions .btn {
-    flex: 1 1 0;
-    width: auto;
-  }
   .ad-addform-fields .ad-col-3,
   .ad-addform-fields .ad-col-4,
   .ad-addform-fields .ad-col-5 {
@@ -1273,9 +687,6 @@
   .ad-addform-fields .ad-col-4,
   .ad-addform-fields .ad-col-5 {
     grid-column: span 12;
-  }
-  .ad-shell .ad-addform-actions {
-    flex-direction: column;
   }
 }
 
@@ -1322,14 +733,14 @@
    Form tạo nhân viên: gợi ý mờ, cỡ chữ cân đối với toàn trang
    ========================================================== */
 .ad-addform .field {
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-label);
   gap: var(--space-2);
 }
 .ad-addform .field input,
 .ad-addform .field select {
   min-height: 42px;
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   padding: 8px 14px;
 }
 /* Gợi ý chỉ mờ vừa đủ thấy (khoảng 30%), điền xong chữ hiện bình thường */
@@ -1348,49 +759,6 @@
 .ad-addform-fields .field select {
   min-height: 42px;
 }
-.ad-shell .ad-addform-actions .btn {
-  min-height: 42px;
-  font-size: 0.7rem;
-}
-
-/* Gợi ý trong bảng mờ cùng mức với form tạo nhân viên */
-.ad-table-fixed .ad-input::placeholder {
-  color: color-mix(in srgb, var(--text) 30%, transparent);
-  opacity: 1;
-}
-
-/* ==========================================================
-   Nền màu nhẹ để các khối nổi bật: nền trang ngà, khối tạo nhân viên
-   tông kem, bảng và thẻ số liệu màu trắng
-   ========================================================== */
-.ad-content {
-  background: var(--page-bg);
-}
-.ad-shell .ad-addform {
-  background: var(--tint);
-  border-color: var(--tint-border);
-}
-.ad-shell .ad-addform-actions {
-  border-left-color: var(--tint-border);
-}
-.ad-shell .ad-tablewrap,
-.ad-shell .ad-main > .stack > .card:not(.ad-addform),
-.ad-shell .ad-two .card {
-  background: var(--surface);
-}
-.ad-shell .ad-modal-box {
-  background: var(--surface);
-}
-.ad-shell .ad-filters {
-  background: var(--tint);
-  border-color: var(--tint-border);
-}
-.ad-shell .ad-kpis {
-  background: transparent;
-}
-.ad-shell .ad-addform-actions .btn-ghost {
-  background: var(--surface);
-}
 
 /* ==========================================================
    Cột Thao tác: nút icon (xem, sửa, reset mật khẩu, xóa)
@@ -1401,6 +769,7 @@
   gap: 2px;
 }
 .ad-iconbtn {
+  position: relative;
   width: 28px;
   height: 28px;
   display: inline-grid;
@@ -1413,6 +782,12 @@
   cursor: pointer;
   transition: color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease),
     border-color var(--motion-fast) var(--ease);
+}
+/* Vùng bấm cao 40px dù nút chỉ vẽ 28px (giữ bảng vừa khung 1440px); chiều ngang không nới để không chồng lên nút bên cạnh */
+.ad-iconbtn::before {
+  content: '';
+  position: absolute;
+  inset: -6px -1px;
 }
 .ad-iconbtn:hover:not(:disabled) {
   color: var(--text);
@@ -1448,16 +823,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.ad-table-fixed .ad-input.is-edit {
-  background: var(--surface);
-  border-color: var(--border);
-}
-.ad-table-fixed .ad-input.is-edit:focus {
-  border-color: var(--border-strong);
-}
-.ad-editing td {
-  background: var(--surface-2);
-}
 .ad-detail-row {
   display: contents;
 }
@@ -1482,81 +847,6 @@
 
 .ad-nw {
   white-space: nowrap;
-}
-
-/* ==========================================================
-   Nút mũi tên thu/mở sidebar: nằm trên mép phải của sidebar
-   ========================================================== */
-.ad-edge-toggle {
-  position: fixed;
-  top: 30px;
-  left: calc(var(--ad-sb) - 14px);
-  z-index: 45;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--bg);
-  color: var(--muted);
-  cursor: pointer;
-  transition: left var(--motion-normal) var(--ease), color var(--motion-fast) var(--ease),
-    border-color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
-}
-.ad-edge-toggle:hover {
-  color: var(--text);
-  border-color: var(--border-strong);
-  background: var(--surface-2);
-}
-.ad-edge-toggle:focus-visible {
-  outline: 2px solid var(--text);
-  outline-offset: 2px;
-}
-.ad-edge-toggle .ico-l,
-.ad-edge-toggle .ico-r {
-  display: grid;
-  place-items: center;
-}
-.ad-edge-toggle .ico-r {
-  display: none;
-}
-.ad-shell.is-collapsed .ad-edge-toggle .ico-l {
-  display: none;
-}
-.ad-shell.is-collapsed .ad-edge-toggle .ico-r {
-  display: grid;
-}
-/* Nút menu trong thanh tiêu đề chỉ dùng trên điện thoại */
-.ad-bar .ad-bar-menu {
-  display: none;
-}
-@media (max-width: 900px) {
-  .ad-bar .ad-bar-menu {
-    display: inline-flex;
-  }
-  .ad-edge-toggle {
-    display: none;
-  }
-  .ad-shell.is-open .ad-edge-toggle {
-    display: grid;
-    left: 266px;
-  }
-  .ad-shell.is-collapsed .ad-edge-toggle .ico-l,
-  .ad-edge-toggle .ico-l {
-    display: grid;
-  }
-  .ad-shell.is-collapsed .ad-edge-toggle .ico-r,
-  .ad-edge-toggle .ico-r {
-    display: none;
-  }
-}
-
-/* Nút mũi tên thu/mở sidebar nằm ở cuối sidebar, ngang hàng mục dưới cùng */
-.ad-edge-toggle {
-  top: auto;
-  bottom: 25px;
 }
 
 /* ==========================================================
@@ -1586,7 +876,7 @@
    Bảng điểm bán gọn: chữ nhỏ vừa đọc, dòng thoáng, tiêu đề căn giữa
    ========================================================== */
 .ad-table-compact {
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
 }
 .ad-table-compact th,
 .ad-table-compact td {
@@ -1603,8 +893,8 @@
 .ad-table-compact th {
   padding-top: 18px;
   padding-bottom: 14px;
-  font-size: 0.64rem;
-  letter-spacing: 0.1em;
+  font-size: var(--fs-2xs);
+  letter-spacing: var(--tracking-wide);
   line-height: 1.3;
   vertical-align: middle;
 }
@@ -1631,40 +921,6 @@
 /* ==========================================================
    MOBIUS (quản trị): nhóm menu, phân quyền, hộp thoại sửa
    ========================================================== */
-.ad-navgroup {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.ad-navgroup + .ad-navgroup {
-  margin-top: var(--space-6);
-}
-.ad-navlabel {
-  padding: 0 var(--space-4) var(--space-2);
-  font-size: 0.62rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--muted);
-}
-.ad-shell.is-collapsed .ad-navlabel {
-  display: none;
-}
-.ad-shell.is-collapsed .ad-navgroup + .ad-navgroup {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--border);
-}
-@media (max-width: 900px) {
-  .ad-shell.is-collapsed .ad-navlabel {
-    display: block;
-  }
-  .ad-shell.is-collapsed .ad-navgroup + .ad-navgroup {
-    margin-top: var(--space-6);
-    padding-top: 0;
-    border-top: 0;
-  }
-}
 
 .ad-modules {
   display: flex;
@@ -1676,7 +932,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -1691,13 +947,13 @@
   gap: var(--space-6);
 }
 .ad-modal-form .field {
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-label);
 }
 .ad-modal-form .field input,
 .ad-modal-form .field select {
   min-height: 42px;
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   padding: 8px 14px;
 }
 .ad-modal-form .ad-addform-fields .ad-span-all {
@@ -1780,10 +1036,10 @@
   gap: 6px;
   padding: var(--space-4);
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--fs-md);
 }
 .banner-preview-empty small {
-  font-size: 0.75rem;
+  font-size: var(--fs-sm);
 }
 .banner-fields {
   display: grid;

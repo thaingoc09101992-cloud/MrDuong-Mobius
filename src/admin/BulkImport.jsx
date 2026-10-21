@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { callEmployeesFn } from './adminClient.js'
+import { confirmDialog } from '../ConfirmDialog.jsx'
 import { downloadTemplate, parseEmployeeFile, exportAccounts, MAX_IMPORT_ROWS } from './employeeExcel.js'
 
 const CONCURRENCY = 3
@@ -58,10 +59,17 @@ export default function BulkImport({ employees, onCreated, onClose }) {
   const okCount = results.filter((r) => r.ok).length
   const failCount = results.length - okCount
 
-  function requestClose() {
+  async function requestClose() {
     if (step === 'running') return
     if (step === 'done' && okCount > 0 && !saved) {
-      if (!window.confirm('Bạn chưa tải hoặc sao chép danh sách tài khoản. Mật khẩu sẽ không hiển thị lại. Vẫn đóng?')) return
+      const ok = await confirmDialog({
+        title: 'Đóng khi chưa lưu danh sách tài khoản?',
+        message: 'Bạn chưa tải hoặc sao chép danh sách tài khoản. Mật khẩu sẽ không hiển thị lại.',
+        confirmLabel: 'Vẫn đóng',
+        cancelLabel: 'Quay lại',
+        danger: true,
+      })
+      if (!ok) return
     }
     onClose()
   }

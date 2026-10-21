@@ -205,24 +205,24 @@ export default function PdfViewer({ lesson, onClose }) {
   return (
     <section className={`ls-viewer ${fullscreen ? 'ls-full' : ''}`} ref={wrapRef}>
       <div className="ls-vbar">
-        <button type="button" className="ls-btn" onClick={onClose}>
+        <button type="button" className="btn btn-ghost" onClick={onClose}>
           <Icon name="chevron-left" size={18} />
           <span>Danh sách</span>
         </button>
         <strong className="ls-vtitle" title={lesson.title}>{lesson.title}</strong>
         <div className="ls-pager">
-          <button type="button" className="ls-btn ls-btn-icon" aria-label="Trang trước" onClick={() => go(-1)} disabled={status !== 'ready' || page <= 1}>
+          <button type="button" className="btn btn-ghost btn-icon" aria-label="Trang trước" onClick={() => go(-1)} disabled={status !== 'ready' || page <= 1}>
             <Icon name="chevron-left" size={18} />
           </button>
           <span className="ls-count" aria-live="polite">
             {status === 'ready' ? `${page} / ${total}` : '- / -'}
           </span>
-          <button type="button" className="ls-btn ls-btn-icon" aria-label="Trang sau" onClick={() => go(1)} disabled={status !== 'ready' || page >= total}>
+          <button type="button" className="btn btn-ghost btn-icon" aria-label="Trang sau" onClick={() => go(1)} disabled={status !== 'ready' || page >= total}>
             <Icon name="chevron-right" size={18} />
           </button>
           <button
             type="button"
-            className="ls-btn ls-btn-icon"
+            className="btn btn-ghost btn-icon"
             aria-label={fullscreen ? 'Thoát toàn màn hình' : 'Xem toàn màn hình'}
             title={fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
             onClick={toggleFullscreen}
