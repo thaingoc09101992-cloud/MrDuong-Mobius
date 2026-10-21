@@ -8,6 +8,10 @@ import { COLOR_FIELDS, buildScheme } from './tradeColor.js'
 import './tradeMap.css'
 
 const PIN_COLOR = '#0264a0'
+const TM_TABS = [
+  { id: 'resource', label: 'Phân tích nguồn lực', icon: 'chart' },
+  { id: 'map', label: 'Bản đồ bố trận', icon: 'map' },
+]
 const DOT_COLORS = ['#0264a0', '#dc2626', '#16a34a', '#ea580c', '#7c3aed', '#111111']
 const DOT_STYLE_KEY = 'tm-dot-style'
 const COLOR_FIELD_KEY = 'tm-color-field'
@@ -235,6 +239,7 @@ export default function TradeMap({ user }) {
   const fitRef = useRef(false)
   const fileRef = useRef(null)
   const colorMenuRef = useRef(null)
+  const [tab, setTab] = useState('map') // 'resource' (phân tích nguồn lực) | 'map' (bản đồ bố trận)
   const [colorMenuOpen, setColorMenuOpen] = useState(false)
 
   const [stores, setStores] = useState([])
@@ -352,6 +357,12 @@ export default function TradeMap({ user }) {
   }, [stores])
 
   // Tô màu theo trường dữ liệu: chia nhóm một lần khi dữ liệu hoặc trường đổi, rồi giao cho lớp vẽ
+  useEffect(() => {
+    if (tab !== 'map') return undefined
+    const id = setTimeout(() => mapRef.current && mapRef.current.invalidateSize(), 50) // bản đồ vừa hiện lại sau khi ẩn
+    return () => clearTimeout(id)
+  }, [tab])
+
   useEffect(() => {
     if (!colorMenuOpen) return undefined
     const close = (e) => {
@@ -471,6 +482,33 @@ export default function TradeMap({ user }) {
 
   return (
     <section className={`tm ${fullscreen ? 'tm-full' : ''}`} ref={wrapRef}>
+      <div className="tm-tabs" role="tablist" aria-label="Màn hình của công cụ">
+        {TM_TABS.map((x) => (
+          <button
+            key={x.id}
+            type="button"
+            role="tab"
+            id={`tm-tab-${x.id}`}
+            aria-selected={tab === x.id}
+            aria-controls={`tm-panel-${x.id}`}
+            className={`tm-tab ${tab === x.id ? 'is-active' : ''}`}
+            onClick={() => setTab(x.id)}
+          >
+            <Icon name={x.icon} size={18} />
+            {x.label}
+          </button>
+        ))}
+      </div>
+
+      <div id="tm-panel-resource" role="tabpanel" aria-labelledby="tm-tab-resource" className="tm-panel" hidden={tab !== 'resource'}>
+        <div className="empty-state">
+          <Icon name="chart" size={32} />
+          <span className="empty-title">Phân tích nguồn lực</span>
+          <p className="muted">Nội dung phân tích nguồn lực sẽ được cập nhật tại đây.</p>
+        </div>
+      </div>
+
+      <div id="tm-panel-map" role="tabpanel" aria-labelledby="tm-tab-map" className="tm-panel" hidden={tab !== 'map'}>
       <div className="tm-bar">
         {loading && (
           <div
@@ -693,6 +731,7 @@ export default function TradeMap({ user }) {
           {user.isAdmin ? 'Chưa có danh sách điểm bán. Bấm "Nhập Excel" để bắt đầu (có file mẫu).' : 'Chưa có danh sách điểm bán. Vui lòng liên hệ quản trị viên.'}
         </p>
       )}
+      </div>
     </section>
   )
 }
