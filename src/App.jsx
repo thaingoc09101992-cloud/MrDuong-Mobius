@@ -13,6 +13,7 @@ import Icon from './icons.jsx'
 import Loading from './Loading.jsx'
 import AppShell from './AppShell.jsx'
 import { loadProfile } from './profile.js'
+import { clearTradeCache } from './pages/tradeCache.js'
 
 // Menu chính của thanh bên
 const NAV = [
@@ -183,6 +184,7 @@ export default function App() {
   }
 
   async function handleLogout() {
+    await clearTradeCache() // không để danh sách điểm bán lại trên máy dùng chung
     await supabase.auth.signOut()
     setUser(null)
     setOutlets([])

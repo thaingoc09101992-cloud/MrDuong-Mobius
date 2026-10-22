@@ -6,6 +6,7 @@ import Icon from '../icons.jsx'
 import { parseStoresFile, downloadStoresTemplate, MAX_STORES, DIMENSIONS } from './tradeExcel.js'
 import { buildPopup } from './tradePopup.js'
 import { COLOR_FIELDS, COLOR_GROUPS, buildScheme } from './tradeColor.js'
+import { readTradeCache, writeTradeCache, storesVersion } from './tradeCache.js'
 import './tradeMap.css'
 
 const PIN_COLOR = '#0264a0'
@@ -265,6 +266,9 @@ export default function TradeMap({ user }) {
   const [hiddenBands, setHiddenBands] = useState(() => new Set()) // các nhóm màu đang ẩn trên bản đồ
   const [dotStyle, setDotStyle] = useState(loadDotStyle) // { color, scale }: màu và cỡ chấm do người xem chọn
 
+  const owner = user.email || user.code || '' // bộ đệm điểm bán gắn với tài khoản
+
+  // Tải đầy đủ danh sách từ máy chủ (nút "Tải lại", sau khi nhập Excel, hoặc khi dữ liệu trên máy chủ đã đổi)
   const load = useCallback(async () => {
     setLoading(true)
     setLoaded(0)
@@ -302,13 +306,33 @@ export default function TradeMap({ user }) {
     } else {
       fitRef.current = true
       setStores(all)
+      writeTradeCache(owner, storesVersion(all.length, all[0] && all[0].uploaded_at), all)
     }
     setLoading(false)
-  }, [])
+  }, [owner])
 
+  // Mở công cụ: hiện ngay bản đã lưu trên máy, rồi hỏi máy chủ (chỉ 1 dòng) xem dữ liệu có đổi không; đổi thì mới tải lại
   useEffect(() => {
-    load()
-  }, [load])
+    let off = false
+    ;(async () => {
+      const cached = await readTradeCache(owner)
+      if (off) return
+      if (!cached) {
+        load()
+        return
+      }
+      fitRef.current = true
+      setStores(cached.stores)
+      setLoading(false)
+      const r = await supabase.rpc('app_list_trade_stores', undefined, { count: 'exact' }).range(0, 0)
+      if (off || r.error || typeof r.count !== 'number') return
+      const first = Array.isArray(r.data) && r.data[0]
+      if (storesVersion(r.count, first && first.uploaded_at) !== cached.version) load()
+    })()
+    return () => {
+      off = true
+    }
+  }, [owner, load])
 
   // Khởi tạo bản đồ một lần
   useEffect(() => {
