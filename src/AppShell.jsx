@@ -40,7 +40,7 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
   }
 
   return (
-    <div className={`ad-shell ${collapsed || narrow ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''} ${aside ? 'has-aside' : ''}`}>
+    <div className={`ad-shell ${collapsed || narrow ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
       <aside className="ad-sidebar" aria-label="Menu">
         <div className="ad-brandbar">
           <Logo size={46} />
@@ -134,10 +134,16 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
             </span>
           </div>
         </header>
-        <main className={`ad-main ${hasTabbar ? 'has-tabbar' : ''} ${wide ? 'is-wide' : ''}`}>{children}</main>
+        {aside ? (
+          // Cột bên phải dưới thanh tiêu đề, cho thanh công cụ của trang (Bố trận điểm bán đưa nội dung vào bằng portal)
+          <div className="ad-body">
+            <main className={`ad-main ${hasTabbar ? 'has-tabbar' : ''} ${wide ? 'is-wide' : ''}`}>{children}</main>
+            <div className="ad-aside" id="ad-aside" />
+          </div>
+        ) : (
+          <main className={`ad-main ${hasTabbar ? 'has-tabbar' : ''} ${wide ? 'is-wide' : ''}`}>{children}</main>
+        )}
       </div>
-      {/* Cột bên phải cho thanh công cụ của trang (Bố trận điểm bán đưa nội dung vào bằng portal) */}
-      {aside && <div className="ad-aside" id="ad-aside" />}
       {bottomBar}
     </div>
   )

@@ -520,7 +520,7 @@ export default function TradeMap({ user }) {
             <div className={`tm-loadbar-fill ${expected ? '' : 'is-indeterminate'}`} style={expected ? { width: `${loadPct}%` } : undefined} />
           </div>
         )}
-        <h2 className="tm-tools-title">Thanh công cụ</h2>
+        <h2 className="tm-tools-title">Công cụ</h2>
         <button
           type="button"
           className="btn btn-ghost btn-sm btn-icon tm-tools-toggle"

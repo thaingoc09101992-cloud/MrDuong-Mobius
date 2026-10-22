@@ -482,7 +482,7 @@
 }
 
 /* ==========================================================
-   Thanh công cụ bên phải: cùng kiểu với thanh bên trái (nền --bg, kẻ mảnh, đầu thanh cao bằng .ad-brandbar).
+   Thanh công cụ bên phải: cùng kiểu với thanh bên trái (nền --bg, kẻ mảnh), nằm dưới thanh tiêu đề.
    Mở: 320px, ba nhóm Dữ liệu, Hiển thị, Bộ lọc. Thu gọn: cột biểu tượng 76px (bằng thanh trái thu gọn).
    ========================================================== */
 .tm-tools {
@@ -505,8 +505,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: 96px;
-  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-6);
+  min-height: 64px;
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-6);
   border-bottom: 1px solid var(--border);
 }
 .tm-tools-title {
