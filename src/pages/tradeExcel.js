@@ -2,6 +2,19 @@ import { fold } from '../admin/util.js'
 
 export const MAX_STORES = 100000
 
+// 9 trường phân cấp bán hàng (chữ, không bắt buộc): dùng cho bộ lọc và "Tô màu theo" của Bố trận, theo thứ tự từ rộng đến hẹp
+export const DIMENSIONS = [
+  { key: 'channel', label: 'Kênh', aliases: ['kenh', 'kenh ban hang', 'channel'] },
+  { key: 'region', label: 'Miền', aliases: ['mien', 'region'] },
+  { key: 'area', label: 'Vùng', aliases: ['vung', 'area'] },
+  { key: 'zone', label: 'Khu vực', aliases: ['khu vuc', 'zone'] },
+  { key: 'province', label: 'Tỉnh', aliases: ['tinh', 'tinh thanh', 'tinh/thanh pho', 'tinh thanh pho', 'province'] },
+  { key: 'distributor', label: 'NPP', aliases: ['npp', 'nha phan phoi', 'distributor'] },
+  { key: 'dhkd', label: 'ĐHKD', aliases: ['dhkd', 'dieu hanh kinh doanh'] },
+  { key: 'route', label: 'Tuyến', aliases: ['tuyen', 'tuyen ban hang', 'route'] },
+  { key: 'salesman', label: 'Tên NVBH', aliases: ['ten nvbh', 'nvbh', 'nhan vien ban hang', 'ten nhan vien ban hang'] },
+]
+
 // Cột của file Excel: key trong dữ liệu, tên cột hiển thị ở file mẫu và các tên gọi khác được chấp nhận
 export const COLUMNS = [
   { key: 'store_code', label: 'Mã điểm bán', aliases: ['ma diem ban', 'ma khach hang', 'ma kh', 'ma cua hang', 'code'] },
@@ -16,6 +29,7 @@ export const COLUMNS = [
   { key: 'orders_per_month', label: 'Số đơn hàng mỗi tháng', aliases: ['so don hang moi thang', 'so don moi thang', 'so don thang', 'so don hang', 'don hang trung binh thang'] },
   { key: 'cabinet_count', label: 'Số tủ', aliases: ['so tu', 'so luong tu', 'so tu trung bay', 'tu'] },
   { key: 'top_skus', label: 'SKU hay mua', aliases: ['sku hay mua', 'sku', 'san pham hay mua'] },
+  ...DIMENSIONS,
 ]
 
 // Sheet thứ hai: doanh thu theo tháng, mỗi điểm bán 12 dòng, xếp từ tháng mới nhất đến cũ nhất
@@ -224,6 +238,7 @@ export async function parseStoresFile(file) {
       ...metrics,
       cabinet_count: Number.isNaN(cabinetRaw) ? null : cabinetRaw,
       top_skus: cellText(get(row, 'top_skus')).slice(0, 500) || null,
+      ...Object.fromEntries(DIMENSIONS.map((d) => [d.key, cellText(get(row, d.key)).slice(0, 200) || null])),
     })
   }
 
@@ -277,6 +292,15 @@ export async function downloadStoresTemplate() {
     orders_per_month: 9,
     cabinet_count: 3,
     top_skus: 'SKU001, SKU014, SKU102',
+    channel: 'GT',
+    region: 'Miền Nam',
+    area: 'Vùng 1',
+    zone: 'HCM 1',
+    province: 'TP.HCM',
+    distributor: 'NPP Minh Phát',
+    dhkd: 'Nguyễn Văn An',
+    route: 'T01',
+    salesman: 'Trần Thị Bình',
   })
   ;['revenue_current', 'revenue_6m', 'avg_6m'].forEach((key) => {
     ws.getColumn(key).numFmt = '#,##0'

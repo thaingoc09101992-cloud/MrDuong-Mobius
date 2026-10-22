@@ -3,6 +3,7 @@
 // và trả về: danh sách nhóm (nhãn, màu, số điểm) cùng mảng chỉ số nhóm của từng điểm bán, để lớp vẽ bản đồ tô màu nhanh.
 
 import { compactMoney, summarize } from './tradePopup.js'
+import { DIMENSIONS } from './tradeExcel.js'
 
 const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 })
 
@@ -16,8 +17,20 @@ const NA = '#b4ada1'
 const num = (v) => (v === null || v === undefined || Number.isNaN(Number(v)) ? null : Number(v))
 const monthlyOf = (s) => (Array.isArray(s.monthly) && s.monthly.length > 0 ? s.monthly : null)
 
-/** Các trường có thể tô màu: kind 'money' dùng nhãn rút gọn (tr, tỷ), 'count' là số đếm, 'text' là nhóm rời rạc. */
+/**
+ * Các trường có thể tô màu: kind 'money' dùng nhãn rút gọn (tr, tỷ), 'count' là số đếm, 'text' là nhóm rời rạc.
+ * group 'filter': cùng các mục của bộ lọc (Kênh, Miền...); group 'metric': chỉ số doanh thu, đơn hàng, tủ, SKU.
+ */
+export const COLOR_GROUPS = [
+  { id: 'filter', label: 'Theo bộ lọc' },
+  { id: 'metric', label: 'Theo chỉ số' },
+]
+const textOf = (v) => {
+  const t = String(v || '').trim()
+  return t || null
+}
 export const COLOR_FIELDS = [
+  ...DIMENSIONS.map((d) => ({ id: d.key, label: d.label, kind: 'text', group: 'filter', otherLabel: `${d.label} khác`, get: (s) => textOf(s[d.key]) })),
   { id: 'rev-now', label: 'Doanh thu tháng này', kind: 'money', get: (s) => (monthlyOf(s) ? num(monthlyOf(s)[0].v) : num(s.revenue_current)) },
   { id: 'avg3', label: 'Bình quân 3 tháng', kind: 'money', get: (s) => (monthlyOf(s) ? summarize(monthlyOf(s)).avg3 : null) },
   { id: 'avg9', label: 'Bình quân 9 tháng', kind: 'money', get: (s) => (monthlyOf(s) ? summarize(monthlyOf(s)).avg9 : null) },
@@ -26,8 +39,8 @@ export const COLOR_FIELDS = [
   { id: 'avg6', label: 'Trung bình 6 tháng', kind: 'money', get: (s) => num(s.avg_6m) },
   { id: 'orders', label: 'Số đơn hàng mỗi tháng', kind: 'count', get: (s) => num(s.orders_per_month) },
   { id: 'cabinets', label: 'Số tủ', kind: 'count', get: (s) => num(s.cabinet_count) },
-  { id: 'sku', label: 'SKU chính (SKU đầu tiên)', kind: 'text', get: (s) => firstSku(s.top_skus) },
-]
+  { id: 'sku', label: 'SKU chính (SKU đầu tiên)', kind: 'text', otherLabel: 'SKU khác', get: (s) => firstSku(s.top_skus) },
+].map((f) => ({ group: 'metric', ...f }))
 
 function firstSku(text) {
   const first = String(text || '').split(/[,;\n]+/)[0].trim()
@@ -108,14 +121,14 @@ function textScheme(field, values) {
   const top = [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, CAT.length).map((e) => e[0])
   const bands = top.map((v, i) => ({ label: v, color: CAT[i] }))
   const rest = freq.size > top.length
-  if (rest) bands.push({ label: 'SKU khác', color: OTHER })
+  if (rest) bands.push({ label: field.otherLabel || 'Khác', color: OTHER })
   bands.push({ label: 'Chưa có dữ liệu', color: NA })
   const index = new Map(top.map((v, i) => [v, i]))
   const assign = new Uint8Array(values.length)
   values.forEach((v, i) => {
     if (v === null) assign[i] = bands.length - 1
     else if (index.has(v)) assign[i] = index.get(v)
-    else assign[i] = top.length // nhóm "SKU khác"
+    else assign[i] = top.length // nhóm "... khác"
   })
   return finish(field, bands, assign)
 }

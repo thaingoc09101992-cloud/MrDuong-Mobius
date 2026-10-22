@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import L from 'leaflet'
 import { supabase, safeGet, safeSet } from '../supabase.js'
 import Icon from '../icons.jsx'
-import { parseStoresFile, downloadStoresTemplate, MAX_STORES } from './tradeExcel.js'
+import { parseStoresFile, downloadStoresTemplate, MAX_STORES, DIMENSIONS } from './tradeExcel.js'
 import { buildPopup } from './tradePopup.js'
-import { COLOR_FIELDS, buildScheme } from './tradeColor.js'
+import { COLOR_FIELDS, COLOR_GROUPS, buildScheme } from './tradeColor.js'
 import './tradeMap.css'
 
 const PIN_COLOR = '#0264a0'
@@ -15,6 +16,10 @@ const TM_TABS = [
 const DOT_COLORS = ['#0264a0', '#dc2626', '#16a34a', '#ea580c', '#7c3aed', '#111111']
 const DOT_STYLE_KEY = 'tm-dot-style'
 const COLOR_FIELD_KEY = 'tm-color-field'
+const TOOLS_KEY = 'tm-tools-collapsed'
+const MOBILE_QUERY = '(max-width: 900px)'
+// Bộ lọc tạm thời (chưa lọc dữ liệu): cùng 9 trường phân cấp với "Tô màu theo"
+const TM_FILTERS = DIMENSIONS.map((d) => d.label)
 
 function loadDotStyle() {
   try {
@@ -238,9 +243,10 @@ export default function TradeMap({ user }) {
   const dotsRef = useRef(null)
   const fitRef = useRef(false)
   const fileRef = useRef(null)
-  const colorMenuRef = useRef(null)
   const [tab, setTab] = useState('map') // 'resource' (phân tích nguồn lực) | 'map' (bản đồ bố trận)
-  const [colorMenuOpen, setColorMenuOpen] = useState(false)
+  const [slot, setSlot] = useState(null) // cột bên phải của khung trang, nơi đặt thanh công cụ
+  // Thanh công cụ bên phải: máy tính nhớ trạng thái mở/thu gọn; điện thoại luôn bắt đầu ở trạng thái đóng
+  const [toolsCollapsed, setToolsCollapsed] = useState(() => window.matchMedia(MOBILE_QUERY).matches || safeGet(TOOLS_KEY) === '1')
 
   const [stores, setStores] = useState([])
   const [loading, setLoading] = useState(true)
@@ -364,18 +370,21 @@ export default function TradeMap({ user }) {
   }, [tab])
 
   useEffect(() => {
-    if (!colorMenuOpen) return undefined
-    const close = (e) => {
-      if (colorMenuRef.current && !colorMenuRef.current.contains(e.target)) setColorMenuOpen(false)
-    }
-    const esc = (e) => e.key === 'Escape' && setColorMenuOpen(false)
-    document.addEventListener('mousedown', close)
-    document.addEventListener('keydown', esc)
-    return () => {
-      document.removeEventListener('mousedown', close)
-      document.removeEventListener('keydown', esc)
-    }
-  }, [colorMenuOpen])
+    setSlot(document.getElementById('ad-aside'))
+  }, [])
+
+  function setTools(collapsed) {
+    setToolsCollapsed(collapsed)
+    if (!window.matchMedia(MOBILE_QUERY).matches) safeSet(TOOLS_KEY, collapsed ? '1' : '0')
+  }
+  // Bấm một biểu tượng ở thanh thu gọn: mở thanh và cuộn tới đúng nhóm đó
+  function openSection(id) {
+    setTools(false)
+    setTimeout(() => {
+      const el = document.getElementById(`tm-sec-${id}`)
+      if (el) el.scrollIntoView({ block: 'nearest' })
+    }, 0)
+  }
 
   const scheme = useMemo(() => (colorField ? buildScheme(stores, colorField) : null), [stores, colorField])
   useEffect(() => {
@@ -480,6 +489,191 @@ export default function TradeMap({ user }) {
   const loadPct = expected ? Math.min(99, Math.round((loaded / expected) * 100)) : 0 // chưa xong thì không hiện 100%
   const uploadedAt = stores[0] && stores[0].uploaded_at
 
+  const statusText = loading
+    ? loaded > 0
+      ? expected
+        ? `Đã nhận ${nf.format(loaded)} / ${nf.format(expected)} điểm (${loadPct}%)`
+        : `Đã nhận ${nf.format(loaded)} điểm`
+      : 'Vui lòng chờ trong giây lát'
+    : uploadedAt ? `Cập nhật ${new Date(uploadedAt).toLocaleDateString('vi-VN')}` : 'Chưa có dữ liệu'
+  // Số gọn cho thanh thu gọn: 68.236 -> 68K, 6.540 -> 6,5K
+  const shortTotal = total >= 1000 ? `${(total / 1000).toFixed(total < 10000 ? 1 : 0).replace('.', ',')}K` : nf.format(total)
+
+  const railItems = [
+    { id: 'data', icon: 'upload', label: 'Dữ liệu' },
+    { id: 'style', icon: 'eye', label: 'Hiển thị' },
+    { id: 'filter', icon: 'filter', label: 'Bộ lọc' },
+  ]
+
+  const tools = (
+    <aside className={`tm-tools ${toolsCollapsed ? 'is-collapsed' : ''}`} aria-label="Thanh công cụ">
+      <div className="tm-tools-head">
+        {loading && (
+          <div
+            className="tm-loadbar"
+            role="progressbar"
+            aria-label="Tiến độ tải điểm bán"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={expected ? loadPct : undefined}
+          >
+            <div className={`tm-loadbar-fill ${expected ? '' : 'is-indeterminate'}`} style={expected ? { width: `${loadPct}%` } : undefined} />
+          </div>
+        )}
+        <h2 className="tm-tools-title">Thanh công cụ</h2>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm btn-icon tm-tools-toggle"
+          title={toolsCollapsed ? 'Mở thanh công cụ' : 'Thu gọn thanh công cụ'}
+          aria-label={toolsCollapsed ? 'Mở thanh công cụ' : 'Thu gọn thanh công cụ'}
+          aria-expanded={!toolsCollapsed}
+          onClick={() => setTools(!toolsCollapsed)}
+        >
+          <Icon name="panel" size={18} />
+        </button>
+      </div>
+
+      {toolsCollapsed ? (
+        <div className="tm-rail">
+          <span className="tm-rail-count" title={`${nf.format(total)} điểm bán`}>
+            {loading ? '…' : shortTotal}
+          </span>
+          <span className="tm-rail-cap">điểm</span>
+          <span className="tm-rail-sep" />
+          {railItems.map((r) => (
+            <button key={r.id} type="button" className="tm-rail-btn" title={r.label} onClick={() => openSection(r.id)}>
+              <Icon name={r.icon} size={20} />
+              {r.label}
+            </button>
+          ))}
+          <span className="tm-rail-sep" />
+          <button type="button" className="tm-rail-btn" title="Tải lại dữ liệu" onClick={load} disabled={loading}>
+            <Icon name="refresh" size={20} />
+            Tải lại
+          </button>
+        </div>
+      ) : (
+        <div className="tm-tools-body">
+          <section className="tm-sec" id="tm-sec-data" aria-labelledby="tm-sec-data-h">
+            <div className="tm-sec-head">
+              <span className="eyebrow tm-sec-label" id="tm-sec-data-h">Dữ liệu</span>
+              <button type="button" className="link tm-sec-link" onClick={load} disabled={loading}>
+                Tải lại
+              </button>
+            </div>
+            <div className="tm-stat">
+              <strong>{nf.format(loading ? loaded : total)}</strong>
+              <span>điểm bán</span>
+            </div>
+            <p className="tm-stat-sub">{statusText}</p>
+            {user.isAdmin && (
+              <div className="tm-tools-btns">
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title="Nhập danh sách điểm bán từ file Excel">
+                  <Icon name="upload" size={18} />
+                  Nhập Excel
+                </button>
+                <button type="button" className="btn btn-ghost btn-sm btn-icon" onClick={downloadStoresTemplate} data-tip="Tải file mẫu" title="Tải file Excel mẫu" aria-label="Tải file Excel mẫu">
+                  <Icon name="download" size={18} />
+                </button>
+                <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
+              </div>
+            )}
+          </section>
+
+          <section className="tm-sec" id="tm-sec-style" aria-labelledby="tm-sec-style-h">
+            <span className="eyebrow tm-sec-label" id="tm-sec-style-h">Hiển thị</span>
+            <label className="field field-sm">
+              Tô màu theo
+              <select value={colorField} onChange={(e) => changeColorField(e.target.value)}>
+                <option value="">Một màu</option>
+                {COLOR_GROUPS.map((g) => (
+                  <optgroup key={g.id} label={g.label}>
+                    {COLOR_FIELDS.filter((c) => c.group === g.id).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
+            <div className="field field-sm" role="group" aria-label="Màu chấm">
+              Màu chấm
+              <div
+                className={`tm-swatches ${scheme ? 'is-off' : ''}`}
+                title={scheme ? 'Đang tô màu theo dữ liệu, chọn "Một màu" ở ô "Tô màu theo" để đổi màu chấm' : undefined}
+              >
+                {DOT_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-pressed={dotStyle.color.toLowerCase() === c}
+                    className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
+                    style={{ background: c }}
+                    aria-label={`Màu ${c}`}
+                    disabled={Boolean(scheme)}
+                    onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
+                  />
+                ))}
+                <label className={`tm-swatch tm-swatch-custom ${DOT_COLORS.includes(dotStyle.color.toLowerCase()) ? '' : 'is-active'}`} title="Chọn màu khác">
+                  <input
+                    type="color"
+                    value={dotStyle.color}
+                    aria-label="Chọn màu khác"
+                    disabled={Boolean(scheme)}
+                    onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
+                  />
+                </label>
+              </div>
+            </div>
+            <label className="field field-sm">
+              Cỡ chấm
+              <span className="tm-size">
+                <input
+                  type="range"
+                  className="tm-range"
+                  min="0.5"
+                  max="4"
+                  step="0.1"
+                  value={dotStyle.scale}
+                  onChange={(e) => setDotStyle((d) => ({ ...d, scale: Number(e.target.value) }))}
+                />
+                <span className="tm-size-val">{dotStyle.scale.toFixed(1)}x</span>
+              </span>
+            </label>
+          </section>
+
+          {/* Bộ lọc: khung tạm, chưa lọc dữ liệu */}
+          <section className="tm-sec" id="tm-sec-filter" aria-labelledby="tm-sec-filter-h">
+            <span className="eyebrow tm-sec-label" id="tm-sec-filter-h">Bộ lọc</span>
+            <div className="tm-filters">
+              {TM_FILTERS.map((f, i) => (
+                <label key={f} className={`field field-sm ${i === TM_FILTERS.length - 1 ? 'tm-filter-wide' : ''}`}>
+                  {f}
+                  <select defaultValue="">
+                    <option value="">Tất cả</option>
+                  </select>
+                </label>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
+
+      <button
+        type="button"
+        className="tm-tools-edge"
+        onClick={() => setTools(!toolsCollapsed)}
+        aria-label={toolsCollapsed ? 'Mở thanh công cụ' : 'Thu gọn thanh công cụ'}
+        title={toolsCollapsed ? 'Mở thanh công cụ' : 'Thu gọn thanh công cụ'}
+      >
+        <Icon name={toolsCollapsed ? 'chevron-left' : 'chevron-right'} size={16} />
+      </button>
+    </aside>
+  )
+  // Toàn màn hình (hoặc trang không có cột bên phải): thanh công cụ nằm ngay cạnh bản đồ
+  const inlineTools = fullscreen || !slot
+
   return (
     <section className={`tm ${fullscreen ? 'tm-full' : ''}`} ref={wrapRef}>
       <div className="tabs tm-tabs" role="tablist" aria-label="Màn hình của công cụ">
@@ -509,137 +703,6 @@ export default function TradeMap({ user }) {
       </div>
 
       <div id="tm-panel-map" role="tabpanel" aria-labelledby="tm-tab-map" className="tm-panel" hidden={tab !== 'map'}>
-      <div className="tm-bar">
-        {loading && (
-          <div
-            className="tm-loadbar"
-            role="progressbar"
-            aria-label="Tiến độ tải điểm bán"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={expected ? loadPct : undefined}
-          >
-            <div className={`tm-loadbar-fill ${expected ? '' : 'is-indeterminate'}`} style={expected ? { width: `${loadPct}%` } : undefined} />
-          </div>
-        )}
-        <div className="tm-count">
-          <span className="tm-count-icon">
-            <Icon name="map" size={22} />
-          </span>
-          <span className="tm-count-text">
-            <strong>{loading ? 'Đang tải điểm bán...' : `${nf.format(total)} điểm bán`}</strong>
-            <small>
-              {loading
-                ? loaded > 0
-                  ? expected
-                    ? `Đã nhận ${nf.format(loaded)} / ${nf.format(expected)} điểm (${loadPct}%)`
-                    : `Đã nhận ${nf.format(loaded)} điểm`
-                  : 'Vui lòng chờ trong giây lát'
-                : uploadedAt ? `Cập nhật ${new Date(uploadedAt).toLocaleDateString('vi-VN')}` : 'Chưa có dữ liệu'}
-            </small>
-          </span>
-        </div>
-
-        <div className="tm-style">
-          <label className="tm-field">
-            <span className="tm-field-label">Tô màu theo</span>
-            <select className="tm-select" value={colorField} onChange={(e) => changeColorField(e.target.value)} aria-label="Tô màu điểm bán theo trường dữ liệu">
-              <option value="">Một màu</option>
-              {COLOR_FIELDS.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className={`tm-field ${scheme ? 'is-off' : ''}`} title={scheme ? 'Đang tô màu theo dữ liệu, chọn "Một màu" ở ô "Tô màu theo" để đổi màu chấm' : undefined}>
-            <span className="tm-field-label">Màu chấm</span>
-            <div className="tm-colordd" ref={colorMenuRef}>
-              <button
-                type="button"
-                className="tm-select-btn"
-                aria-haspopup="listbox"
-                aria-expanded={colorMenuOpen}
-                aria-label="Màu chấm"
-                disabled={Boolean(scheme)}
-                onClick={() => setColorMenuOpen((o) => !o)}
-              >
-                <span className="tm-swatch tm-swatch-sm" style={{ background: dotStyle.color }} />
-                <Icon name="chevron-down" size={16} />
-              </button>
-              {colorMenuOpen && (
-                <div className="tm-colormenu" role="listbox" aria-label="Màu chấm">
-                  {DOT_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      role="option"
-                      aria-selected={dotStyle.color.toLowerCase() === c}
-                      className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
-                      style={{ background: c }}
-                      aria-label={`Màu ${c}`}
-                      onClick={() => {
-                        setDotStyle((d) => ({ ...d, color: c }))
-                        setColorMenuOpen(false)
-                      }}
-                    />
-                  ))}
-                  <label className={`tm-swatch tm-swatch-custom ${DOT_COLORS.includes(dotStyle.color.toLowerCase()) ? '' : 'is-active'}`} title="Chọn màu khác">
-                    <input
-                      type="color"
-                      value={dotStyle.color}
-                      aria-label="Chọn màu khác"
-                      onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
-                    />
-                  </label>
-                </div>
-              )}
-            </div>
-          </div>
-          <label className="tm-field">
-            <span className="tm-field-label">Cỡ chấm</span>
-            <input
-              type="range"
-              className="tm-range"
-              min="0.5"
-              max="4"
-              step="0.1"
-              value={dotStyle.scale}
-              aria-label="Cỡ chấm"
-              onChange={(e) => setDotStyle((d) => ({ ...d, scale: Number(e.target.value) }))}
-            />
-            <span className="tm-size-val">{dotStyle.scale.toFixed(1)}x</span>
-          </label>
-        </div>
-        <div className="tm-actions">
-          {user.isAdmin && (
-            <>
-              <button type="button" className="btn btn-ghost tm-btn-soft" onClick={downloadStoresTemplate} title="Tải file Excel mẫu" aria-label="Tải file Excel mẫu">
-                <Icon name="download" size={18} />
-                <span className="tm-btn-label tm-btn-label-soft">File mẫu</span>
-              </button>
-              <button type="button" className="btn btn-primary" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy} title="Nhập danh sách điểm bán từ file Excel" aria-label="Nhập danh sách điểm bán từ file Excel">
-                <Icon name="upload" size={18} />
-                <span className="tm-btn-label">Nhập Excel</span>
-              </button>
-              <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
-            </>
-          )}
-          <button type="button" className="btn btn-ghost btn-icon" data-tip="Tải lại" aria-label="Tải lại dữ liệu" onClick={load} disabled={loading}>
-            <Icon name="refresh" size={18} />
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost btn-icon"
-            data-tip={fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
-            aria-label={fullscreen ? 'Thoát toàn màn hình' : 'Xem toàn màn hình'}
-            onClick={toggleFullscreen}
-          >
-            <Icon name={fullscreen ? 'collapse' : 'expand'} size={18} />
-          </button>
-        </div>
-      </div>
-
       {notice && <div className="alert">{notice}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
@@ -695,8 +758,25 @@ export default function TradeMap({ user }) {
         </div>
       )}
 
+      <div className="tm-maprow">
       <div className="tm-mapbox">
         <div ref={mapElRef} className="tm-map" />
+        {/* Nút trên bản đồ, nằm dưới nút phóng to/thu nhỏ: toàn màn hình; điện thoại thêm nút mở thanh công cụ */}
+        <div className="tm-mapbtns">
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm btn-icon"
+            data-tip={fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+            title={fullscreen ? 'Thoát toàn màn hình' : 'Toàn màn hình'}
+            aria-label={fullscreen ? 'Thoát toàn màn hình' : 'Xem toàn màn hình'}
+            onClick={toggleFullscreen}
+          >
+            <Icon name={fullscreen ? 'collapse' : 'expand'} size={18} />
+          </button>
+          <button type="button" className="btn btn-ghost btn-sm btn-icon tm-tools-open" title="Thanh công cụ" aria-label="Mở thanh công cụ" onClick={() => setTools(false)}>
+            <Icon name="panel" size={18} />
+          </button>
+        </div>
         {scheme && (
           <div className="tm-colorpanel">
             <span className="tm-field-label">{scheme.label}</span>
@@ -725,13 +805,16 @@ export default function TradeMap({ user }) {
           </div>
         )}
       </div>
+      {tab === 'map' && inlineTools && tools}
+      </div>
 
       {!loading && !error && total === 0 && (
         <p className="tm-empty muted">
-          {user.isAdmin ? 'Chưa có danh sách điểm bán. Bấm "Nhập Excel" để bắt đầu (có file mẫu).' : 'Chưa có danh sách điểm bán. Vui lòng liên hệ quản trị viên.'}
+          {user.isAdmin ? 'Chưa có danh sách điểm bán. Mở "Thanh công cụ" và bấm "Nhập Excel" để bắt đầu (có file mẫu).' : 'Chưa có danh sách điểm bán. Vui lòng liên hệ quản trị viên.'}
         </p>
       )}
       </div>
+      {tab === 'map' && !inlineTools && createPortal(tools, slot)}
     </section>
   )
 }

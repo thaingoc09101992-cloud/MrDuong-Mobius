@@ -681,4 +681,31 @@
 }
 .ad-shell .module-grid {
   gap: var(--ad-gap);
+}/* ==========================================================
+   Cột bên phải (thanh công cụ của trang, ví dụ Bố trận điểm bán): cùng kiểu với thanh bên trái,
+   cao bằng màn hình và đứng yên khi cuộn. Rộng theo nội dung (thanh tự quyết định khi mở hoặc thu gọn).
+   Điện thoại: thành ngăn trượt từ cạnh phải.
+   ========================================================== */
+.ad-shell.has-aside {
+  grid-template-columns: var(--ad-sb) minmax(0, 1fr) auto;
+}
+.ad-aside {
+  position: sticky;
+  top: 0;
+  height: calc(100 * var(--v1));
+  display: flex;
+  z-index: var(--z-header);
+}
+@media (max-width: 900px) {
+  .ad-shell.has-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ad-aside {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    height: auto;
+    z-index: 40;
+  }
 }

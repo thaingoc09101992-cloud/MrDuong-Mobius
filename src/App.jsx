@@ -272,6 +272,7 @@ export default function App() {
       title={tool ? toolName : section === 'knowledge' && knowledge === 'lessons' ? 'Bài học' : sectionName}
       hasTabbar={inLocate}
       wide={tool === 'bo-tran-diem-ban' || (inLocate && tab === 'map')}
+      aside={tool === 'bo-tran-diem-ban'}
       bottomBar={bottomBar}
     >
       {!tool && section === 'home' && <HomePage user={user} onOpenTool={openTool} />}

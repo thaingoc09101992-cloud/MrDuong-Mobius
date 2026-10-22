@@ -11,7 +11,7 @@ import './shell.css'
  * Khung có thanh bên của app nhân viên (cùng kiểu với trang quản trị):
  * thông tin tài khoản ở góc trái trên, menu chính, mục Trang quản trị (chỉ admin), đổi giao diện và đăng xuất.
  */
-export default function AppShell({ user, nav, active, onNavigate, theme, onToggleTheme, onLogout, eyebrow, title, hasTabbar, bottomBar, wide = false, children }) {
+export default function AppShell({ user, nav, active, onNavigate, theme, onToggleTheme, onLogout, eyebrow, title, hasTabbar, bottomBar, wide = false, aside = false, children }) {
   useReveal()
   const [collapsed, setCollapsed] = useState(() => safeGet('mb-collapsed') === '1')
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -40,7 +40,7 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
   }
 
   return (
-    <div className={`ad-shell ${collapsed || narrow ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
+    <div className={`ad-shell ${collapsed || narrow ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''} ${aside ? 'has-aside' : ''}`}>
       <aside className="ad-sidebar" aria-label="Menu">
         <div className="ad-brandbar">
           <Logo size={46} />
@@ -136,6 +136,8 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
         </header>
         <main className={`ad-main ${hasTabbar ? 'has-tabbar' : ''} ${wide ? 'is-wide' : ''}`}>{children}</main>
       </div>
+      {/* Cột bên phải cho thanh công cụ của trang (Bố trận điểm bán đưa nội dung vào bằng portal) */}
+      {aside && <div className="ad-aside" id="ad-aside" />}
       {bottomBar}
     </div>
   )
