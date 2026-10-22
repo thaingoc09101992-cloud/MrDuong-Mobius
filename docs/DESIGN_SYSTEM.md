@@ -4,6 +4,15 @@ Nguồn duy nhất cho **token và nền tảng** dùng chung toàn dự án. Qu
 
 Toàn bộ token nằm ở đầu [src/styles.css](../src/styles.css) (primitive rồi semantic, kèm bản chế độ tối). Khung có thanh bên dùng [src/shell.css](../src/shell.css); trang quản trị thêm kiểu riêng ở [src/admin/admin.css](../src/admin/admin.css). **Kiểu của khung (`.ad-shell`, `.ad-sidebar`, `.ad-navbtn`, `.ad-bar`, `.ad-main`...) chỉ viết ở `shell.css`**, không chép sang `admin.css` (file này nạp sau nên bản chép sẽ đè và làm trang quản trị lệch khỏi app nhân viên). **Không viết màu hoặc khoảng cách rời rạc trong component, luôn dùng token.**
 
+## Nguyên tắc chung
+Giao diện hiện tại là chuẩn đã được chủ dự án duyệt. Mọi trang và component mới phải trông như cùng một sản phẩm.
+1. **Sang trọng nhờ tiết chế** (Modern Luxury x Minimalism x Editorial): nền trắng và ngà, chữ mực, một điểm nhấn vàng champagne. Nhiều khoảng trắng, typography dẫn dắt phân cấp. Không dùng màu sặc sỡ, bóng nặng hay hiệu ứng trang trí.
+2. **Một nguồn duy nhất:** token ở đầu `styles.css`, khung trang ở `shell.css`, component dùng chung ở `src/` (`Loading`, `ConfirmDialog`, `Icon`, `Logo`, `ThemeToggle`, `AppShell`). Cần thứ đã có thì dùng lại, không tạo bản sao theo trang.
+3. **Chỉ dùng token:** màu, cỡ chữ, giãn chữ, khoảng cách, bo góc, chuyển động. Viết giá trị rời chỉ khi nằm trong danh sách ngoại lệ ghi ở tài liệu này.
+4. **Đẹp ở cả sáng và tối** chỉ nhờ token ngữ nghĩa, không viết luật riêng cho chế độ tối nếu không thật cần.
+5. **Chạy tốt từ điện thoại 390px đến màn 1440px trở lên**, không tràn ngang.
+6. **Thay đổi quy tắc** (tài liệu này, CARD_DESIGN_RULES.md, TOOL_CARD_SPEC.md) chỉ khi chủ dự án yêu cầu rõ ràng. Khi đổi thì cập nhật tài liệu cùng lúc với code.
+
 ## Màu
 Mọi mã màu chỉ được khai báo **một lần** trong hai khối token ở đầu `styles.css`: khối primitive (giá trị gốc) rồi khối semantic (vai trò, có bản chế độ tối). Component chỉ dùng tên token, không viết mã màu.
 
@@ -107,12 +116,13 @@ Form của màn đăng nhập và đổi mật khẩu theo chuẩn chung (nhãn 
 ## Component nền
 ### Button (`.btn`)
 **Một bộ nút duy nhất cho toàn app** (app nhân viên, trang quản trị, Bài học, Bố trận...). Không tạo bộ nút riêng theo trang (các bộ `.ls-btn`, `.tm-btn` cũ đã gộp vào đây).
-- Cao chuẩn **44px**, bo `--radius-sm` (2px), **chữ hoa** 0.78rem đậm 500 giãn 0.1em, không xuống dòng.
+- Cao chuẩn **44px**, bo `--radius-sm` (2px), **chữ hoa** `--fs-sm` đậm 500, giãn `--tracking-wide`, không xuống dòng.
+- Mỗi khu vực chỉ có **một** nút `btn-primary` (hoặc một `btn-gold` trên thẻ); các nút còn lại là `btn-ghost`.
 - Cỡ: `btn-sm` 40px (thanh công cụ, bộ lọc), `btn-lg` 48px (nút chính của form đăng nhập, đổi mật khẩu, chụp ảnh).
 - Kiểu:
   - `btn-primary`: nền ink, chữ trắng, hover `--color-ink-2`.
   - `btn-ghost`: nền trong, viền `--border`, hover viền đậm.
-  - `btn-gold`: nút hành động chính của **thẻ** (vàng champagne, chữ `#111111`, đậm 600, hover `--gold-soft`).
+  - `btn-gold`: nút hành động chính của **thẻ** và nút chính của màn đăng nhập (vàng champagne, chữ `--color-ink`, đậm 600, hover `--gold-soft`).
   - `btn-danger` (thêm vào `btn-ghost`): nút xóa, chỉ đổi sang `--danger-text` khi rê chuột.
   - `btn-primary is-danger`: nút xác nhận thao tác không hoàn tác được, chỉ dùng trong hộp xác nhận.
 - `btn-icon`: vuông theo chiều cao nút (44px, đi với `btn-sm` là 40px), chỉ icon, bắt buộc có `aria-label` và `title`. Có thể thêm `data-tip="..."` để hiện chú thích nhỏ khi rê chuột hoặc focus.
@@ -134,7 +144,7 @@ Thanh bên (`.ad-navbtn`) cho các mục chính. Trên điện thoại, công c�
 ### Tab (`.tabs` + `.tab-item`)
 **Một kiểu tab chữ duy nhất** cho mọi nơi: tab của công cụ (Định vị điểm bán, Bố trận điểm bán), tab trong popup bản đồ, chọn cách thêm bài học.
 - Khung `.tabs`: hàng ngang, kẻ dưới `--border`, các tab cách nhau 24px.
-- `.tab-item`: chữ hoa 0.72rem đậm 500 giãn 0.12em, màu `--muted`; hover `--text`; tab đang chọn (`.is-active`) chữ `--text` và **vạch ink 2px** ở chân. Có thể kèm icon 18px.
+- `.tab-item`: chữ hoa `--fs-xs` đậm 500, giãn `--tracking-label`, màu `--muted`; hover `--text`; tab đang chọn (`.is-active`) chữ `--text` và **vạch ink 2px** ở chân. Có thể kèm icon 18px.
 - `.tabs-sm`: bản nhỏ cho popup và form (cách nhau 16px, padding dọc 6px).
 - Dùng `role="tablist"`/`role="tab"` + `aria-selected` khi đổi màn hình; dùng `role="group"` + `aria-pressed` khi chỉ chọn chế độ trong form.
 
@@ -151,10 +161,57 @@ Eyebrow đánh số hoặc nhãn, tiêu đề serif cỡ lớn, mô tả một d
 Chia đôi từ 900px: **trái là khung thương hiệu nền đen** (logo cạnh khối chữ "NỀN TẢNG NỘI BỘ", MOBIUS, đường vàng, một câu mô tả, hai đường cong vàng mảnh), **phải là form** theo giao diện hiện tại. Dưới 900px khung thương hiệu thành dải đầu trang gọn. Dùng chung với màn hình đổi mật khẩu.
 
 ### Bảng admin (`.ad-table`)
-Tiêu đề chữ hoa 0.68rem, kẻ dưới đậm; hàng cách nhau đường mảnh, hover nền ivory. Ảnh thu nhỏ tỉ lệ 4:5.
+Tiêu đề chữ hoa `--fs-xs` (bảng gọn `--fs-2xs`), kẻ dưới đậm; hàng cách nhau đường mảnh, hover nền ivory. Ảnh thu nhỏ tỉ lệ 4:5.
 
 ### KPI admin (`.ad-kpi`), biểu đồ
 Số liệu dẫn dắt bằng serif cỡ lớn, ngăn cột bằng đường kẻ dọc, không dùng card. Biểu đồ một màu ink trên rãnh cream, bo `--radius-sm`.
 
 ### Modal (`.ad-modal`)
-Backdrop `--overlay`, hộp bo `--radius-md`, mở bằng fade + rise 300ms.
+Backdrop `--overlay`, hộp bo `--radius-md`, mở bằng fade + rise 300ms. Đóng bằng Esc, bấm ra ngoài hoặc nút đóng. Chỉ xác nhận có/không thì dùng `confirmDialog`, không tự dựng modal.
+
+### Icon (`Icon`)
+- Chỉ dùng [src/icons.jsx](../src/icons.jsx): SVG nét mảnh (`stroke` 1.8, đầu nét tròn, `viewBox` 24), màu theo chữ (`currentColor`). Cần icon mới thì vẽ thêm vào file này theo cùng kiểu nét. Không dùng thư viện icon ngoài, emoji hay ảnh PNG làm icon.
+- Cỡ: **18px** trong nút, tab và hàng thao tác; **20px** ở thanh bên và thanh trên; **16px** cho chú thích nhỏ; 22–26px trong ô icon của thẻ và trạng thái rỗng; lớn hơn chỉ dùng cho minh họa.
+- Icon đứng một mình phải nằm trong nút có `aria-label` và `title`. Icon cạnh chữ chỉ để trang trí (component đã tự gắn `aria-hidden`).
+
+### Trạng thái rỗng, thông báo và lỗi
+- **Trạng thái rỗng** (`.empty-state`): ô icon (`.module-icon`, icon 26px), tiêu đề serif (`.empty-title`), một câu mô tả `muted`, căn giữa. Nếu có thao tác tiếp theo thì thêm một nút. Danh sách phụ bên trong trang quản trị có thể chỉ dùng một dòng `muted` ("Chưa có ...").
+- **Thông báo** (`.alert`): nền rất nhạt, vạch trái 2px theo màu trạng thái, bo `--radius-sm`, đặt ngay trên khối liên quan.
+  - Lỗi dùng `alert alert-error` (`role="alert"` nếu xuất hiện sau thao tác).
+  - Thành công trong admin dùng `alert ad-notice`.
+  - Thông tin trung tính dùng `alert`.
+- **Lỗi của một ô nhập** đặt ngay dưới ô, chữ `--danger-text` cỡ `--fs-md`, kèm `aria-invalid` trên ô.
+- Không dùng `window.alert` hay `window.confirm`.
+
+## Chữ trên giao diện
+- Tiếng Việt có dấu đầy đủ, câu ngắn, xưng hô trung tính. Thông báo lỗi nói **điều gì sai và cách xử lý** ("File quá lớn (tối đa 50 MB).").
+- Dữ liệu và JSX viết chữ thường hoặc viết hoa đầu câu; chữ hoa của nhãn, nút, tab do CSS (`text-transform`) tạo ra, không gõ sẵn chữ in hoa.
+- Nút dùng động từ chỉ đúng việc sẽ làm ("Thêm bài học", "Xuất Excel", "Xóa"); không dùng "OK" hay "Có".
+- Đang xử lý: đổi chữ trên nút thành "Đang lưu...", "Đang tải lên..." và khóa nút. Tải cả khối thì dùng `Loading`.
+- Tên kỹ thuật hiển thị thành tên thân thiện (xem `displayTitle` trong `src/pages/lessonsApi.js`).
+- Ngày hiển thị dạng `18/10/2026`. Số trong bảng, bộ đếm và tiến độ dùng `font-variant-numeric: tabular-nums` để các cột số thẳng hàng.
+
+## Truy cập (accessibility)
+- Thao tác là `<button>` (chuyển trang ra ngoài là `<a>`), danh sách là `<ul>/<li>`, bảng là `<table>`. Không gắn `onClick` vào `div` khi có thể dùng nút, và không lồng nút trong nút.
+- Mọi phần tử bấm được có `:focus-visible` rõ (outline 2px `--text`, offset 2px; nút vàng dùng outline vàng).
+- Vùng bấm tối thiểu 40 × 40px. Nút icon trong bảng dày có thể vẽ nhỏ hơn nhưng phải nới vùng bấm (xem `.ad-iconbtn`).
+- Tab, nhóm chọn chế độ, hộp thoại, thông báo dùng đúng `role` và `aria-*` như đã ghi ở từng component. Hộp thoại giữ focus bên trong và trả focus về chỗ cũ khi đóng.
+- Chữ trên nền vàng hoặc nền ảnh phải đọc được; trên ảnh luôn có lớp phủ tối.
+- Tôn trọng `prefers-reduced-motion`.
+
+## Khi thêm trang hoặc component mới
+1. Đọc tài liệu này (và CARD_DESIGN_RULES.md nếu có thẻ). Tìm component có sẵn trước khi viết mới.
+2. Trang trong menu nằm trong `AppShell`, dùng `.page-head` (eyebrow, tiêu đề, mô tả), lề `--ad-pad`, khoảng cách `--ad-gap`. Trang cần nhiều diện tích dùng `wide`.
+3. CSS riêng của một khu vực đặt **tiền tố riêng** (`.ls-`, `.tm-`, `.ad-`...) và nằm trong file của khu vực đó. Không sửa selector dùng chung trong `styles.css` theo cách làm ảnh hưởng nơi khác. Kiểu dùng chung cho nhiều trang thì đưa vào `styles.css`.
+4. React 18 và CSS thuần. Không dùng CSS-in-JS hay thư viện UI. `style={{...}}` chỉ cho giá trị động (màu theo dữ liệu, phần trăm tiến độ).
+5. Không chép CSS từ file khác sang. Cần khác đi thì dùng biến thể (class phụ) của component gốc.
+
+## Danh sách kiểm tra trước khi bàn giao
+- [ ] Chỉ dùng token; không có mã màu, `font-size` rem, giãn chữ hay bo góc viết rời ngoài các ngoại lệ đã ghi; không có `--space-5`.
+- [ ] Nút là `.btn` (một nút chính mỗi khu vực), tab là `.tabs`, xác nhận là `confirmDialog`, tải là `Loading`, icon là `Icon`.
+- [ ] Bo góc đúng 3 mức; không có dạng viên thuốc.
+- [ ] Chiều cao theo màn hình viết `calc(N * var(--v1))`, không viết `Nvh` (trừ khung bản đồ Leaflet).
+- [ ] Sáng và tối đều đẹp; hover, focus bàn phím và disabled rõ ràng.
+- [ ] Không tràn ngang ở 390px, 1024px, 1440px; chữ dài bị cắt bằng "...".
+- [ ] Nút chỉ có icon có `aria-label` và `title`.
+- [ ] `npm run build` thành công.
