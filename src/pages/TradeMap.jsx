@@ -348,15 +348,17 @@ export default function TradeMap({ user }) {
     dots.addTo(map)
     mapRef.current = map
     dotsRef.current = dots
-    // Tự cập nhật khi khung bản đồ đổi kích thước (đổi cỡ cửa sổ, thu gọn thanh bên, toàn màn hình, thanh công cụ đổi dạng)
-    let raf = 0
+    // Tự cập nhật khi khung bản đồ đổi kích thước (đổi cỡ cửa sổ, đóng/mở thanh bên, toàn màn hình).
+    // Chờ khung đứng yên rồi mới cập nhật một lần: trong lúc thanh bên trượt (~300ms) khung đổi cỡ ở từng khung hình,
+    // nếu cập nhật ngay thì mỗi khung hình lại vẽ lại hàng chục nghìn chấm, gây giật.
+    let timer = 0
     const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => map.invalidateSize())
+      clearTimeout(timer)
+      timer = setTimeout(() => map.invalidateSize(), 120)
     })
     ro.observe(mapElRef.current)
     return () => {
-      cancelAnimationFrame(raf)
+      clearTimeout(timer)
       ro.disconnect()
       map.remove()
       mapRef.current = null
