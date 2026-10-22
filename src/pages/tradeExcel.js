@@ -15,8 +15,10 @@ export const DIMENSIONS = [
   { key: 'salesman', label: 'Tên NVBH', aliases: ['ten nvbh', 'nvbh', 'nhan vien ban hang', 'ten nhan vien ban hang'] },
 ]
 
-// Cột của file Excel: key trong dữ liệu, tên cột hiển thị ở file mẫu và các tên gọi khác được chấp nhận
+// Cột của file Excel: key trong dữ liệu, tên cột hiển thị ở file mẫu và các tên gọi khác được chấp nhận.
+// Thứ tự ở đây là thứ tự cột của file mẫu (9 trường phân cấp đứng đầu); khi đọc file thì nhận cột theo tên, không theo vị trí.
 export const COLUMNS = [
+  ...DIMENSIONS,
   { key: 'store_code', label: 'Mã điểm bán', aliases: ['ma diem ban', 'ma khach hang', 'ma kh', 'ma cua hang', 'code'] },
   { key: 'name', label: 'Tên điểm bán', aliases: ['ten diem ban', 'ten khach hang', 'ten kh', 'ten cua hang', 'ten', 'name'], required: true },
   { key: 'address', label: 'Địa chỉ', aliases: ['dia chi', 'address'] },
@@ -29,7 +31,6 @@ export const COLUMNS = [
   { key: 'orders_per_month', label: 'Số đơn hàng mỗi tháng', aliases: ['so don hang moi thang', 'so don moi thang', 'so don thang', 'so don hang', 'don hang trung binh thang'] },
   { key: 'cabinet_count', label: 'Số tủ', aliases: ['so tu', 'so luong tu', 'so tu trung bay', 'tu'] },
   { key: 'top_skus', label: 'SKU hay mua', aliases: ['sku hay mua', 'sku', 'san pham hay mua'] },
-  ...DIMENSIONS,
 ]
 
 // Sheet thứ hai: doanh thu theo tháng, mỗi điểm bán 12 dòng, xếp từ tháng mới nhất đến cũ nhất

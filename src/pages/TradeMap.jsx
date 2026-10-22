@@ -441,6 +441,16 @@ export default function TradeMap({ user }) {
     }
   }
 
+  // Tải file mẫu: báo lỗi rõ ràng thay vì im lặng (ví dụ trình duyệt xem trước trong VS Code không cho tải file)
+  async function downloadTemplate() {
+    setNotice('')
+    try {
+      await downloadStoresTemplate()
+    } catch {
+      setNotice('Không tạo được file mẫu. Vui lòng thử lại trên Chrome hoặc Edge.')
+    }
+  }
+
   async function onPickFile(e) {
     const file = e.target.files && e.target.files[0]
     e.target.value = ''
@@ -572,7 +582,7 @@ export default function TradeMap({ user }) {
                   <Icon name="upload" size={18} />
                   Nhập Excel
                 </button>
-                <button type="button" className="btn btn-ghost btn-sm btn-icon" onClick={downloadStoresTemplate} data-tip="Tải file mẫu" title="Tải file Excel mẫu" aria-label="Tải file Excel mẫu">
+                <button type="button" className="btn btn-ghost btn-sm btn-icon" onClick={downloadTemplate} data-tip="Tải file mẫu" title="Tải file Excel mẫu" aria-label="Tải file Excel mẫu">
                   <Icon name="download" size={18} />
                 </button>
                 <input ref={fileRef} type="file" accept=".xlsx" hidden onChange={onPickFile} />
