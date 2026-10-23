@@ -18,20 +18,55 @@ import useNarrowRail from '../useNarrowRail.js'
 import '../shell.css'
 import './admin.css'
 
-// Mục "Nhân viên" (kèm phân quyền) dùng chung cho cả MOBIUS; các mục còn lại thuộc chức năng Định vị điểm bán
-const NAV_GROUPS = [
-  { id: 'system', label: 'Hệ thống' },
-  { id: 'locate', label: 'Định vị điểm bán' },
+// Menu quản trị: mỗi mục ở thanh bên là một trang. Trang có `sections` là trang gom: bên trong có thanh tab cho từng
+// chức năng con (thêm chức năng mới = thêm một dòng vào sections, không cần đổi menu).
+const PAGES = [
+  { id: 'users', label: 'Người dùng', title: 'Người dùng và phân quyền', icon: 'users' },
+  {
+    id: 'appearance',
+    label: 'Giao diện',
+    icon: 'image',
+    sections: [{ id: 'banners', label: 'Banner trang chủ', icon: 'image' }],
+  },
+  {
+    id: 'reports',
+    label: 'Báo cáo',
+    icon: 'chart',
+    sections: [{ id: 'overview', label: 'Tổng quan', icon: 'chart' }],
+  },
+  {
+    id: 'tools',
+    label: 'Công cụ',
+    icon: 'grid',
+    sections: [
+      { id: 'list', label: 'Danh sách', icon: 'list', context: 'Định vị điểm bán' },
+      { id: 'map', label: 'Bản đồ', icon: 'map', context: 'Định vị điểm bán' },
+      { id: 'lessons', label: 'Bài học', icon: 'book' },
+    ],
+  },
 ]
+const DEFAULT_ROUTE = { page: 'reports', section: 'overview' }
 
-const TABS = [
-  { id: 'employees', label: 'Nhân viên', title: 'Nhân viên và phân quyền', icon: 'users', group: 'system' },
-  { id: 'banners', label: 'Banner trang chủ', title: 'Banner trang chủ', icon: 'image', group: 'system' },
-  { id: 'lessons', label: 'Bài học', title: 'Bài học', icon: 'book', group: 'system' },
-  { id: 'overview', label: 'Tổng quan', icon: 'chart', group: 'locate' },
-  { id: 'list', label: 'Danh sách', icon: 'list', group: 'locate' },
-  { id: 'map', label: 'Bản đồ', icon: 'map', group: 'locate' },
-]
+// Địa chỉ dạng #/trang/mục (trang đơn chỉ có #/trang). Địa chỉ cũ (#/map, #/employees...) vẫn dùng được.
+const LEGACY_HASH = {
+  employees: 'users',
+  banners: 'appearance/banners',
+  overview: 'reports/overview',
+  list: 'tools/list',
+  map: 'tools/map',
+  lessons: 'tools/lessons',
+}
+function routeOf(hash) {
+  let path = hash.replace(/^#\/?/, '')
+  path = LEGACY_HASH[path] || path
+  const [pageId, sectionId] = path.split('/')
+  const page = PAGES.find((p) => p.id === pageId)
+  if (!page) return DEFAULT_ROUTE
+  if (!page.sections) return { page: page.id, section: null }
+  const section = page.sections.find((s) => s.id === sectionId) || page.sections[0]
+  return { page: page.id, section: section.id }
+}
+const hashOf = (r) => `#/${r.page}${r.section ? `/${r.section}` : ''}`
 
 export default function AdminApp() {
   useReveal()
@@ -41,13 +76,10 @@ export default function AdminApp() {
     () => document.documentElement.getAttribute('data-theme') || 'light',
   )
 
-  const [tab, setTab] = useState(() => {
-    const id = window.location.hash.replace(/^#\/?/, '')
-    return TABS.some((t) => t.id === id) ? id : 'overview'
-  })
+  const [route, setRoute] = useState(() => routeOf(window.location.hash))
+  const { page: pageId, section: tab } = route // tab: mã mục con đang xem (null ở trang đơn)
   const [outlets, setOutlets] = useState([])
   const [employees, setEmployees] = useState([])
-  const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [filters, setFilters] = useState({ ...EMPTY_FILTERS })
   const [exporting, setExporting] = useState(false)
@@ -89,7 +121,6 @@ export default function AdminApp() {
   }, [verify])
 
   const load = useCallback(async () => {
-    setLoading(true)
     setLoadError('')
     try {
       const [o, e] = await Promise.all([fetchAllOutlets(), fetchEmployees()])
@@ -98,7 +129,6 @@ export default function AdminApp() {
     } catch {
       setLoadError('Không tải được dữ liệu. Vui lòng kiểm tra mạng và thử lại.')
     }
-    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -114,12 +144,11 @@ export default function AdminApp() {
   // (Các hook phải đứng trước mọi lệnh return sớm bên dưới, nếu không React báo "Rendered more hooks" và trang trắng.)
   // Giữ trang đang xem trên địa chỉ để F5 hay nút Back vẫn đứng đúng mục
   useEffect(() => {
-    if (window.location.hash !== `#/${tab}`) window.location.hash = `#/${tab}`
-  }, [tab])
+    if (window.location.hash !== hashOf(route)) window.location.hash = hashOf(route)
+  }, [route])
   useEffect(() => {
     function onHash() {
-      const id = window.location.hash.replace(/^#\/?/, '')
-      if (TABS.some((t) => t.id === id)) setTab(id)
+      setRoute(routeOf(window.location.hash))
     }
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
@@ -181,7 +210,10 @@ export default function AdminApp() {
   }
 
   const showFilters = tab === 'list' || tab === 'map'
-  const current = TABS.find((t) => t.id === tab)
+  const page = PAGES.find((p) => p.id === pageId)
+  const section = page.sections ? page.sections.find((s) => s.id === tab) : null
+  const pageTitle = section ? section.label : page.title || page.label
+  const eyebrow = ['Quản trị MOBIUS', page.label, section && section.context].filter(Boolean).join(' · ')
   const initial = (email || '?').trim().charAt(0).toUpperCase()
 
   function toggleSidebar() {
@@ -196,8 +228,10 @@ export default function AdminApp() {
   }
 
 
+  // Mở một trang từ thanh bên: trang gom mở mục con đầu tiên
   function go(id) {
-    setTab(id)
+    const p = PAGES.find((x) => x.id === id)
+    setRoute({ page: id, section: p.sections ? p.sections[0].id : null })
     setMobileOpen(false)
   }
 
@@ -210,23 +244,18 @@ export default function AdminApp() {
         </div>
 
         <nav className="ad-nav" aria-label="Điều hướng admin">
-          {NAV_GROUPS.map((g) => (
-            <div className="ad-navgroup" key={g.id} role="group" aria-label={g.label}>
-              <span className="ad-navlabel">{g.label}</span>
-              {TABS.filter((t) => t.group === g.id).map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`ad-navbtn ${tab === t.id ? 'is-active' : ''}`}
-                  aria-current={tab === t.id ? 'page' : undefined}
-                  title={t.label}
-                  onClick={() => go(t.id)}
-                >
-                  <Icon name={t.icon} size={20} />
-                  <span className="ad-label">{t.label}</span>
-                </button>
-              ))}
-            </div>
+          {PAGES.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`ad-navbtn ${pageId === p.id ? 'is-active' : ''}`}
+              aria-current={pageId === p.id ? 'page' : undefined}
+              title={p.label}
+              onClick={() => go(p.id)}
+            >
+              <Icon name={p.icon} size={20} />
+              <span className="ad-label">{p.label}</span>
+            </button>
           ))}
         </nav>
 
@@ -235,10 +264,6 @@ export default function AdminApp() {
             <Icon name="home" size={20} />
             <span className="ad-label">Trang chủ MOBIUS</span>
           </a>
-          <button type="button" className="ad-navbtn" onClick={load} disabled={loading} title="Tải lại dữ liệu">
-            <Icon name="refresh" size={20} />
-            <span className="ad-label">{loading ? 'Đang tải...' : 'Tải lại'}</span>
-          </button>
           {typeof document.documentElement.requestFullscreen === 'function' && (
             <button type="button" className="ad-navbtn" onClick={toggleFullscreen} title="Toàn màn hình">
               <Icon name="expand" size={20} />
@@ -287,10 +312,8 @@ export default function AdminApp() {
           </button>
           <Logo size={36} className="ad-bar-logo" />
           <div className="ad-bar-title">
-            <span className="eyebrow">
-              Quản trị MOBIUS{current && current.group === 'locate' ? ' · Định vị điểm bán' : ''}
-            </span>
-            <h1 className="ad-pagetitle">{current ? current.title || current.label : ''}</h1>
+            <span className="eyebrow">{eyebrow}</span>
+            <h1 className="ad-pagetitle">{pageTitle}</h1>
           </div>
           <div className="ad-bar-account">
             <div className="ad-account-info">
@@ -306,6 +329,23 @@ export default function AdminApp() {
         </header>
 
         <main className={`ad-main ${tab === 'map' ? 'is-wide' : ''}`}>
+          {page.sections && (
+            <div className="tabs" role="tablist" aria-label={page.label}>
+              {page.sections.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === s.id}
+                  className={`tab-item ${tab === s.id ? 'is-active' : ''}`}
+                  onClick={() => setRoute({ page: pageId, section: s.id })}
+                >
+                  <Icon name={s.icon} size={18} />
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
           {loadError && (
             <div className="alert alert-error" role="alert">
               {loadError}
@@ -334,7 +374,7 @@ export default function AdminApp() {
           {tab === 'overview' && <Overview rows={rows} employees={employees} />}
           {tab === 'list' && <OutletTable rows={filtered} />}
           {tab === 'map' && <AdminMap rows={filtered} />}
-          {tab === 'employees' && (
+          {pageId === 'users' && (
             <Employees
               employees={employees}
               rows={rows}

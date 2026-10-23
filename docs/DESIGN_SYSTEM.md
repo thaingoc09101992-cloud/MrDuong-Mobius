@@ -141,6 +141,7 @@ Chip: viền mảnh, nền trong, chữ hoa nhỏ. Alert: nền rất nhạt the
 
 ### Điều hướng
 Thanh bên (`.ad-navbtn`) cho các mục chính. Trên điện thoại, công cụ "Định vị điểm bán" dùng thanh tab dưới (`.tabbar`).
+Thanh bên trang quản trị là danh sách phẳng các **trang** (Người dùng, Giao diện, Báo cáo, Công cụ), không chia nhóm bằng nhãn. Trang gom nhiều chức năng (Giao diện, Báo cáo, Công cụ) có thanh tab `.tabs` ở đầu nội dung cho từng chức năng con; thêm chức năng mới là thêm một mục vào `sections` của trang trong `AdminApp.jsx`, không đổi menu. Địa chỉ dạng `#/trang/mục`.
 
 ### Tab (`.tabs` + `.tab-item`)
 **Một kiểu tab chữ duy nhất** cho mọi nơi: tab của công cụ (Định vị điểm bán, Bố trận điểm bán), tab trong popup bản đồ, chọn cách thêm bài học.
