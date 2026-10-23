@@ -2,7 +2,8 @@ import { fold } from '../admin/util.js'
 
 export const MAX_STORES = 100000
 
-// 9 trường phân cấp bán hàng (chữ, không bắt buộc): dùng cho bộ lọc và "Tô màu theo" của Bố trận, theo thứ tự từ rộng đến hẹp
+// Các trường phân loại điểm bán (chữ, không bắt buộc): dùng cho bộ lọc và "Tô màu theo" của Bố trận.
+// 9 trường phân cấp bán hàng theo thứ tự từ rộng đến hẹp, sau đó là 3 thuộc tính của điểm bán.
 export const DIMENSIONS = [
   { key: 'channel', label: 'Kênh', aliases: ['kenh', 'kenh ban hang', 'channel'] },
   { key: 'region', label: 'Miền', aliases: ['mien', 'region'] },
@@ -13,10 +14,13 @@ export const DIMENSIONS = [
   { key: 'dhkd', label: 'ĐHKD', aliases: ['dhkd', 'dieu hanh kinh doanh'] },
   { key: 'route', label: 'Tuyến', aliases: ['tuyen', 'tuyen ban hang', 'route'] },
   { key: 'salesman', label: 'Tên NVBH', aliases: ['ten nvbh', 'nvbh', 'nhan vien ban hang', 'ten nhan vien ban hang'] },
+  { key: 'frequency', label: 'Tần suất', aliases: ['tan suat', 'tan suat vieng tham', 'tan suat ghe tham', 'frequency'] },
+  { key: 'store_type', label: 'Loại điểm bán', aliases: ['loai diem ban', 'loai cua hang', 'loai khach hang', 'loai kh', 'phan loai diem ban', 'store type'] },
+  { key: 'store_size', label: 'Quy mô điểm bán', aliases: ['quy mo diem ban', 'quy mo', 'quy mo cua hang', 'store size'] },
 ]
 
 // Cột của file Excel: key trong dữ liệu, tên cột hiển thị ở file mẫu và các tên gọi khác được chấp nhận.
-// Thứ tự ở đây là thứ tự cột của file mẫu (9 trường phân cấp đứng đầu); khi đọc file thì nhận cột theo tên, không theo vị trí.
+// Thứ tự ở đây là thứ tự cột của file mẫu (các trường phân loại đứng đầu); khi đọc file thì nhận cột theo tên, không theo vị trí.
 export const COLUMNS = [
   ...DIMENSIONS,
   { key: 'store_code', label: 'Mã điểm bán', aliases: ['ma diem ban', 'ma khach hang', 'ma kh', 'ma cua hang', 'code'] },
@@ -302,6 +306,9 @@ export async function downloadStoresTemplate() {
     dhkd: 'Nguyễn Văn An',
     route: 'T01',
     salesman: 'Trần Thị Bình',
+    frequency: '4 lần/tháng',
+    store_type: 'Tạp hóa',
+    store_size: 'Lớn',
   })
   ;['revenue_current', 'revenue_6m', 'avg_6m'].forEach((key) => {
     ws.getColumn(key).numFmt = '#,##0'

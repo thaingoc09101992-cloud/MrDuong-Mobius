@@ -19,8 +19,9 @@ const DOT_STYLE_KEY = 'tm-dot-style'
 const COLOR_FIELD_KEY = 'tm-color-field'
 const TOOLS_KEY = 'tm-tools-collapsed'
 const MOBILE_QUERY = '(max-width: 900px)'
-// Bộ lọc tạm thời (chưa lọc dữ liệu): cùng 9 trường phân cấp với "Tô màu theo"
-const TM_FILTERS = DIMENSIONS.map((d) => d.label)
+// Bộ lọc tạm thời (chưa lọc dữ liệu): cùng các trường phân loại với "Tô màu theo".
+// Các trường có nhãn hoặc giá trị dài chiếm cả hàng; còn lại xếp 2 cột.
+const WIDE_FILTERS = new Set(['salesman', 'frequency', 'store_type', 'store_size'])
 
 function loadDotStyle() {
   try {
@@ -683,9 +684,9 @@ export default function TradeMap({ user }) {
           <section className="tm-sec" id="tm-sec-filter" aria-labelledby="tm-sec-filter-h">
             <span className="eyebrow tm-sec-label" id="tm-sec-filter-h">Bộ lọc</span>
             <div className="tm-filters">
-              {TM_FILTERS.map((f, i) => (
-                <label key={f} className={`field field-sm ${i === TM_FILTERS.length - 1 ? 'tm-filter-wide' : ''}`}>
-                  {f}
+              {DIMENSIONS.map((d) => (
+                <label key={d.key} className={`field field-sm ${WIDE_FILTERS.has(d.key) ? 'tm-filter-wide' : ''}`}>
+                  {d.label}
                   <select defaultValue="">
                     <option value="">Tất cả</option>
                   </select>
