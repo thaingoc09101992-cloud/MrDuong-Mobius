@@ -168,6 +168,12 @@ const PATHS = {
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
   x: <path d="M6 6l12 12M18 6L6 18" />,
   filter: <path d="M4 5h16l-6 8v6l-4-2v-4z" />,
+  briefcase: (
+    <>
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18" />
+    </>
+  ),
   logout: (
     <>
       <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" />

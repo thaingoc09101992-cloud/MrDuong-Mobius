@@ -565,7 +565,7 @@ export default function TradeMap({ user }) {
           aria-expanded={!toolsCollapsed}
           onClick={() => setTools(!toolsCollapsed)}
         >
-          <Icon name="panel" size={18} />
+          <Icon name="briefcase" size={18} />
         </button>
       </div>
 
@@ -810,7 +810,7 @@ export default function TradeMap({ user }) {
             <Icon name={fullscreen ? 'collapse' : 'expand'} size={18} />
           </button>
           <button type="button" className="btn btn-ghost btn-sm btn-icon tm-tools-open" title="Thanh công cụ" aria-label="Mở thanh công cụ" onClick={() => setTools(false)}>
-            <Icon name="panel" size={18} />
+            <Icon name="briefcase" size={18} />
           </button>
         </div>
         {scheme && (
