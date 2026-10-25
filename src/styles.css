@@ -812,6 +812,18 @@ h2 {
   background: var(--color-black);
   border-radius: var(--radius-md);
   overflow: hidden;
+  touch-action: none; /* chụm hai ngón là zoom camera, không phóng to trang */
+}
+.camera-zoom {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--color-white);
+  opacity: 0.6;
+  text-shadow: 0 1px 3px color-mix(in srgb, var(--color-black) 60%, transparent);
 }
 .camera::after {
   content: '';
@@ -990,6 +1002,41 @@ h2 {
   overflow: hidden;
   z-index: 0;
 }
+/* Hộp bản đồ: giữ chú giải (.tm-colorpanel, dùng chung với Bố trận) nằm trên bản đồ */
+.map-box {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.map-box > .map-canvas {
+  flex: 1;
+}
+.map-box .map-legend {
+  max-height: 55%;
+}
+.map-legend-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  color: var(--text);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.map-legend-chev {
+  display: inline-flex;
+  transition: transform var(--motion-normal) var(--ease);
+}
+.map-legend-chev.is-open {
+  transform: rotate(180deg);
+}
+.map-full .map-box {
+  flex: 1;
+}
 .map-empty {
   text-align: center;
   font-size: var(--fs-md);
@@ -1007,20 +1054,6 @@ h2 {
 }
 :root[data-theme='dark'] .leaflet-tile-pane {
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
-}
-.pin-wrap {
-  background: none;
-  border: 0;
-}
-.pin {
-  display: block;
-  width: 24px;
-  height: 24px;
-  background: var(--color-accent);
-  border: 3px solid var(--color-white);
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 /* Popup của Leaflet theo chuẩn chung: bo --radius-md, viền mảnh, nền theo giao diện sáng/tối */
 .leaflet-popup-content-wrapper {

@@ -1,39 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import L from 'leaflet'
-import 'leaflet.markercluster'
-import { photoUrl, formatTime } from '../supabase.js'
-
-function el(tag, className, text) {
-  const node = document.createElement(tag)
-  if (className) node.className = className
-  if (text !== undefined && text !== null) node.textContent = text
-  return node
-}
-
-/** Dựng popup bằng DOM + textContent để dữ liệu người dùng nhập không thể chèn mã HTML. */
-export function buildPopup(o) {
-  const box = el('div', 'popup')
-  const img = el('img', 'popup-img')
-  img.src = photoUrl(o.photo_path)
-  img.alt = `Ảnh ${o.name}`
-  img.loading = 'lazy'
-  box.appendChild(img)
-  box.appendChild(el('strong', 'popup-title', o.name))
-  if (o.address) box.appendChild(el('div', null, o.address))
-  box.appendChild(el('div', 'popup-muted', `${o.channel || 'Chưa chọn loại hình'} - ${formatTime(o.captured_at)}`))
-  box.appendChild(
-    el('div', 'popup-muted', `NV: ${o.employee_name ? `${o.employee_name} (${o.employee_code})` : o.employee_code}`),
-  )
-  return box
-}
-
-export const pinIcon = L.divIcon({
-  className: 'pin-wrap',
-  html: '<span class="pin"></span>',
-  iconSize: [26, 26],
-  iconAnchor: [13, 26],
-  popupAnchor: [0, -24],
-})
+import useDotMap from './useDotMap.jsx'
 
 function dayKey(iso) {
   const d = new Date(iso)
@@ -43,9 +9,6 @@ function dayKey(iso) {
 
 export default function MapReport({ outlets, loading, isManager, onRefresh }) {
   const wrapRef = useRef(null)
-  const mapElRef = useRef(null)
-  const mapRef = useRef(null)
-  const clusterRef = useRef(null)
 
   const [employee, setEmployee] = useState('')
   const [channel, setChannel] = useState('')
@@ -77,40 +40,7 @@ export default function MapReport({ outlets, loading, isManager, onRefresh }) {
     [outlets, employee, channel, from, to],
   )
 
-  // Khởi tạo bản đồ một lần
-  useEffect(() => {
-    const map = L.map(mapElRef.current, { zoomControl: true }).setView([10.78, 106.7], 11)
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map)
-    const cluster = L.markerClusterGroup({ maxClusterRadius: 50 })
-    map.addLayer(cluster)
-    mapRef.current = map
-    clusterRef.current = cluster
-    return () => {
-      map.remove()
-      mapRef.current = null
-      clusterRef.current = null
-    }
-  }, [])
-
-  // Vẽ lại điểm khi dữ liệu hoặc bộ lọc đổi
-  useEffect(() => {
-    const map = mapRef.current
-    const cluster = clusterRef.current
-    if (!map || !cluster) return
-    cluster.clearLayers()
-    const markers = filtered.map((o) => {
-      const m = L.marker([o.lat, o.lng], { icon: pinIcon, title: o.name })
-      m.bindPopup(() => buildPopup(o), { maxWidth: 260, minWidth: 200, autoPanPadding: [24, 24] })
-      return m
-    })
-    cluster.addLayers(markers)
-    if (filtered.length > 0) {
-      map.fitBounds(cluster.getBounds().pad(0.2), { maxZoom: 17 })
-    }
-  }, [filtered])
+  const { mapElRef, mapRef, controls, legend } = useDotMap({ points: filtered, isManager })
 
   // Theo dõi chế độ toàn màn hình
   useEffect(() => {
@@ -207,10 +137,14 @@ export default function MapReport({ outlets, loading, isManager, onRefresh }) {
             </button>
           )}
         </div>
+
+        <div className="filters">{controls}</div>
       </div>
 
-      <div className="map-canvas" ref={mapElRef} />
-
+      <div className="map-box">
+        <div className="map-canvas" ref={mapElRef} />
+        {legend}
+      </div>
       {!loading && outlets.length === 0 && (
         <div className="map-empty muted">Chưa có điểm nào để hiển thị trên bản đồ.</div>
       )}

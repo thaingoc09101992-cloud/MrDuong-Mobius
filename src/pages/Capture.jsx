@@ -5,6 +5,8 @@ import Icon from '../icons.jsx'
 // Chỉ cần đọc được chữ trên ảnh: cạnh rộng 1024px, JPEG 0.6 (~100KB/ảnh thay vì ~330KB)
 const MAX_WIDTH = 1024
 const JPEG_QUALITY = 0.6
+const MAX_DIGITAL_ZOOM = 4 // khi máy không cho zoom bằng phần cứng thì phóng to bằng cách cắt ảnh
+const MAX_HW_ZOOM = 8
 
 /** Theo dõi GPS liên tục, luôn giữ vị trí mới nhất trong ref để lấy đúng thời điểm bấm chụp. */
 function useGps() {
@@ -74,7 +76,10 @@ export default function Capture({ user, onSaved }) {
   const streamRef = useRef(null)
   const startId = useRef(0)
   const camRef = useRef(null)
-
+  const zoomRef = useRef(1)
+  const pinch = useRef({ pts: new Map(), startDist: 0, startZoom: 1 })
+  const [zoom, setZoom] = useState(1)
+  const [hwZoom, setHwZoom] = useState(null) // { min, max } khi camera hỗ trợ zoom phần cứng (Android); iPhone dùng zoom số
   const stopCamera = useCallback(() => {
     startId.current += 1
     if (streamRef.current) {
@@ -88,6 +93,9 @@ export default function Capture({ user, onSaved }) {
   const startCamera = useCallback(async () => {
     setCamError('')
     setNeedTap(false)
+    zoomRef.current = 1
+    setZoom(1)
+    setHwZoom(null)
     const id = (startId.current += 1)
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       setCamError('Trình duyệt không hỗ trợ camera hoặc trang chưa chạy bằng HTTPS.')
@@ -104,6 +112,10 @@ export default function Capture({ user, onSaved }) {
         return
       }
       streamRef.current = stream
+      const caps = stream.getVideoTracks()[0].getCapabilities ? stream.getVideoTracks()[0].getCapabilities() : {}
+      if (caps.zoom && caps.zoom.max > Math.max(1, caps.zoom.min)) {
+        setHwZoom({ min: Math.max(1, caps.zoom.min), max: Math.min(caps.zoom.max, MAX_HW_ZOOM) })
+      }
       const v = videoRef.current
       if (v) {
         v.muted = true
@@ -199,19 +211,58 @@ export default function Capture({ user, onSaved }) {
   const gpsOk = pos && pos.accuracy <= MAX_ACCURACY_M
   const canShoot = camReady && gpsOk
 
+  function applyZoom(next) {
+    const lo = hwZoom ? hwZoom.min : 1
+    const hi = hwZoom ? hwZoom.max : MAX_DIGITAL_ZOOM
+    const z = Math.min(hi, Math.max(lo, next))
+    if (Math.abs(z - zoomRef.current) < 0.02) return
+    zoomRef.current = z
+    setZoom(z)
+    if (hwZoom && streamRef.current) {
+      const track = streamRef.current.getVideoTracks()[0]
+      track.applyConstraints({ advanced: [{ zoom: z }] }).catch(() => {})
+    }
+  }
+
+  // Chụm hai ngón để zoom: khoảng cách hai ngón so với lúc bắt đầu chụm quyết định mức zoom
+  const touchDist = () => {
+    const [a, b] = [...pinch.current.pts.values()]
+    return Math.hypot(a.x - b.x, a.y - b.y)
+  }
+  function onPinchDown(e) {
+    if (e.target.closest('.shutter')) return
+    pinch.current.pts.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (pinch.current.pts.size === 2) {
+      pinch.current.startDist = touchDist() || 1
+      pinch.current.startZoom = zoomRef.current
+    }
+  }
+  function onPinchMove(e) {
+    if (!pinch.current.pts.has(e.pointerId)) return
+    pinch.current.pts.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (pinch.current.pts.size === 2) applyZoom(pinch.current.startZoom * (touchDist() / pinch.current.startDist))
+  }
+  function onPinchUp(e) {
+    pinch.current.pts.delete(e.pointerId)
+  }
+
   function takePhoto() {
     const v = videoRef.current
     const gps = latest.current
     if (!v || !gps || gps.accuracy > MAX_ACCURACY_M || !v.videoWidth) return
 
-    const scale = Math.min(1, MAX_WIDTH / v.videoWidth)
-    const w = Math.round(v.videoWidth * scale)
-    const h = Math.round(v.videoHeight * scale)
+    // Zoom số: lấy vùng chính giữa khung hình, đúng phần người chụp đang thấy
+    const z = hwZoom ? 1 : zoomRef.current
+    const sw = v.videoWidth / z
+    const sh = v.videoHeight / z
+    const scale = Math.min(1, MAX_WIDTH / sw)
+    const w = Math.round(sw * scale)
+    const h = Math.round(sh * scale)
     const canvas = document.createElement('canvas')
     canvas.width = w
     canvas.height = h
     const ctx = canvas.getContext('2d')
-    ctx.drawImage(v, 0, 0, w, h)
+    ctx.drawImage(v, (v.videoWidth - sw) / 2, (v.videoHeight - sh) / 2, sw, sh, 0, 0, w, h)
 
     const takenAt = new Date()
     const barH = Math.max(28, Math.round(h * 0.045))
@@ -380,7 +431,14 @@ export default function Capture({ user, onSaved }) {
 
   return (
     <section className="stack capture">
-      <div className="camera" ref={camRef}>
+      <div
+        className="camera"
+        ref={camRef}
+        onPointerDown={onPinchDown}
+        onPointerMove={onPinchMove}
+        onPointerUp={onPinchUp}
+        onPointerCancel={onPinchUp}
+      >
         <div className={`gps-chip ${gpsOk ? 'gps-ok' : 'gps-wait'}`} role="status" aria-live="polite">
           {gpsError
             ? gpsError
@@ -399,11 +457,13 @@ export default function Capture({ user, onSaved }) {
           controlsList="nofullscreen noremoteplayback"
           webkit-playsinline="true"
           x-webkit-airplay="deny"
+          style={!hwZoom && zoom > 1 ? { transform: `scale(${zoom})` } : undefined}
           controls={false}
           onLoadedMetadata={(e) => e.currentTarget.play().catch(() => {})}
           onPlaying={() => setNeedTap(false)}
           onPause={() => camReady && setNeedTap(true)}
         />
+        {zoom > 1.01 && <div className="camera-zoom">{zoom.toFixed(1)}x</div>}
         {!camReady && !camError && <div className="camera-msg">Đang mở camera...</div>}
         {camReady && needTap && !camError && (
           <div className="camera-msg">

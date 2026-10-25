@@ -222,6 +222,22 @@
   z-index: 0;
 }
 
+.ad-mapwrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.ad-map-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: end;
+}
+@media (max-width: 720px) {
+  .ad-map-controls {
+    grid-template-columns: 1fr;
+  }
+}
 /* ---------- Cửa sổ xem ảnh ---------- */
 .ad-modal {
   position: fixed;

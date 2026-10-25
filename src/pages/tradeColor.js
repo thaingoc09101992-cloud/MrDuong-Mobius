@@ -133,6 +133,9 @@ function textScheme(field, values) {
   return finish(field, bands, assign)
 }
 
+/** Chia nhóm theo giá trị chữ của một danh sách bất kỳ (field cần id, label, otherLabel). Dùng cho bản đồ Định vị điểm bán. */
+export const buildTextScheme = textScheme
+
 /** Trả về { fieldId, label, bands: [{id, label, color, count}], assign: Uint8Array } hoặc null nếu không tô màu. */
 export function buildScheme(stores, fieldId) {
   const field = COLOR_FIELDS.find((f) => f.id === fieldId)
