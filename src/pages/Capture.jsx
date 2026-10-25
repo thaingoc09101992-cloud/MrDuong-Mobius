@@ -73,6 +73,7 @@ export default function Capture({ user, onSaved }) {
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const startId = useRef(0)
+  const camRef = useRef(null)
 
   const stopCamera = useCallback(() => {
     startId.current += 1
@@ -163,6 +164,37 @@ export default function Capture({ user, onSaved }) {
     if (!v) return
     v.play().then(() => setNeedTap(false)).catch(() => {})
   }
+
+  // Điện thoại: khung camera kéo dài từ vị trí của nó đến sát thanh tab dưới
+  useEffect(() => {
+    if (stage !== 'camera') return undefined
+    const fit = () => {
+      const cam = camRef.current
+      if (!cam) return
+      const bar = document.querySelector('.tabbar')
+      if (!window.matchMedia('(max-width: 900px)').matches || !bar) {
+        cam.style.height = ''
+        cam.style.maxHeight = ''
+        cam.style.aspectRatio = ''
+        return
+      }
+      const top = cam.getBoundingClientRect().top + window.scrollY
+      cam.style.aspectRatio = 'auto'
+      cam.style.maxHeight = 'none'
+      cam.style.height = `${Math.max(240, Math.floor(bar.getBoundingClientRect().top - top))}px`
+    }
+    fit()
+    const raf = requestAnimationFrame(fit)
+    const timer = setTimeout(fit, 400)
+    window.addEventListener('resize', fit)
+    window.addEventListener('orientationchange', fit)
+    return () => {
+      cancelAnimationFrame(raf)
+      clearTimeout(timer)
+      window.removeEventListener('resize', fit)
+      window.removeEventListener('orientationchange', fit)
+    }
+  }, [stage])
 
   const gpsOk = pos && pos.accuracy <= MAX_ACCURACY_M
   const canShoot = camReady && gpsOk
@@ -348,7 +380,7 @@ export default function Capture({ user, onSaved }) {
 
   return (
     <section className="stack capture">
-      <div className="camera">
+      <div className="camera" ref={camRef}>
         <div className={`gps-chip ${gpsOk ? 'gps-ok' : 'gps-wait'}`} role="status" aria-live="polite">
           {gpsError
             ? gpsError
