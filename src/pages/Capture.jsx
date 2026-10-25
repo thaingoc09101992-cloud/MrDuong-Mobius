@@ -348,17 +348,16 @@ export default function Capture({ user, onSaved }) {
 
   return (
     <section className="stack capture">
-      <div className={`gps-chip ${gpsOk ? 'gps-ok' : 'gps-wait'}`} role="status" aria-live="polite">
-        {gpsError
-          ? gpsError
-          : !pos
-            ? 'Đang lấy định vị...'
-            : gpsOk
-              ? `Định vị tốt: sai số khoảng ${Math.round(pos.accuracy)}m`
-              : `Định vị chưa đủ chính xác (${Math.round(pos.accuracy)}m). Cần không quá ${MAX_ACCURACY_M}m, hãy ra nơi thoáng.`}
-      </div>
-
       <div className="camera">
+        <div className={`gps-chip ${gpsOk ? 'gps-ok' : 'gps-wait'}`} role="status" aria-live="polite">
+          {gpsError
+            ? gpsError
+            : !pos
+              ? 'Đang lấy định vị...'
+              : gpsOk
+                ? `Định vị tốt: ${Math.round(pos.accuracy)}m`
+                : `Định vị chưa đủ chính xác (${Math.round(pos.accuracy)}m). Cần không quá ${MAX_ACCURACY_M}m, hãy ra nơi thoáng.`}
+        </div>
         <video
           ref={videoRef}
           playsInline
@@ -390,17 +389,16 @@ export default function Capture({ user, onSaved }) {
             </button>
           </div>
         )}
+        <button
+          type="button"
+          className="shutter"
+          onClick={takePhoto}
+          disabled={!canShoot}
+          aria-label="Chụp ảnh điểm bán"
+        >
+          <Icon name="camera" size={28} />
+        </button>
       </div>
-
-      <button type="button" className="btn btn-primary btn-block btn-lg" onClick={takePhoto} disabled={!canShoot}>
-        <Icon name="camera" size={22} />
-        Chụp ảnh điểm bán
-      </button>
-      {!canShoot && (
-        <p className="muted small center-text">
-          Nút chụp sẽ mở khi camera sẵn sàng và định vị có sai số không quá {MAX_ACCURACY_M}m.
-        </p>
-      )}
     </section>
   )
 }

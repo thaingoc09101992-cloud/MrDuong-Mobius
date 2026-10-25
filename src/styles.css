@@ -764,6 +764,13 @@ h2 {
 
 /* ---------- 7. Chụp ảnh ---------- */
 .gps-chip {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  z-index: 2;
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--space-3));
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -843,11 +850,36 @@ h2 {
   text-align: center;
   background: color-mix(in srgb, var(--color-black) 78%, transparent);
 }
+/* Nút chụp: biểu tượng máy ảnh trong vòng tròn, nằm giữa mép dưới khung camera */
+.shutter {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-6);
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  transform: translateX(-50%);
+  background: var(--color-white);
+  color: var(--color-ink);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-white) 45%, transparent);
+  cursor: pointer;
+}
+.shutter:active:not(:disabled) {
+  transform: translateX(-50%) scale(0.94);
+}
+.shutter:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
 .camera-msg .btn-primary {
   background: var(--color-white);
   color: var(--color-ink);
 }
-/* Điện thoại: màn chụp vừa một màn hình, nút chụp luôn thấy và nằm ngay trên thanh tab dưới */
+/* Điện thoại: màn chụp vừa một màn hình, nút chụp nằm trong khung camera */
 @media (max-width: 900px) {
   .page-head.is-capture {
     position: absolute;
@@ -858,13 +890,9 @@ h2 {
     clip: rect(0 0 0 0);
   }
   .capture .camera {
-    max-height: max(280px, calc(100 * var(--dv1) - 440px)); /* trừ thanh trên, nhãn GPS, nút chụp, thanh tab */
+    max-height: max(320px, calc(100 * var(--dv1) - 300px)); /* trừ thanh trên và thanh tab dưới */
   }
-  .capture > .btn-block {
-    position: sticky;
-    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--space-3));
-    z-index: 2;
-  }
+
 }
 .preview {
   width: 100%;
