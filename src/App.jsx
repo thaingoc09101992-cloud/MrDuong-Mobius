@@ -318,7 +318,7 @@ export default function App() {
               </button>
             </div>
           )}
-          <header className="page-head" key={tab}>
+          <header className={`page-head ${tab === 'capture' ? 'is-capture' : ''}`} key={tab}>
             <span className="eyebrow">{PAGES[tab].eyebrow}</span>
             <h2 className="page-title">
               {typeof PAGES[tab].title === 'function' ? PAGES[tab].title(scope) : PAGES[tab].title}

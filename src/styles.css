@@ -847,6 +847,25 @@ h2 {
   background: var(--color-white);
   color: var(--color-ink);
 }
+/* Điện thoại: màn chụp vừa một màn hình, nút chụp luôn thấy và nằm ngay trên thanh tab dưới */
+@media (max-width: 900px) {
+  .page-head.is-capture {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .capture .camera {
+    max-height: max(280px, calc(100 * var(--dv1) - 440px)); /* trừ thanh trên, nhãn GPS, nút chụp, thanh tab */
+  }
+  .capture > .btn-block {
+    position: sticky;
+    bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + var(--space-3));
+    z-index: 2;
+  }
+}
 .preview {
   width: 100%;
   max-height: calc(46 * var(--v1));
