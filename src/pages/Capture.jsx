@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase, BUCKET, CHANNELS, MAX_ACCURACY_M } from '../supabase.js'
 import Icon from '../icons.jsx'
 
-const MAX_WIDTH = 1280
+// Chỉ cần đọc được chữ trên ảnh: cạnh rộng 1024px, JPEG 0.6 (~100KB/ảnh thay vì ~330KB)
+const MAX_WIDTH = 1024
+const JPEG_QUALITY = 0.6
 
 /** Theo dõi GPS liên tục, luôn giữ vị trí mới nhất trong ref để lấy đúng thời điểm bấm chụp. */
 function useGps() {
@@ -198,7 +200,7 @@ export default function Capture({ user, onSaved }) {
         setStage('form')
       },
       'image/jpeg',
-      0.8,
+      JPEG_QUALITY,
     )
   }
 
