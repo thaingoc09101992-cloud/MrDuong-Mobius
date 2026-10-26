@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { photoUrl, formatTime } from '../supabase.js'
+import { formatTime } from '../supabase.js'
+import Icon from '../icons.jsx'
+import OutletPhoto from '../OutletPhoto.jsx'
 import { mapsUrl, fold } from './util.js'
 import { SortLabel, SORT_HINT, compareValues } from './tableKit.jsx'
 
 const PAGE_SIZE = 50
 
-function PhotoModal({ outlet, onClose }) {
+function PhotoModal({ outlet, onClose, onRotate }) {
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') onClose()
@@ -17,7 +19,7 @@ function PhotoModal({ outlet, onClose }) {
   return (
     <div className="ad-modal" role="dialog" aria-modal="true" aria-label={`Ảnh ${outlet.name}`} onClick={onClose}>
       <div className="ad-modal-box card" onClick={(e) => e.stopPropagation()}>
-        <img src={photoUrl(outlet.photo_path)} alt={`Ảnh ${outlet.name}`} className="ad-modal-img" />
+        <OutletPhoto outlet={outlet} alt={`Ảnh ${outlet.name}`} className="ad-modal-img" mode="fit" />
         <div className="stack">
           <strong>{outlet.name}</strong>
           {outlet.address && <span>{outlet.address}</span>}
@@ -31,9 +33,15 @@ function PhotoModal({ outlet, onClose }) {
             Mở Google Maps ({Number(outlet.lat).toFixed(6)}, {Number(outlet.lng).toFixed(6)}, sai số{' '}
             {Math.round(outlet.accuracy_m)}m)
           </a>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
-            Đóng
-          </button>
+          <div className="row">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRotate(outlet)}>
+              <Icon name="rotate" size={16} />
+              Xoay ảnh
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
+              Đóng
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -74,7 +82,7 @@ function ColumnHead({ col, sort, onSort, filters, setFilters, showFilters }) {
   )
 }
 
-export default function OutletTable({ rows }) {
+export default function OutletTable({ rows, onRotate }) {
   const [page, setPage] = useState(0)
   const [open, setOpen] = useState(null)
   const [filters, setFilters] = useState({})
@@ -164,7 +172,7 @@ export default function OutletTable({ rows }) {
               <tr key={o.id}>
                 <td>
                   <button type="button" className="ad-thumb-btn" onClick={() => setOpen(o)} aria-label={`Xem ảnh ${o.name}`}>
-                    <img src={photoUrl(o.photo_path)} alt="" loading="lazy" className="ad-thumb" />
+                    <OutletPhoto outlet={o} loading="lazy" className="ad-thumb" />
                   </button>
                 </td>
                 <td className="ad-wrap">
@@ -215,7 +223,7 @@ export default function OutletTable({ rows }) {
         </div>
       )}
 
-      {open && <PhotoModal outlet={open} onClose={() => setOpen(null)} />}
+      {open && <PhotoModal outlet={rows.find((r) => r.id === open.id) || open} onClose={() => setOpen(null)} onRotate={onRotate} />}
     </div>
   )
 }

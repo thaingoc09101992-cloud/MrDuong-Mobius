@@ -57,6 +57,33 @@ function stampText(date, gps) {
   return `${d}  |  ${gps.lat.toFixed(6)}, ${gps.lng.toFixed(6)}  |  +/-${Math.round(gps.accuracy)}m`
 }
 
+/**
+ * Xoay ảnh gốc (chưa có dòng giờ/GPS) theo góc rotation rồi vẽ dòng giờ/GPS ở đáy ảnh,
+ * để dòng chữ luôn nằm ngang dù ảnh được xoay. Trả về Blob JPEG.
+ */
+function renderShot(raw, rotation, gps, takenAt) {
+  const quarter = rotation % 180 !== 0
+  const w = quarter ? raw.height : raw.width
+  const h = quarter ? raw.width : raw.height
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  ctx.translate(w / 2, h / 2)
+  ctx.rotate((rotation * Math.PI) / 180)
+  ctx.drawImage(raw, -raw.width / 2, -raw.height / 2)
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+
+  const barH = Math.max(28, Math.round(h * 0.045))
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'
+  ctx.fillRect(0, h - barH, w, barH)
+  ctx.fillStyle = '#fff'
+  ctx.font = `${Math.round(barH * 0.55)}px sans-serif`
+  ctx.textBaseline = 'middle'
+  ctx.fillText(stampText(takenAt, gps), 12, h - barH / 2)
+  return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY))
+}
+
 export default function Capture({ user, onSaved }) {
   const { pos, error: gpsError, latest } = useGps()
   const [stage, setStage] = useState('camera') // camera | form
@@ -265,26 +292,23 @@ export default function Capture({ user, onSaved }) {
     ctx.drawImage(v, (v.videoWidth - sw) / 2, (v.videoHeight - sh) / 2, sw, sh, 0, 0, w, h)
 
     const takenAt = new Date()
-    const barH = Math.max(28, Math.round(h * 0.045))
-    ctx.fillStyle = 'rgba(0,0,0,0.55)'
-    ctx.fillRect(0, h - barH, w, barH)
-    ctx.fillStyle = '#fff'
-    ctx.font = `${Math.round(barH * 0.55)}px sans-serif`
-    ctx.textBaseline = 'middle'
-    ctx.fillText(stampText(takenAt, gps), 12, h - barH / 2)
+    renderShot(canvas, 0, gps, takenAt).then((blob) => {
+      if (!blob) {
+        setCamError('Không tạo được ảnh. Vui lòng chụp lại.')
+        return
+      }
+      setShot({ raw: canvas, rotation: 0, blob, url: URL.createObjectURL(blob), gps: { ...gps }, takenAt })
+      setStage('form')
+    })
+  }
 
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          setCamError('Không tạo được ảnh. Vui lòng chụp lại.')
-          return
-        }
-        setShot({ blob, url: URL.createObjectURL(blob), gps: { ...gps }, takenAt })
-        setStage('form')
-      },
-      'image/jpeg',
-      JPEG_QUALITY,
-    )
+  // Ảnh chụp ngang bị nằm nghiêng: xoay thêm 90 độ rồi dựng lại ảnh từ ảnh gốc
+  async function rotateShot() {
+    if (!shot || busy) return
+    const rotation = (shot.rotation + 90) % 360
+    const blob = await renderShot(shot.raw, rotation, shot.gps, shot.takenAt)
+    if (!blob) return
+    setShot({ ...shot, rotation, blob, url: URL.createObjectURL(blob) })
   }
 
   function retake() {
@@ -420,6 +444,9 @@ export default function Capture({ user, onSaved }) {
         <div className="row">
           <button type="button" className="btn btn-ghost" onClick={retake} disabled={busy}>
             Chụp lại
+          </button>
+          <button type="button" className="btn btn-ghost btn-icon" onClick={rotateShot} disabled={busy} title="Xoay ảnh" aria-label="Xoay ảnh">
+            <Icon name="rotate" size={20} />
           </button>
           <button type="submit" className="btn btn-primary grow" disabled={busy}>
             {busy ? 'Đang lưu...' : 'Lưu điểm bán'}

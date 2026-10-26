@@ -1094,6 +1094,50 @@ h2 {
   font-size: var(--fs-md);
   color: var(--text);
 }
+/* Ảnh đã xoay (góc xoay lưu trong photo_rotation): xem OutletPhoto.jsx */
+.rot-cover {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  container-type: size;
+}
+.rot-cover > img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  transform: translate(-50%, -50%) rotate(var(--rot));
+}
+.rot-cover.is-quarter > img {
+  width: 100cqh;
+  height: 100cqw;
+}
+.rot-fit {
+  --rot-max: calc(55 * var(--v1));
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: min(100%, calc(var(--rot-max) * var(--ar)));
+  aspect-ratio: var(--ar);
+  margin: 0 auto;
+  background: var(--color-black);
+  border-radius: var(--radius-sm);
+}
+.rot-fit > img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  transform: translate(-50%, -50%) rotate(var(--rot));
+}
+.rot-fit.is-quarter > img {
+  width: calc(100% / var(--ar));
+}
 .popup-img {
   width: 100%;
   height: 120px;

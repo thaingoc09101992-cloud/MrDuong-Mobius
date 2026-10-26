@@ -13,6 +13,7 @@ import Icon from './icons.jsx'
 import Loading from './Loading.jsx'
 import AppShell from './AppShell.jsx'
 import { loadProfile } from './profile.js'
+import { nextRotation, saveRotation } from './photoRotate.js'
 import { clearTradeCache } from './pages/tradeCache.js'
 
 // Menu chính của thanh bên
@@ -152,6 +153,17 @@ export default function App() {
 
   const ready = Boolean(user) && !user.must_change_password
   const inLocate = tool === 'dinh-vi-diem-ban'
+
+  // Xoay ảnh điểm bán: cập nhật ngay trên màn hình, lưu lên máy chủ, lỗi thì trả lại góc cũ
+  async function rotateOutlet(o) {
+    const rotation = nextRotation(o.photo_rotation)
+    const setRot = (r) => setOutlets((prev) => prev.map((x) => (x.id === o.id ? { ...x, photo_rotation: r } : x)))
+    setRot(rotation)
+    if (await saveRotation(o.id, rotation)) {
+      setRot(o.photo_rotation || 0)
+      setLoadError('Không xoay được ảnh. Vui lòng thử lại.')
+    }
+  }
 
   const refresh = useCallback(async () => {
     if (!ready || !(user.hasEmployee || user.isAdmin) || !user.modules.includes('dinh-vi-diem-ban')) return
@@ -327,7 +339,7 @@ export default function App() {
           </header>
           {tab === 'capture' && user.hasEmployee && <Capture user={user} onSaved={refresh} />}
           {tab === 'history' && (
-            <History outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />
+            <History outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} canRotate={(o) => user.isAdmin || o.employee_code === user.code} onRotate={rotateOutlet} />
           )}
           {tab === 'map' && (
             <MapReport outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} />

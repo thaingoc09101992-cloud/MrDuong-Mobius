@@ -1,6 +1,8 @@
-import { photoUrl, formatTime } from '../supabase.js'
+import { formatTime } from '../supabase.js'
+import Icon from '../icons.jsx'
+import OutletPhoto from '../OutletPhoto.jsx'
 
-export default function History({ outlets, loading, isManager, onRefresh }) {
+export default function History({ outlets, loading, isManager, onRefresh, canRotate, onRotate }) {
   return (
     <section className="stack">
       <div className="row between">
@@ -17,7 +19,7 @@ export default function History({ outlets, loading, isManager, onRefresh }) {
       <ul className="list">
         {outlets.map((o) => (
           <li key={o.id} className="card item">
-            <img src={photoUrl(o.photo_path)} alt={`Ảnh ${o.name}`} loading="lazy" className="thumb" />
+            <OutletPhoto outlet={o} alt={`Ảnh ${o.name}`} loading="lazy" className="thumb" />
             <div className="item-body">
               <strong className="item-title">{o.name}</strong>
               {o.address && <span className="small muted">{o.address}</span>}
@@ -38,6 +40,12 @@ export default function History({ outlets, loading, isManager, onRefresh }) {
               >
                 Xem vị trí ({Number(o.lat).toFixed(5)}, {Number(o.lng).toFixed(5)})
               </a>
+              {canRotate(o) && (
+                <button type="button" className="btn btn-ghost btn-sm item-rotate" onClick={() => onRotate(o)}>
+                  <Icon name="rotate" size={16} />
+                  Xoay ảnh
+                </button>
+              )}
             </div>
           </li>
         ))}

@@ -72,6 +72,12 @@ const PATHS = {
       <path d="M20 4v7h-7" />
     </>
   ),
+  rotate: (
+    <>
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 4v5h-5" />
+    </>
+  ),
   expand: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
   doc: (
     <>

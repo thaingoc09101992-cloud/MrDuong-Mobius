@@ -4,6 +4,7 @@ import { safeGet, safeSet } from '../supabase.js'
 import Overview from './Overview.jsx'
 import OutletTable from './OutletTable.jsx'
 import AdminMap from './AdminMap.jsx'
+import { nextRotation, saveRotation } from '../photoRotate.js'
 import Employees from './Employees.jsx'
 import Banners from './Banners.jsx'
 import Lessons from './Lessons.jsx'
@@ -169,6 +170,17 @@ export default function AdminApp() {
       else await document.documentElement.requestFullscreen()
     } catch {
       /* bỏ qua khi trình duyệt không cho phép */
+    }
+  }
+
+  // Xoay ảnh điểm bán: cập nhật ngay trên màn hình, lưu lên máy chủ, lỗi thì trả lại góc cũ
+  async function rotateOutlet(o) {
+    const rotation = nextRotation(o.photo_rotation)
+    const setRot = (r) => setOutlets((prev) => prev.map((x) => (x.id === o.id ? { ...x, photo_rotation: r } : x)))
+    setRot(rotation)
+    if (await saveRotation(o.id, rotation)) {
+      setRot(o.photo_rotation || 0)
+      setLoadError('Không xoay được ảnh. Vui lòng thử lại.')
     }
   }
 
@@ -372,7 +384,7 @@ export default function AdminApp() {
           {tab === 'banners' && <Banners />}
           {tab === 'lessons' && <Lessons />}
           {tab === 'overview' && <Overview rows={rows} employees={employees} />}
-          {tab === 'list' && <OutletTable rows={filtered} />}
+          {tab === 'list' && <OutletTable rows={filtered} onRotate={rotateOutlet} />}
           {tab === 'map' && <AdminMap rows={filtered} />}
           {pageId === 'users' && (
             <Employees
