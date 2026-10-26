@@ -43,6 +43,7 @@ const PAGES = [
       { id: 'list', label: 'Danh sách', icon: 'list', context: 'Định vị điểm bán' },
       { id: 'map', label: 'Bản đồ', icon: 'map', context: 'Định vị điểm bán' },
       { id: 'lessons', label: 'Bài học', icon: 'book' },
+      { id: 'videos', label: 'Video đào tạo', icon: 'play' },
     ],
   },
 ]
@@ -387,7 +388,8 @@ export default function AdminApp() {
           )}
 
           {tab === 'banners' && <Banners />}
-          {tab === 'lessons' && <Lessons />}
+          {tab === 'lessons' && <Lessons kind="lesson" />}
+          {tab === 'videos' && <Lessons kind="video" key="videos" />}
           {tab === 'overview' && <Overview rows={rows} employees={employees} />}
           {tab === 'list' && <OutletTable rows={filtered} onRotate={rotateOutlet} />}
           {tab === 'map' && <AdminMap rows={filtered} />}

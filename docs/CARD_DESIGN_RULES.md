@@ -7,7 +7,7 @@ Các loại thẻ hiện có:
 | Loại thẻ | Nơi dùng | Mã nguồn | Quy tắc riêng |
 |---|---|---|---|
 | Thẻ công cụ | Home, Công cụ, Kiến thức | `ToolGrid` trong `src/pages/sections.jsx`, CSS `.module-*` | [TOOL_CARD_SPEC.md](TOOL_CARD_SPEC.md) |
-| Thẻ tài liệu (bài học) | Kiến thức → Bài học, Admin → Bài học | `src/pages/LessonCard.jsx`, CSS `.ls-card` trong `src/pages/lessons.css` | Mục 3 bên dưới |
+| Thẻ tài liệu (bài học, video) | Kiến thức → Bài học, Video đào tạo, Admin → Bài học, Admin → Video đào tạo | `src/pages/LessonCard.jsx`, CSS `.ls-card` trong `src/pages/lessons.css` | Mục 3 bên dưới |
 
 Thẻ mới phải **tái sử dụng** component và CSS sẵn có khi cùng loại, không tạo bản trùng lặp. Thẻ thuộc loại mới thì áp dụng mục 1 và 2, rồi bổ sung một mục riêng vào file này.
 
@@ -80,6 +80,8 @@ Thành phần: `LessonCard` ([src/pages/LessonCard.jsx](../src/pages/LessonCard.
 - **Trái:** ô vuông 52 × 52px, bo `--radius-lg`, icon tài liệu màu vàng champagne trên nền vàng nhạt (`--gold` pha 16% vào `--surface`); icon `--gold-deep` ở chế độ sáng, `--gold` ở chế độ tối.
 - **Giữa:** tên (đậm 600, một dòng, cắt "..."), mô tả (tối đa 2 dòng), metadata dạng `Tài liệu · 18/10/2026 · 425 KB`.
 - **Phải:** nút vàng "Mở tài liệu" kèm icon mở; trang quản trị có thêm nút đổi tên (bút chì) và nút xóa (thùng rác) ngay cạnh.
+
+**Video đào tạo dùng lại đúng thẻ này** (cột `kind = 'video'` của bảng bài học): icon phát (`play`) thay icon tài liệu, nút vàng đổi thành "Xem video", metadata thêm chữ "Video" (`Video · Google Drive · ngày`). Video chỉ thêm bằng liên kết Google Drive; trình xem `EmbedViewer` không phóng khung cho video. Muốn đổi nơi lưu video sau này: mở rộng ràng buộc `source_url` và trình xem, không đổi thẻ.
 
 **Hai nguồn bài học:** file PDF lưu ở Supabase Storage (mở bằng `PdfViewer`), hoặc liên kết Google Drive (dạng `https://drive.google.com/file/d/<id>/preview`, cột `source_url`, mở bằng `EmbedViewer`). Bài học mới chỉ thêm bằng Google Drive; bài học cũ dùng OneDrive vẫn xem được. `LessonViewer` chọn trình xem theo nguồn; thẻ hiển thị giống nhau, chỉ dòng metadata khác (`Google Drive · ngày` hoặc `OneDrive · ngày` thay cho `Tài liệu · ngày · dung lượng`). Giao diện chỉ nhận liên kết https của Google Drive (kiểm tra ở cả giao diện và cơ sở dữ liệu); khung nhúng dùng `sandbox`.
 

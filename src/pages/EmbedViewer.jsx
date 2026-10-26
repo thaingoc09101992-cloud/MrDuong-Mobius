@@ -16,7 +16,8 @@ export default function EmbedViewer({ lesson, onClose }) {
   const [stage, setStage] = useState({ w: 0, h: 0 })
   const name = displayTitle(lesson.title)
   const source = sourceLabel(lesson.source_url)
-  const isDrive = source === 'Google Drive'
+  // Phóng khung chỉ dành cho trang tài liệu của Drive; trình phát video tự co theo khung nên để nguyên
+  const isDrive = source === 'Google Drive' && lesson.kind !== 'video'
 
   // Theo dõi kích thước vùng xem (đổi khi thu phóng cửa sổ hoặc vào toàn màn hình)
   useEffect(() => {

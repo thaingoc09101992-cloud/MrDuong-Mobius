@@ -3,7 +3,7 @@ import { supabase, safeSet } from './supabase.js'
 import { MODULES, PLATFORM_NAME, ALL_MODULE_IDS, modulesOf } from './modules.js'
 import Login from './pages/Login.jsx'
 import ChangePassword from './pages/ChangePassword.jsx'
-import { HomePage, ToolsPage, KnowledgePage, ComingSoonPage, ProfilePage } from './pages/sections.jsx'
+import { HomePage, ToolsPage, KnowledgePage, ProfilePage } from './pages/sections.jsx'
 import Capture from './pages/Capture.jsx'
 import History from './pages/History.jsx'
 import MapReport from './pages/MapReport.jsx'
@@ -292,12 +292,7 @@ export default function App() {
       {!tool && section === 'home' && <HomePage user={user} onOpenTool={openTool} />}
       {!tool && section === 'tools' && <ToolsPage user={user} onOpenTool={openTool} />}
       {!tool && section === 'videos' && (
-        <ComingSoonPage
-          eyebrow="Đào tạo"
-          heading="Video đào tạo"
-          icon="play"
-          text="Các video hướng dẫn và đào tạo nghiệp vụ sẽ được cập nhật tại đây."
-        />
+        <LessonsPage kind="video" />
       )}
       {!tool && section === 'knowledge' && knowledge === 'lessons' && (
         <LessonsPage onBack={() => setKnowledge(null)} />

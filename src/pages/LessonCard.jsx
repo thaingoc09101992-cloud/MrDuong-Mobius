@@ -13,6 +13,8 @@ export default function LessonCard({ lesson, onOpen, admin = false, onRename, on
   const [error, setError] = useState('')
   const inputRef = useRef(null)
   const name = displayTitle(lesson.title)
+  const isVideo = lesson.kind === 'video'
+  const noun = isVideo ? 'video' : 'tài liệu'
 
   useEffect(() => {
     if (editing && inputRef.current) {
@@ -69,14 +71,14 @@ export default function LessonCard({ lesson, onOpen, admin = false, onRename, on
     }
   }
 
-  const meta = [lesson.source_url ? sourceLabel(lesson.source_url) : 'Tài liệu', new Date(lesson.created_at).toLocaleDateString('vi-VN'), formatSize(lesson.file_size)]
+  const meta = [isVideo ? 'Video' : null, lesson.source_url ? sourceLabel(lesson.source_url) : 'Tài liệu', new Date(lesson.created_at).toLocaleDateString('vi-VN'), formatSize(lesson.file_size)]
     .filter(Boolean)
     .join(' · ')
 
   return (
     <li className={`ls-card ${editing ? 'is-editing' : ''}`} onClick={() => !editing && onOpen(lesson)}>
       <span className="ls-doc" aria-hidden="true">
-        <Icon name="doc" size={24} />
+        <Icon name={isVideo ? 'play' : 'doc'} size={24} />
       </span>
 
       <div className="ls-body">
@@ -89,12 +91,12 @@ export default function LessonCard({ lesson, onOpen, admin = false, onRename, on
                 value={value}
                 maxLength={LESSON_TITLE_MAX}
                 disabled={saving}
-                aria-label="Tên tài liệu"
+                aria-label={`Tên ${noun}`}
                 aria-invalid={Boolean(error)}
                 onChange={(e) => setValue(e.target.value)}
                 onKeyDown={onKeyDown}
               />
-              <button type="button" className="btn btn-primary btn-icon" aria-label="Lưu tên tài liệu" title="Lưu (Enter)" onClick={save} disabled={saving || !value.trim()}>
+              <button type="button" className="btn btn-primary btn-icon" aria-label={`Lưu tên ${noun}`} title="Lưu (Enter)" onClick={save} disabled={saving || !value.trim()}>
                 {saving ? <span className="spinner" aria-hidden="true" /> : <Icon name="check" size={18} />}
               </button>
               <button type="button" className="btn btn-ghost btn-icon" aria-label="Hủy đổi tên" title="Hủy (Esc)" onClick={cancel} disabled={saving}>
@@ -117,16 +119,16 @@ export default function LessonCard({ lesson, onOpen, admin = false, onRename, on
       </div>
 
       <div className="ls-actions" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="btn btn-gold ls-open-btn" aria-label={`Mở tài liệu ${name}`} title="Mở tài liệu" onClick={() => onOpen(lesson)} disabled={saving}>
+        <button type="button" className="btn btn-gold ls-open-btn" aria-label={`${isVideo ? 'Xem video' : 'Mở tài liệu'} ${name}`} title={isVideo ? 'Xem video' : 'Mở tài liệu'} onClick={() => onOpen(lesson)} disabled={saving}>
           <Icon name="open" size={18} />
-          <span>Mở tài liệu</span>
+          <span>{isVideo ? 'Xem video' : 'Mở tài liệu'}</span>
         </button>
         {admin && (
           <>
-            <button type="button" className="btn btn-ghost btn-icon" aria-label={`Đổi tên tài liệu ${name}`} title="Đổi tên" onClick={startEdit} disabled={editing || saving}>
+            <button type="button" className="btn btn-ghost btn-icon" aria-label={`Đổi tên ${noun} ${name}`} title="Đổi tên" onClick={startEdit} disabled={editing || saving}>
               <Icon name="pencil" size={18} />
             </button>
-            <button type="button" className="btn btn-ghost btn-icon btn-danger" aria-label={`Xóa tài liệu ${name}`} title="Xóa" onClick={() => onDelete(lesson)} disabled={saving}>
+            <button type="button" className="btn btn-ghost btn-icon btn-danger" aria-label={`Xóa ${noun} ${name}`} title="Xóa" onClick={() => onDelete(lesson)} disabled={saving}>
               <Icon name="trash" size={18} />
             </button>
           </>

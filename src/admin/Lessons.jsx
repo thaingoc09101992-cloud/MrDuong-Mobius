@@ -19,8 +19,13 @@ import LessonCard from '../pages/LessonCard.jsx'
 import LessonViewer from '../pages/LessonViewer.jsx'
 import '../pages/lessons.css'
 
-/** Quản lý bài học (PDF): chỉ admin tải lên và xóa. Nhân viên xem ở mục Kiến thức → Bài học. */
-export default function Lessons() {
+/**
+ * Quản lý bài học (PDF hoặc liên kết Google Drive) và video (liên kết Google Drive): chỉ admin thêm, đổi tên và xóa.
+ * kind = 'lesson': nhân viên xem ở Kiến thức → Bài học; kind = 'video': xem ở mục Video đào tạo.
+ */
+export default function Lessons({ kind = 'lesson' }) {
+  const isVideo = kind === 'video'
+  const noun = isVideo ? 'video' : 'bài học'
   const fileRef = useRef(null)
   const [lessons, setLessons] = useState([])
   const [loading, setLoading] = useState(true)
@@ -41,13 +46,13 @@ export default function Lessons() {
     setLoading(true)
     setError('')
     try {
-      setLessons(await listLessons())
+      setLessons(await listLessons(kind))
     } catch (err) {
       setError(lessonError(err))
       setLessons([])
     }
     setLoading(false)
-  }, [])
+  }, [kind])
 
   useEffect(() => {
     load()
@@ -84,15 +89,15 @@ export default function Lessons() {
     if (mode === 'link') {
       const parsed = parseEmbedInput(linkInput)
       if (!title.trim() || parsed.error) {
-        setNotice(parsed.error || 'Hãy nhập tên bài học.')
+        setNotice(parsed.error || `Hãy nhập tên ${noun}.`)
         return
       }
       setBusy(true)
       setNotice('')
       try {
-        await addLessonLink(title.trim(), description.trim(), parsed.url)
+        await addLessonLink(title.trim(), description.trim(), parsed.url, kind)
         resetForm()
-        setNotice('Đã thêm bài học.')
+        setNotice(`Đã thêm ${noun}.`)
         load()
       } catch (err) {
         setNotice(err && err.message ? err.message : 'Không thêm được. Vui lòng thử lại.')
@@ -101,7 +106,7 @@ export default function Lessons() {
       return
     }
     if (!title.trim()) {
-      setNotice('Hãy nhập tên bài học.')
+      setNotice(`Hãy nhập tên ${noun}.`)
       return
     }
     if (!file) {
@@ -144,14 +149,16 @@ export default function Lessons() {
     setBusy(false)
     setStage(null)
     resetForm()
-    setNotice('Đã thêm bài học.')
+    setNotice(`Đã thêm ${noun}.`)
     load()
   }
 
   async function remove(lesson) {
     const ok = await confirmDialog({
-      title: `Xóa bài học "${lesson.title}"?`,
-      message: 'Bài học sẽ bị xóa khỏi mục Kiến thức. Thao tác này không thể hoàn tác.',
+      title: `Xóa ${noun} "${lesson.title}"?`,
+      message: isVideo
+        ? 'Video sẽ bị xóa khỏi mục Video đào tạo (file trên Google Drive không bị xóa). Thao tác này không thể hoàn tác.'
+        : 'Bài học sẽ bị xóa khỏi mục Kiến thức. Thao tác này không thể hoàn tác.',
       confirmLabel: 'Xóa',
       danger: true,
     })
@@ -177,7 +184,9 @@ export default function Lessons() {
   return (
     <div className="stack ls">
       <p className="muted small">
-        Tải file PDF (xuất từ PowerPoint hoặc Google Slides, tối đa 50 MB). Nhân viên xem ở mục Kiến thức, Bài học; chỉ quản trị viên tải lên và xóa được.
+        {isVideo
+          ? 'Thêm video bằng liên kết Google Drive. Nhân viên xem ở mục Video đào tạo. Liên kết chỉ hiển thị cho người đã đăng nhập MOBIUS, nhưng ai có liên kết vẫn mở được trên Drive nên đừng chia sẻ ra ngoài. Chỉ quản trị viên thêm và xóa được.'
+          : 'Tải file PDF (xuất từ PowerPoint hoặc Google Slides, tối đa 50 MB). Nhân viên xem ở mục Kiến thức, Bài học; chỉ quản trị viên tải lên và xóa được.'}
       </p>
 
       {notice && <div className="alert">{notice}</div>}
@@ -185,22 +194,24 @@ export default function Lessons() {
 
       <form className="card ls-form" onSubmit={submit} noValidate>
         <label className="field">
-          <span>Tên bài học</span>
-          <input value={title} maxLength={200} disabled={busy} onChange={(e) => setTitle(e.target.value)} placeholder="Ví dụ: Quy trình chăm sóc điểm bán" />
+          <span>{isVideo ? 'Tên video' : 'Tên bài học'}</span>
+          <input value={title} maxLength={200} disabled={busy} onChange={(e) => setTitle(e.target.value)} placeholder={isVideo ? 'Ví dụ: Hướng dẫn chụp ảnh điểm bán' : 'Ví dụ: Quy trình chăm sóc điểm bán'} />
         </label>
         <label className="field">
           <span>Mô tả ngắn (không bắt buộc)</span>
           <input value={description} maxLength={1000} disabled={busy} onChange={(e) => setDescription(e.target.value)} />
         </label>
-        <div className="tabs tabs-sm ls-mode" role="group" aria-label="Cách thêm bài học">
-          <button type="button" className={`tab-item ${mode === 'link' ? 'is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode('link')} disabled={busy}>
-            Dán liên kết Google Drive
-          </button>
-          <button type="button" className={`tab-item ${mode === 'pdf' ? 'is-active' : ''}`} aria-pressed={mode === 'pdf'} onClick={() => setMode('pdf')} disabled={busy}>
-            Tải file PDF lên
-          </button>
-        </div>
-        {mode === 'pdf' ? (
+        {!isVideo && (
+          <div className="tabs tabs-sm ls-mode" role="group" aria-label={`Cách thêm ${noun}`}>
+            <button type="button" className={`tab-item ${mode === 'link' ? 'is-active' : ''}`} aria-pressed={mode === 'link'} onClick={() => setMode('link')} disabled={busy}>
+              Dán liên kết Google Drive
+            </button>
+            <button type="button" className={`tab-item ${mode === 'pdf' ? 'is-active' : ''}`} aria-pressed={mode === 'pdf'} onClick={() => setMode('pdf')} disabled={busy}>
+              Tải file PDF lên
+            </button>
+          </div>
+        )}
+        {mode === 'pdf' && !isVideo ? (
           <div className="ls-file">
             <button type="button" className="btn btn-ghost" onClick={() => fileRef.current && fileRef.current.click()} disabled={busy}>
               <Icon name="upload" size={18} />
@@ -223,13 +234,13 @@ export default function Lessons() {
             <small className="muted ls-hint">
               Trên Google Drive: chuột phải vào file (PDF, PowerPoint...), chọn Chia sẻ, đặt "Bất kỳ ai có đường liên kết" (Người xem),
               bấm Sao chép đường liên kết rồi dán vào đây. File nằm ở Drive của bạn nên không tốn dung lượng Supabase.
-              Nhân viên chỉ xem được nếu file được chia sẻ cho họ.
+              {isVideo ? 'Video nên là file MP4 đã được Drive xử lý xong (mở được trong Drive). Nhân viên xem ngay trong MOBIUS.' : 'Nhân viên chỉ xem được nếu file được chia sẻ cho họ.'}
             </small>
           </label>
         )}
         <div className="ls-form-actions">
           <button type="submit" className="btn btn-primary" disabled={busy}>
-            {stage === 'save' ? 'Đang lưu...' : busy ? (mode === 'link' ? 'Đang thêm...' : 'Đang tải lên...') : 'Thêm bài học'}
+            {stage === 'save' ? 'Đang lưu...' : busy ? (mode === 'link' ? 'Đang thêm...' : 'Đang tải lên...') : (isVideo ? 'Thêm video' : 'Thêm bài học')}
           </button>
           {stage === 'upload' && (
             <button type="button" className="btn btn-ghost" onClick={() => uploadRef.current && uploadRef.current.abort()}>
@@ -257,7 +268,7 @@ export default function Lessons() {
       </form>
 
       {loading && <Loading />}
-      {!loading && !error && lessons.length === 0 && <p className="muted">Chưa có bài học nào.</p>}
+      {!loading && !error && lessons.length === 0 && <p className="muted">{isVideo ? 'Chưa có video nào.' : 'Chưa có bài học nào.'}</p>}
 
       <ul className="ls-list">
         {lessons.map((l) => (

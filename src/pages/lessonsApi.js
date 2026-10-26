@@ -100,12 +100,13 @@ export function sourceLabel(url) {
   return /^https:\/\/drive\.google\.com\//i.test(String(url || '')) ? 'Google Drive' : 'OneDrive'
 }
 
-/** Thêm bài học dạng liên kết nhúng (chỉ admin). */
-export async function addLessonLink(title, description, url) {
+/** Thêm bài học hoặc video (kind = 'lesson' | 'video') dạng liên kết nhúng (chỉ admin). */
+export async function addLessonLink(title, description, url, kind = 'lesson') {
   const { error } = await supabase.rpc('app_add_lesson_link', {
     p_title: title,
     p_description: description,
     p_source_url: url,
+    p_kind: kind,
   })
   if (error) {
     if (/lien ket khong hop le/i.test(error.message || '')) throw new Error('Liên kết không hợp lệ. Hãy dùng liên kết chia sẻ của file trên Google Drive.')
@@ -121,11 +122,12 @@ function sortNewestFirst(list) {
   })
 }
 
-/** Danh sách bài học (admin và nhân viên Active đều đọc được), đã sắp xếp từ mới nhất đến cũ nhất. */
-export async function listLessons() {
+/** Danh sách bài học hoặc video (kind = 'lesson' | 'video'; admin và nhân viên Active đều đọc được), mới nhất lên đầu. */
+export async function listLessons(kind = 'lesson') {
   const { data, error } = await supabase.rpc('app_list_lessons')
   if (error) throw error
-  return sortNewestFirst(Array.isArray(data) ? data : [])
+  const list = (Array.isArray(data) ? data : []).filter((l) => (l.kind || 'lesson') === kind)
+  return sortNewestFirst(list)
 }
 
 /** Đổi tên hiển thị (chỉ admin). Trả về tên đã lưu; ném lỗi có thông báo thân thiện khi thất bại. */
