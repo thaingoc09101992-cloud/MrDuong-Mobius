@@ -439,15 +439,16 @@ export default function Capture({ user, onSaved }) {
         onPointerUp={onPinchUp}
         onPointerCancel={onPinchUp}
       >
-        <div className={`gps-chip ${gpsOk ? 'gps-ok' : 'gps-wait'}`} role="status" aria-live="polite">
-          {gpsError
-            ? gpsError
-            : !pos
-              ? 'Đang lấy định vị...'
-              : gpsOk
-                ? `Định vị tốt: ${Math.round(pos.accuracy)}m`
+        {/* Chỉ báo khi định vị chưa dùng được (nút chụp đang khóa); định vị tốt thì không hiện gì */}
+        {!gpsOk && (
+          <div className="gps-chip gps-wait" role="status" aria-live="polite">
+            {gpsError
+              ? gpsError
+              : !pos
+                ? 'Đang lấy định vị...'
                 : `Định vị chưa đủ chính xác (${Math.round(pos.accuracy)}m). Cần không quá ${MAX_ACCURACY_M}m, hãy ra nơi thoáng.`}
-        </div>
+          </div>
+        )}
         <video
           ref={videoRef}
           playsInline
