@@ -174,8 +174,8 @@ export default function AdminApp() {
   }
 
   // Xoay ảnh điểm bán: cập nhật ngay trên màn hình, lưu lên máy chủ, lỗi thì trả lại góc cũ
-  async function rotateOutlet(o) {
-    const rotation = nextRotation(o.photo_rotation)
+  async function rotateOutlet(o, dir) {
+    const rotation = nextRotation(o.photo_rotation, dir)
     const setRot = (r) => setOutlets((prev) => prev.map((x) => (x.id === o.id ? { ...x, photo_rotation: r } : x)))
     setRot(rotation)
     if (await saveRotation(o.id, rotation)) {

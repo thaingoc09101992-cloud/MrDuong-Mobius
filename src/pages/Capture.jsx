@@ -302,10 +302,10 @@ export default function Capture({ user, onSaved }) {
     })
   }
 
-  // Ảnh chụp ngang bị nằm nghiêng: xoay thêm 90 độ rồi dựng lại ảnh từ ảnh gốc
-  async function rotateShot() {
+  // Ảnh chụp ngang bị nằm nghiêng: xoay trái (dir = -1) hoặc phải (dir = 1) 90 độ rồi dựng lại ảnh từ ảnh gốc
+  async function rotateShot(dir) {
     if (!shot || busy) return
-    const rotation = (shot.rotation + 90) % 360
+    const rotation = (((shot.rotation + 90 * dir) % 360) + 360) % 360
     const blob = await renderShot(shot.raw, rotation, shot.gps, shot.takenAt)
     if (!blob) return
     setShot({ ...shot, rotation, blob, url: URL.createObjectURL(blob) })
@@ -445,7 +445,10 @@ export default function Capture({ user, onSaved }) {
           <button type="button" className="btn btn-ghost" onClick={retake} disabled={busy}>
             Chụp lại
           </button>
-          <button type="button" className="btn btn-ghost btn-icon" onClick={rotateShot} disabled={busy} title="Xoay ảnh" aria-label="Xoay ảnh">
+          <button type="button" className="btn btn-ghost btn-icon" onClick={() => rotateShot(-1)} disabled={busy} title="Xoay trái" aria-label="Xoay trái">
+            <Icon name="rotate-left" size={20} />
+          </button>
+          <button type="button" className="btn btn-ghost btn-icon" onClick={() => rotateShot(1)} disabled={busy} title="Xoay phải" aria-label="Xoay phải">
             <Icon name="rotate" size={20} />
           </button>
           <button type="submit" className="btn btn-primary grow" disabled={busy}>

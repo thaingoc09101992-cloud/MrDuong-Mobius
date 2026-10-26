@@ -41,10 +41,16 @@ export default function History({ outlets, loading, isManager, onRefresh, canRot
                 Xem vị trí ({Number(o.lat).toFixed(5)}, {Number(o.lng).toFixed(5)})
               </a>
               {canRotate(o) && (
-                <button type="button" className="btn btn-ghost btn-sm item-rotate" onClick={() => onRotate(o)}>
-                  <Icon name="rotate" size={16} />
-                  Xoay ảnh
-                </button>
+                <span className="row item-rotate">
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRotate(o, -1)}>
+                    <Icon name="rotate-left" size={16} />
+                    Xoay trái
+                  </button>
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRotate(o, 1)}>
+                    <Icon name="rotate" size={16} />
+                    Xoay phải
+                  </button>
+                </span>
               )}
             </div>
           </li>

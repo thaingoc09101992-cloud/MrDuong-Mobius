@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 
-export const nextRotation = (r) => (((r || 0) + 90) % 360)
+/** Góc xoay mới sau khi xoay 90 độ: dir = 1 là xoay phải (theo chiều kim đồng hồ), dir = -1 là xoay trái. */
+export const nextRotation = (r, dir = 1) => ((((r || 0) + 90 * dir) % 360) + 360) % 360
 
 /** Lưu góc xoay mới của ảnh điểm bán (admin xoay mọi ảnh, nhân viên chỉ ảnh của mình). Trả về lỗi nếu có. */
 export async function saveRotation(outletId, rotation) {

@@ -34,9 +34,13 @@ function PhotoModal({ outlet, onClose, onRotate }) {
             {Math.round(outlet.accuracy_m)}m)
           </a>
           <div className="row">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRotate(outlet)}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRotate(outlet, -1)}>
+              <Icon name="rotate-left" size={16} />
+              Xoay trái
+            </button>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => onRotate(outlet, 1)}>
               <Icon name="rotate" size={16} />
-              Xoay ảnh
+              Xoay phải
             </button>
             <button type="button" className="btn btn-ghost btn-sm" onClick={onClose}>
               Đóng
