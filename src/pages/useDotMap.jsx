@@ -123,50 +123,52 @@ export default function useDotMap({ points, isManager }) {
           ))}
         </select>
       </label>
-      <div className="field field-sm" role="group" aria-label="Màu chấm">
-        <span>Màu chấm</span>
-        <div
-          className={`tm-swatches ${scheme ? 'is-off' : ''}`}
-          title={scheme ? 'Đang tô màu theo dữ liệu, chọn "Một màu" để đổi màu chấm' : undefined}
-        >
-          {DOT_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              aria-pressed={dotStyle.color.toLowerCase() === c}
-              className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
-              style={{ background: c }}
-              aria-label={`Màu ${c}`}
-              disabled={Boolean(scheme)}
-              onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
-            />
-          ))}
-          <label className={`tm-swatch tm-swatch-custom ${DOT_COLORS.includes(dotStyle.color.toLowerCase()) ? '' : 'is-active'}`} title="Chọn màu khác">
-            <input
-              type="color"
-              value={dotStyle.color}
-              aria-label="Chọn màu khác"
-              disabled={Boolean(scheme)}
-              onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
-            />
-          </label>
+      <div className="map-ctl-pair">
+        <div className="field field-sm" role="group" aria-label="Màu chấm">
+          <span>Màu chấm</span>
+          <div
+            className={`tm-swatches ${scheme ? 'is-off' : ''}`}
+            title={scheme ? 'Đang tô màu theo dữ liệu, chọn "Một màu" để đổi màu chấm' : undefined}
+          >
+            {DOT_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                aria-pressed={dotStyle.color.toLowerCase() === c}
+                className={`tm-swatch ${dotStyle.color.toLowerCase() === c ? 'is-active' : ''}`}
+                style={{ background: c }}
+                aria-label={`Màu ${c}`}
+                disabled={Boolean(scheme)}
+                onClick={() => setDotStyle((d) => ({ ...d, color: c }))}
+              />
+            ))}
+            <label className={`tm-swatch tm-swatch-custom ${DOT_COLORS.includes(dotStyle.color.toLowerCase()) ? '' : 'is-active'}`} title="Chọn màu khác">
+              <input
+                type="color"
+                value={dotStyle.color}
+                aria-label="Chọn màu khác"
+                disabled={Boolean(scheme)}
+                onChange={(e) => setDotStyle((d) => ({ ...d, color: e.target.value }))}
+              />
+            </label>
+          </div>
         </div>
+        <label className="field field-sm">
+          <span>Cỡ chấm</span>
+          <span className="tm-size">
+            <input
+              type="range"
+              className="tm-range"
+              min="0.5"
+              max="4"
+              step="0.1"
+              value={dotStyle.scale}
+              onChange={(e) => setDotStyle((d) => ({ ...d, scale: Number(e.target.value) }))}
+            />
+            <span className="tm-size-val">{dotStyle.scale.toFixed(1)}x</span>
+          </span>
+        </label>
       </div>
-      <label className="field field-sm">
-        <span>Cỡ chấm</span>
-        <span className="tm-size">
-          <input
-            type="range"
-            className="tm-range"
-            min="0.5"
-            max="4"
-            step="0.1"
-            value={dotStyle.scale}
-            onChange={(e) => setDotStyle((d) => ({ ...d, scale: Number(e.target.value) }))}
-          />
-          <span className="tm-size-val">{dotStyle.scale.toFixed(1)}x</span>
-        </span>
-      </label>
     </>
   )
 

@@ -189,7 +189,11 @@ export default function AdminApp() {
     () => outlets.map((o) => ({ ...o, employee_name: empMap.get(o.employee_code)?.full_name || '' })),
     [outlets, empMap],
   )
-  const filtered = useMemo(() => applyFilters(rows, filters), [rows, filters])
+  // Tab Bản đồ không có ô tìm kiếm và ngày, nên bỏ các điều kiện đó (kể cả khi đã đặt ở tab Danh sách)
+  const filtered = useMemo(
+    () => applyFilters(rows, tab === 'map' ? { ...filters, q: '', from: '', to: '' } : filters),
+    [rows, filters, tab],
+  )
 
   async function doExport() {
     setExporting(true)
@@ -378,6 +382,7 @@ export default function AdminApp() {
               shown={filtered.length}
               onExport={doExport}
               exporting={exporting}
+              compact={tab === 'map'}
             />
           )}
 

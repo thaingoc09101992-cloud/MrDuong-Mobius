@@ -1003,6 +1003,10 @@ h2 {
   z-index: 0;
 }
 /* Hộp bản đồ: giữ chú giải (.tm-colorpanel, dùng chung với Bố trận) nằm trên bản đồ */
+/* Màu chấm và Cỡ chấm đi cùng nhau; mặc định không thêm khung (các ô vẫn là ô của lưới cha) */
+.map-ctl-pair {
+  display: contents;
+}
 .map-box {
   position: relative;
   display: flex;

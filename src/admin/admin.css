@@ -214,7 +214,7 @@
 
 /* ---------- Bản đồ ---------- */
 .ad-map {
-  height: 68vh;
+  height: max(440px, calc(100 * var(--v1) - 420px)); /* vừa phần màn hình còn lại dưới khung bộ lọc */
   min-height: 380px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -1067,5 +1067,74 @@
 @media (max-width: 600px) {
   .banner-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==========================================================
+   Tab Bản đồ: khung bộ lọc gọn một hàng. Ba ô chọn (Nhân viên, Loại hình, Tô màu theo) rồi nhóm Màu chấm / Cỡ chấm
+   xếp chồng dọc, ngăn bằng một vạch mảnh; các khối trải đều giữa hai mép. Hẹp thì tự xuống dòng.
+   ========================================================== */
+.ad-shell .ad-addform.ad-addform-compact {
+  padding: 16px 24px;
+  gap: 24px;
+}
+.ad-addform-fields.ad-fields-map {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+.ad-fm-slot {
+  display: contents; /* các ô điều khiển của bản đồ trở thành ô của hàng bộ lọc */
+}
+.ad-addform-fields.ad-fields-map > .ad-fm-4,
+.ad-addform-fields.ad-fields-map .ad-fm-slot > .field {
+  flex: 1 1 170px;
+  max-width: 230px;
+}
+.ad-addform-fields.ad-fields-map .ad-fm-slot > .map-ctl-pair {
+  flex: 1 1 300px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding-left: 24px;
+  border-left: 1px solid var(--border);
+}
+.ad-addform-fields .map-ctl-pair .field {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+.ad-addform-fields .map-ctl-pair .field > span:first-child {
+  white-space: nowrap;
+}
+/* Thanh trượt và ô chọn màu nằm trong .field nên phải gỡ kiểu ô nhập của khung bộ lọc (chiều cao, đệm, viền) */
+.ad-addform-fields .map-ctl-pair .tm-size .tm-range {
+  min-height: 0;
+  height: 24px;
+  padding: 0;
+  border: 0;
+}
+.ad-addform-fields .map-ctl-pair .tm-swatches .tm-swatch-custom input {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+}
+@media (max-width: 1100px) {
+  .ad-addform-fields.ad-fields-map .ad-fm-slot > .map-ctl-pair {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+@media (max-width: 700px) {
+  .ad-addform-fields.ad-fields-map > .ad-fm-4,
+  .ad-addform-fields.ad-fields-map .ad-fm-slot > .field,
+  .ad-addform-fields.ad-fields-map .ad-fm-slot > .map-ctl-pair {
+    flex-basis: 100%;
+    max-width: none;
   }
 }
