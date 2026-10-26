@@ -16,7 +16,8 @@ export const supabase = createClient(
 export const BUCKET = 'outlet-photos'
 export const MAX_ACCURACY_M = 50
 
-export const CHANNELS = [
+// Xếp theo bảng chữ cái tiếng Việt, riêng "Khác" luôn nằm cuối
+const CHANNEL_LIST = [
   'Circle K',
   'MiniStop',
   'FamilyMart',
@@ -41,6 +42,7 @@ export const CHANNELS = [
   'Lan chi',
   'Khác',
 ]
+export const CHANNELS = [...CHANNEL_LIST.filter((c) => c !== 'Khác').sort((a, b) => a.localeCompare(b, 'vi')), 'Khác']
 
 export const CODE_PATTERN = /^[A-Z0-9_-]{3,20}$/
 

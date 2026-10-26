@@ -23,7 +23,7 @@ export default function MapReport({ outlets, loading, isManager, onRefresh }) {
   }, [outlets])
 
   const channels = useMemo(
-    () => [...new Set(outlets.map((o) => o.channel).filter(Boolean))],
+    () => [...new Set(outlets.map((o) => o.channel).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'vi')),
     [outlets],
   )
 
