@@ -7,7 +7,8 @@ Các loại thẻ hiện có:
 | Loại thẻ | Nơi dùng | Mã nguồn | Quy tắc riêng |
 |---|---|---|---|
 | Thẻ công cụ | Home, Công cụ, Kiến thức | `ToolGrid` trong `src/pages/sections.jsx`, CSS `.module-*` | [TOOL_CARD_SPEC.md](TOOL_CARD_SPEC.md) |
-| Thẻ tài liệu (bài học, video) | Kiến thức → Bài học, Video đào tạo, Admin → Bài học, Admin → Video đào tạo | `src/pages/LessonCard.jsx`, CSS `.ls-card` trong `src/pages/lessons.css` | Mục 3 bên dưới |
+| Thẻ tài liệu (bài học) | Kiến thức → Bài học, Admin → Bài học và Admin → Video đào tạo (dạng hàng, có đổi tên và xóa) | `src/pages/LessonCard.jsx`, CSS `.ls-card` trong `src/pages/lessons.css` | Mục 3 bên dưới |
+| Thẻ video | Video đào tạo (trang nhân viên) | `src/pages/VideoCard.jsx`, dùng lại CSS `.module-*` của thẻ công cụ | Mục 4 bên dưới |
 
 Thẻ mới phải **tái sử dụng** component và CSS sẵn có khi cùng loại, không tạo bản trùng lặp. Thẻ thuộc loại mới thì áp dụng mục 1 và 2, rồi bổ sung một mục riêng vào file này.
 
@@ -81,7 +82,7 @@ Thành phần: `LessonCard` ([src/pages/LessonCard.jsx](../src/pages/LessonCard.
 - **Giữa:** tên (đậm 600, một dòng, cắt "..."), mô tả (tối đa 2 dòng), metadata dạng `Tài liệu · 18/10/2026 · 425 KB`.
 - **Phải:** nút vàng "Mở tài liệu" kèm icon mở; trang quản trị có thêm nút đổi tên (bút chì) và nút xóa (thùng rác) ngay cạnh.
 
-**Video đào tạo dùng lại đúng thẻ này** (cột `kind = 'video'` của bảng bài học): icon phát (`play`) thay icon tài liệu, nút vàng đổi thành "Xem video", metadata thêm chữ "Video" (`Video · Google Drive · ngày`). Video chỉ thêm bằng liên kết Google Drive; trình xem `EmbedViewer` không phóng khung cho video. Muốn đổi nơi lưu video sau này: mở rộng ràng buộc `source_url` và trình xem, không đổi thẻ.
+**Video trong trang quản trị** dùng đúng thẻ này (cột `kind = 'video'` của bảng bài học): icon phát (`play`) thay icon tài liệu, nút vàng đổi thành "Xem video", metadata thêm chữ "Video" (`Video · Google Drive · ngày`). Trang nhân viên hiển thị video bằng thẻ video ở mục 4.
 
 **Hai nguồn bài học:** file PDF lưu ở Supabase Storage (mở bằng `PdfViewer`), hoặc liên kết Google Drive (dạng `https://drive.google.com/file/d/<id>/preview`, cột `source_url`, mở bằng `EmbedViewer`). Bài học mới chỉ thêm bằng Google Drive; bài học cũ dùng OneDrive vẫn xem được. `LessonViewer` chọn trình xem theo nguồn; thẻ hiển thị giống nhau, chỉ dòng metadata khác (`Google Drive · ngày` hoặc `OneDrive · ngày` thay cho `Tài liệu · ngày · dung lượng`). Giao diện chỉ nhận liên kết https của Google Drive (kiểm tra ở cả giao diện và cơ sở dữ liệu); khung nhúng dùng `sandbox`.
 
@@ -95,3 +96,13 @@ Thành phần: `LessonCard` ([src/pages/LessonCard.jsx](../src/pages/LessonCard.
 **Màn hình nhỏ (dưới 640px):** hàng nút chuyển xuống dưới và căn phải, "Mở tài liệu" thành nút icon vuông 44px (vẫn có `aria-label` và tooltip), ô icon thu còn 44px.
 
 **Trình xem tài liệu** (`PdfViewer.jsx`): khung xem chiếm gần hết chiều cao màn hình, hỗ trợ nút chuyển trang, phím mũi tên, lăn chuột và toàn màn hình. Đây không phải thẻ nhưng dùng cùng token và bo góc `--radius-md`.
+
+## 4. Thẻ video (trang nhân viên, mục Video đào tạo)
+
+Thành phần: `VideoCard` ([src/pages/VideoCard.jsx](../src/pages/VideoCard.jsx)). **Cùng ngôn ngữ thiết kế với thẻ công cụ** ([TOOL_CARD_SPEC.md](TOOL_CARD_SPEC.md)): toàn thẻ là một `<button class="module-card">`, dùng lại nguyên CSS `.module-*` và lưới `.module-grid`; chỉ khác phần ảnh đầu thẻ và nhãn.
+
+- **Ảnh đầu thẻ** là thumbnail của chính video trên Google Drive (`https://drive.google.com/thumbnail?id=<id>&sz=w640`, hàm `driveThumbnail` trong `lessonsApi.js`), xếp tỉ lệ 16:9, `cover`. Vì ảnh lấy động từ Drive nên **ngoại lệ so với quy tắc thẻ công cụ**: không chuyển đen trắng trước được, nên dùng `filter: grayscale(1)` trong CSS cho riêng `.video-thumb`, và vẫn phủ gradient tối của `.module-head.has-cover` để chữ trắng đọc được. Ảnh nằm dưới lớp phủ (`z-index: -2`, lớp phủ ở `-1`).
+- **Không có thumbnail** (video chưa xử lý xong, file chưa chia sẻ, lỗi mạng): thẻ vẫn hiện nền tối `#1a1a1a` với icon, nhãn và tên; không hiện ảnh vỡ.
+- **Nội dung:** icon `play`; nhãn vàng `Video đào tạo`; tên video (Cormorant Garamond, tối đa 2 dòng); mô tả của video (tối đa 3 dòng; không có mô tả thì để trống, không thay bằng chữ khác); footer `XEM VIDEO` kèm nút mũi tên tròn.
+- **Tương tác, màu, responsive** theo đúng thẻ công cụ (hover, focus bàn phím, sáng/tối, một cột trên điện thoại).
+- Mở video bằng `EmbedViewer` (không phóng khung cho video). Thêm, đổi tên, xóa video ở trang quản trị bằng thẻ tài liệu (mục 3).

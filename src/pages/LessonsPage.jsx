@@ -3,6 +3,7 @@ import Icon from '../icons.jsx'
 import Loading from '../Loading.jsx'
 import LessonViewer from './LessonViewer.jsx'
 import LessonCard from './LessonCard.jsx'
+import VideoCard from './VideoCard.jsx'
 import { listLessons, lessonError } from './lessonsApi.js'
 import './lessons.css'
 
@@ -75,11 +76,19 @@ export default function LessonsPage({ onBack, kind = 'lesson' }) {
         </div>
       )}
 
-      <ul className="ls-list">
-        {lessons.map((l) => (
-          <LessonCard key={l.id} lesson={l} onOpen={setActive} />
-        ))}
-      </ul>
+      {kind === 'video' ? (
+        <div className="module-grid">
+          {lessons.map((v) => (
+            <VideoCard key={v.id} video={v} onOpen={setActive} />
+          ))}
+        </div>
+      ) : (
+        <ul className="ls-list">
+          {lessons.map((l) => (
+            <LessonCard key={l.id} lesson={l} onOpen={setActive} />
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

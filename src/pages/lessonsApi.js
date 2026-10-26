@@ -95,6 +95,11 @@ export function parseEmbedInput(input) {
   if (!id) return { error: 'Không nhận ra file trong liên kết này. Hãy sao chép liên kết chia sẻ của file.' }
   return { url: `https://drive.google.com/file/d/${id}/preview` }
 }
+/** Ảnh thumbnail của file Google Drive (cần file đang chia sẻ cho người có liên kết). Trả về chuỗi rỗng nếu không nhận ra mã file. */
+export function driveThumbnail(url, width = 640) {
+  const id = (/\/file\/d\/([A-Za-z0-9_-]{10,})/.exec(String(url || '')) || [])[1]
+  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${width}` : ''
+}
 /** Nhãn nguồn của bài học dạng liên kết, dùng ở thẻ và nút mở. Bài học cũ dùng OneDrive vẫn xem được nhưng không thêm mới. */
 export function sourceLabel(url) {
   return /^https:\/\/drive\.google\.com\//i.test(String(url || '')) ? 'Google Drive' : 'OneDrive'
