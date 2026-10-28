@@ -15,6 +15,7 @@ import AppShell from './AppShell.jsx'
 import { loadProfile } from './profile.js'
 import { nextRotation, saveRotation } from './photoRotate.js'
 import { clearTradeCache } from './pages/tradeCache.js'
+import { resumeQueue, onItemSaved } from './pages/saveQueue.js'
 
 // Menu chính của thanh bên
 const NAV = [
@@ -188,6 +189,13 @@ export default function App() {
     refresh()
   }, [refresh])
 
+  // Điểm bán lưu nền: gửi tiếp những điểm còn dang dở và làm mới danh sách mỗi khi một điểm lưu xong
+  useEffect(() => {
+    if (!ready || !user.hasEmployee) return undefined
+    resumeQueue(user.code)
+    return onItemSaved(() => refresh())
+  }, [ready, user, refresh])
+
   function handleLogin(u) {
     setUser(normalizeUser(u))
     setSection('home')
@@ -332,7 +340,7 @@ export default function App() {
             </h2>
             <p className="page-sub">{PAGES[tab].sub}</p>
           </header>
-          {tab === 'capture' && user.hasEmployee && <Capture user={user} onSaved={refresh} />}
+          {tab === 'capture' && user.hasEmployee && <Capture user={user} />}
           {tab === 'history' && (
             <History outlets={outlets} loading={loading} isManager={seesOthers} onRefresh={refresh} canRotate={(o) => user.isAdmin || o.employee_code === user.code} onRotate={rotateOutlet} />
           )}

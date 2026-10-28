@@ -887,6 +887,38 @@ h2 {
   border-radius: 50%;
   cursor: pointer;
 }
+/* Trạng thái lưu nền: nằm ngay trên nút chụp */
+.queue-chip {
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: calc(var(--space-6) + 64px + var(--space-3));
+  z-index: 2;
+  width: fit-content;
+  max-width: calc(100% - 2 * var(--space-3));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-md);
+  font-weight: 500;
+  background: color-mix(in srgb, var(--color-black) 65%, transparent);
+  color: var(--color-white);
+}
+.queue-chip.is-ok {
+  background: var(--ok-bg);
+  color: var(--ok-text);
+}
+.queue-chip.is-wait {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+}
+.queue-chip.is-bad {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
 .shutter:active:not(:disabled) {
   transform: translateX(-50%) scale(0.94);
 }

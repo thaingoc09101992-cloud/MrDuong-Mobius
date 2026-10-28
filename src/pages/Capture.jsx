@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { supabase, BUCKET, CHANNELS, MAX_ACCURACY_M } from '../supabase.js'
+import { CHANNELS, MAX_ACCURACY_M } from '../supabase.js'
+import { enqueueSave, retryNow, discardItem, onItemSaved, useSaveQueue } from './saveQueue.js'
 import Icon from '../icons.jsx'
 
 // Chỉ cần đọc được chữ trên ảnh: cạnh rộng 1024px, JPEG 0.6 (~100KB/ảnh thay vì ~330KB)
@@ -7,6 +8,49 @@ const MAX_WIDTH = 1024
 const JPEG_QUALITY = 0.6
 const MAX_DIGITAL_ZOOM = 4 // khi máy không cho zoom bằng phần cứng thì phóng to bằng cách cắt ảnh
 const MAX_HW_ZOOM = 8
+
+/** Dòng trạng thái lưu nền trên màn camera: đang gửi, chờ mạng, bị từ chối hoặc vừa lưu xong. */
+function QueueChip({ queue, justSaved }) {
+  const rejected = queue.filter((i) => i.state === 'rejected')
+  const waiting = queue.filter((i) => i.state === 'waiting')
+  const sending = queue.filter((i) => i.state === 'sending')
+  if (!queue.length && !justSaved) return null
+  if (rejected.length) {
+    const it = rejected[0]
+    return (
+      <div className="queue-chip is-bad" role="alert">
+        <span>
+          {it.name}: {it.error}
+        </span>
+        <button type="button" className="btn btn-sm" onClick={() => discardItem(it.id)}>
+          Xóa
+        </button>
+      </div>
+    )
+  }
+  if (waiting.length) {
+    return (
+      <div className="queue-chip is-wait" role="status">
+        <span>Chưa gửi được {waiting.length} điểm (mất mạng), sẽ tự gửi lại.</span>
+        <button type="button" className="btn btn-sm" onClick={retryNow}>
+          Thử lại
+        </button>
+      </div>
+    )
+  }
+  if (sending.length) {
+    return (
+      <div className="queue-chip" role="status" aria-live="polite">
+        <span>Đang lưu {sending.length} điểm...</span>
+      </div>
+    )
+  }
+  return (
+    <div className="queue-chip is-ok" role="status" aria-live="polite">
+      <span>Đã lưu: {justSaved}</span>
+    </div>
+  )
+}
 
 /** Theo dõi GPS liên tục, luôn giữ vị trí mới nhất trong ref để lấy đúng thời điểm bấm chụp. */
 function useGps() {
@@ -84,7 +128,7 @@ function renderShot(raw, rotation, gps, takenAt) {
   return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY))
 }
 
-export default function Capture({ user, onSaved }) {
+export default function Capture({ user }) {
   const { pos, error: gpsError, latest } = useGps()
   const [stage, setStage] = useState('camera') // camera | form
   const [shot, setShot] = useState(null) // { blob, url, gps, takenAt }
@@ -95,9 +139,9 @@ export default function Capture({ user, onSaved }) {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [channel, setChannel] = useState('')
-  const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState('')
-  const [done, setDone] = useState(false)
+  const [justSaved, setJustSaved] = useState('')
+  const queue = useSaveQueue()
 
   const videoRef = useRef(null)
   const streamRef = useRef(null)
@@ -115,6 +159,22 @@ export default function Capture({ user, onSaved }) {
     }
     setCamReady(false)
     setNeedTap(false)
+  }, [])
+
+  // Gắn luồng camera vào thẻ video hiện tại và phát
+  const attachStream = useCallback(async (stream) => {
+    const v = videoRef.current
+    if (!v) return
+    v.muted = true
+    v.setAttribute('playsinline', '')
+    v.srcObject = stream
+    try {
+      await v.play()
+    } catch {
+      // iOS hoặc trình duyệt trong ứng dụng có thể chặn tự phát: chờ người dùng chạm
+      setNeedTap(true)
+    }
+    setCamReady(true)
   }, [])
 
   const startCamera = useCallback(async () => {
@@ -143,19 +203,7 @@ export default function Capture({ user, onSaved }) {
       if (caps.zoom && caps.zoom.max > Math.max(1, caps.zoom.min)) {
         setHwZoom({ min: Math.max(1, caps.zoom.min), max: Math.min(caps.zoom.max, MAX_HW_ZOOM) })
       }
-      const v = videoRef.current
-      if (v) {
-        v.muted = true
-        v.setAttribute('playsinline', '')
-        v.srcObject = stream
-        try {
-          await v.play()
-        } catch {
-          // iOS hoặc trình duyệt trong ứng dụng có thể chặn tự phát: chờ người dùng chạm
-          setNeedTap(true)
-        }
-      }
-      setCamReady(true)
+      await attachStream(stream)
     } catch (err) {
       setCamError(
         err && err.name === 'NotAllowedError'
@@ -163,12 +211,35 @@ export default function Capture({ user, onSaved }) {
           : 'Không mở được camera. Hãy kiểm tra thiết bị và quyền truy cập.',
       )
     }
-  }, [])
+  }, [attachStream])
+
+  // Camera chỉ tắt khi rời trang chụp; qua màn nhập thông tin vẫn giữ luồng để chụp tiếp không phải chờ mở lại
+  useEffect(() => stopCamera, [stopCamera])
 
   useEffect(() => {
-    if (stage === 'camera') startCamera()
-    return stopCamera
-  }, [stage, startCamera, stopCamera])
+    if (stage !== 'camera') return
+    const s = streamRef.current
+    if (s && s.getVideoTracks().some((t) => t.readyState === 'live')) {
+      attachStream(s)
+    } else {
+      setCamReady(false)
+      startCamera()
+    }
+  }, [stage, startCamera, attachStream])
+
+  // Báo Đã lưu ngắn trên màn camera mỗi khi một điểm được gửi xong
+  useEffect(() => {
+    let timer = 0
+    const off = onItemSaved((name) => {
+      setJustSaved(name)
+      clearTimeout(timer)
+      timer = setTimeout(() => setJustSaved(''), 3000)
+    })
+    return () => {
+      off()
+      clearTimeout(timer)
+    }
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -304,7 +375,7 @@ export default function Capture({ user, onSaved }) {
 
   // Ảnh chụp ngang bị nằm nghiêng: xoay trái (dir = -1) hoặc phải (dir = 1) 90 độ rồi dựng lại ảnh từ ảnh gốc
   async function rotateShot(dir) {
-    if (!shot || busy) return
+    if (!shot) return
     const rotation = (((shot.rotation + 90 * dir) % 360) + 360) % 360
     const blob = await renderShot(shot.raw, rotation, shot.gps, shot.takenAt)
     if (!blob) return
@@ -317,17 +388,8 @@ export default function Capture({ user, onSaved }) {
     setStage('camera')
   }
 
-  function resetAll() {
-    setShot(null)
-    setName('')
-    setAddress('')
-    setChannel('')
-    setFormError('')
-    setDone(false)
-    setStage('camera')
-  }
-
-  async function save(e) {
+  // Bấm Lưu: đưa vào hàng đợi chạy nền rồi mở lại camera ngay, không chờ tải ảnh
+  function save(e) {
     e.preventDefault()
     if (!shot) return
     const trimmed = name.trim()
@@ -335,53 +397,24 @@ export default function Capture({ user, onSaved }) {
       setFormError('Vui lòng nhập tên điểm bán.')
       return
     }
-    setBusy(true)
-    setFormError('')
-
-    const path = `${user.code}/${crypto.randomUUID()}.jpg`
-    const up = await supabase.storage
-      .from(BUCKET)
-      .upload(path, shot.blob, { contentType: 'image/jpeg', upsert: false })
-    if (up.error) {
-      setBusy(false)
-      setFormError('Tải ảnh lên thất bại. Vui lòng kiểm tra mạng và thử lại.')
-      return
-    }
-
-    const { error } = await supabase.rpc('app_save_outlet', {
-      p_name: trimmed,
-      p_address: address.trim() || null,
-      p_channel: channel || null,
-      p_lat: shot.gps.lat,
-      p_lng: shot.gps.lng,
-      p_accuracy: shot.gps.accuracy,
-      p_photo_path: path,
+    enqueueSave({
+      id: crypto.randomUUID(),
+      path: `${user.code}/${crypto.randomUUID()}.jpg`,
+      blob: shot.blob,
+      name: trimmed,
+      address: address.trim() || null,
+      channel: channel || null,
+      lat: shot.gps.lat,
+      lng: shot.gps.lng,
+      accuracy: shot.gps.accuracy,
     })
-    setBusy(false)
-    if (error) {
-      setFormError(
-        error.message && error.message.includes('50m')
-          ? 'Độ chính xác GPS vượt quá 50m. Vui lòng chụp lại ở nơi thoáng hơn.'
-          : 'Lưu thông tin thất bại. Vui lòng thử lại.',
-      )
-      return
-    }
-    setDone(true)
-    onSaved()
+    setShot(null)
+    setName('')
+    setAddress('')
+    setChannel('')
+    setFormError('')
+    setStage('camera')
   }
-
-  if (done) {
-    return (
-      <section className="card center">
-        <h2>Đã lưu điểm bán</h2>
-        <p className="muted">{name.trim()}</p>
-        <button type="button" className="btn btn-primary btn-block" onClick={resetAll}>
-          Chụp điểm bán tiếp theo
-        </button>
-      </section>
-    )
-  }
-
   if (stage === 'form' && shot) {
     return (
       <form className="card stack" onSubmit={save} noValidate>
@@ -442,17 +475,17 @@ export default function Capture({ user, onSaved }) {
         )}
 
         <div className="row">
-          <button type="button" className="btn btn-ghost" onClick={retake} disabled={busy}>
+          <button type="button" className="btn btn-ghost" onClick={retake}>
             Chụp lại
           </button>
-          <button type="button" className="btn btn-ghost btn-icon" onClick={() => rotateShot(-1)} disabled={busy} title="Xoay trái" aria-label="Xoay trái">
+          <button type="button" className="btn btn-ghost btn-icon" onClick={() => rotateShot(-1)} title="Xoay trái" aria-label="Xoay trái">
             <Icon name="rotate-left" size={20} />
           </button>
-          <button type="button" className="btn btn-ghost btn-icon" onClick={() => rotateShot(1)} disabled={busy} title="Xoay phải" aria-label="Xoay phải">
+          <button type="button" className="btn btn-ghost btn-icon" onClick={() => rotateShot(1)} title="Xoay phải" aria-label="Xoay phải">
             <Icon name="rotate" size={20} />
           </button>
-          <button type="submit" className="btn btn-primary grow" disabled={busy}>
-            {busy ? 'Đang lưu...' : 'Lưu điểm bán'}
+          <button type="submit" className="btn btn-primary grow">
+            Lưu điểm bán
           </button>
         </div>
       </form>
@@ -479,6 +512,7 @@ export default function Capture({ user, onSaved }) {
                 : `Định vị chưa đủ chính xác (${Math.round(pos.accuracy)}m). Cần không quá ${MAX_ACCURACY_M}m, hãy ra nơi thoáng.`}
           </div>
         )}
+        <QueueChip queue={queue} justSaved={justSaved} />
         <video
           ref={videoRef}
           playsInline
