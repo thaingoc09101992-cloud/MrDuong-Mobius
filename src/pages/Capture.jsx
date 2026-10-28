@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CHANNELS, MAX_ACCURACY_M } from '../supabase.js'
-import { enqueueSave, retryNow, discardItem, onItemSaved, useSaveQueue } from './saveQueue.js'
+import { enqueueSave } from './saveQueue.js'
+import SaveStatus from './SaveStatus.jsx'
 import Icon from '../icons.jsx'
 
 // Chỉ cần đọc được chữ trên ảnh: cạnh rộng 1024px, JPEG 0.6 (~100KB/ảnh thay vì ~330KB)
@@ -8,49 +9,6 @@ const MAX_WIDTH = 1024
 const JPEG_QUALITY = 0.6
 const MAX_DIGITAL_ZOOM = 4 // khi máy không cho zoom bằng phần cứng thì phóng to bằng cách cắt ảnh
 const MAX_HW_ZOOM = 8
-
-/** Dòng trạng thái lưu nền trên màn camera: đang gửi, chờ mạng, bị từ chối hoặc vừa lưu xong. */
-function QueueChip({ queue, justSaved }) {
-  const rejected = queue.filter((i) => i.state === 'rejected')
-  const waiting = queue.filter((i) => i.state === 'waiting')
-  const sending = queue.filter((i) => i.state === 'sending')
-  if (!queue.length && !justSaved) return null
-  if (rejected.length) {
-    const it = rejected[0]
-    return (
-      <div className="queue-chip is-bad" role="alert">
-        <span>
-          {it.name}: {it.error}
-        </span>
-        <button type="button" className="btn btn-sm" onClick={() => discardItem(it.id)}>
-          Xóa
-        </button>
-      </div>
-    )
-  }
-  if (waiting.length) {
-    return (
-      <div className="queue-chip is-wait" role="status">
-        <span>Chưa gửi được {waiting.length} điểm (mất mạng), sẽ tự gửi lại.</span>
-        <button type="button" className="btn btn-sm" onClick={retryNow}>
-          Thử lại
-        </button>
-      </div>
-    )
-  }
-  if (sending.length) {
-    return (
-      <div className="queue-chip" role="status" aria-live="polite">
-        <span>Đang lưu {sending.length} điểm...</span>
-      </div>
-    )
-  }
-  return (
-    <div className="queue-chip is-ok" role="status" aria-live="polite">
-      <span>Đã lưu: {justSaved}</span>
-    </div>
-  )
-}
 
 /** Theo dõi GPS liên tục, luôn giữ vị trí mới nhất trong ref để lấy đúng thời điểm bấm chụp. */
 function useGps() {
@@ -140,8 +98,6 @@ export default function Capture({ user }) {
   const [address, setAddress] = useState('')
   const [channel, setChannel] = useState('')
   const [formError, setFormError] = useState('')
-  const [justSaved, setJustSaved] = useState('')
-  const queue = useSaveQueue()
 
   const videoRef = useRef(null)
   const streamRef = useRef(null)
@@ -226,20 +182,6 @@ export default function Capture({ user }) {
       startCamera()
     }
   }, [stage, startCamera, attachStream])
-
-  // Báo Đã lưu ngắn trên màn camera mỗi khi một điểm được gửi xong
-  useEffect(() => {
-    let timer = 0
-    const off = onItemSaved((name) => {
-      setJustSaved(name)
-      clearTimeout(timer)
-      timer = setTimeout(() => setJustSaved(''), 3000)
-    })
-    return () => {
-      off()
-      clearTimeout(timer)
-    }
-  }, [])
 
   useEffect(() => {
     return () => {
@@ -389,7 +331,7 @@ export default function Capture({ user }) {
   }
 
   // Bấm Lưu: đưa vào hàng đợi chạy nền rồi mở lại camera ngay, không chờ tải ảnh
-  function save(e) {
+  async function save(e) {
     e.preventDefault()
     if (!shot) return
     const trimmed = name.trim()
@@ -397,7 +339,7 @@ export default function Capture({ user }) {
       setFormError('Vui lòng nhập tên điểm bán.')
       return
     }
-    enqueueSave({
+    await enqueueSave({
       id: crypto.randomUUID(),
       path: `${user.code}/${crypto.randomUUID()}.jpg`,
       blob: shot.blob,
@@ -512,7 +454,7 @@ export default function Capture({ user }) {
                 : `Định vị chưa đủ chính xác (${Math.round(pos.accuracy)}m). Cần không quá ${MAX_ACCURACY_M}m, hãy ra nơi thoáng.`}
           </div>
         )}
-        <QueueChip queue={queue} justSaved={justSaved} />
+        <SaveStatus />
         <video
           ref={videoRef}
           playsInline

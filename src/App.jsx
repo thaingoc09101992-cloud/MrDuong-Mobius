@@ -16,6 +16,7 @@ import { loadProfile } from './profile.js'
 import { nextRotation, saveRotation } from './photoRotate.js'
 import { clearTradeCache } from './pages/tradeCache.js'
 import { resumeQueue, onItemSaved } from './pages/saveQueue.js'
+import SaveStatus from './pages/SaveStatus.jsx'
 
 // Menu chính của thanh bên
 const NAV = [
@@ -282,6 +283,7 @@ export default function App() {
   ) : null
 
   return (
+    <>
     <AppShell
       user={user}
       nav={NAV}
@@ -351,5 +353,7 @@ export default function App() {
       )}
       {tool === 'bo-tran-diem-ban' && <TradeMap user={user} />}
     </AppShell>
+    {!(inLocate && tab === 'capture') && <SaveStatus floating />}
+    </>
   )
 }

@@ -19,10 +19,18 @@ let snapshot = []
 let working = false
 let retryTimer = 0
 let attempts = 0
+let etaAt = 0 // thời điểm dự kiến gửi xong toàn bộ (ms), ước tính từ tốc độ tải ảnh gần nhất
+let speed = 50000 // byte/giây, bắt đầu bằng mức thận trọng rồi cập nhật theo thực tế
 const listeners = new Set()
 const savedListeners = new Set()
 
+function pendingItems() {
+  return all.filter((i) => i.userCode === userCode && (i.state === 'sending' || i.state === 'waiting'))
+}
+
 function emit() {
+  const left = pendingItems()
+  etaAt = left.length ? Date.now() + (left.reduce((s, i) => s + i.blob.size, 0) / speed + left.length * 1.5) * 1000 : 0
   snapshot = all.filter((i) => i.userCode === userCode).map(({ id, name, state, error }) => ({ id, name, state, error }))
   listeners.forEach((fn) => fn())
 }
@@ -63,7 +71,12 @@ function isNetworkError(err) {
 }
 
 async function sendOne(it) {
+  const t0 = performance.now()
   const up = await supabase.storage.from(BUCKET).upload(it.path, it.blob, { contentType: 'image/jpeg', upsert: false })
+  if (!up.error) {
+    const sample = it.blob.size / Math.max(0.2, (performance.now() - t0) / 1000)
+    speed = Math.max(5000, speed * 0.5 + sample * 0.5)
+  }
   // Ảnh đã lên từ lần thử trước thì coi như xong bước này
   if (up.error && !/exist|duplicate/i.test(String(up.error.message || ''))) {
     return isNetworkError(up.error) ? 'waiting' : { rejected: 'Tải ảnh lên thất bại.' }
@@ -134,6 +147,18 @@ if (typeof window !== 'undefined') {
     attempts = 0
     work()
   })
+  // Còn điểm chưa gửi mà đóng trang: trình duyệt hỏi lại trước khi thoát
+  window.addEventListener('beforeunload', (e) => {
+    if (pendingItems().length) {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+  })
+}
+
+/** Số giây còn lại (ước tính) cho đến khi gửi xong; 0 khi không còn gì để gửi. */
+export function secondsLeft() {
+  return etaAt ? Math.max(0, Math.ceil((etaAt - Date.now()) / 1000)) : 0
 }
 
 /** Gọi khi đã biết tài khoản: nạp lại các mục còn dang dở từ lần trước và gửi tiếp. */
@@ -148,10 +173,11 @@ export async function resumeQueue(code) {
   work()
 }
 
-export function enqueueSave(item) {
+/** Ghi ảnh vào bộ nhớ máy xong mới trả về, để người dùng thoát ngay sau đó vẫn không mất. */
+export async function enqueueSave(item) {
   const entry = { ...item, userCode, state: 'sending' }
   all.push(entry)
-  dbRun('readwrite', (s) => s.put({ ...entry, state: undefined }))
+  await dbRun('readwrite', (s) => s.put({ ...entry, state: undefined }))
   emit()
   work()
 }

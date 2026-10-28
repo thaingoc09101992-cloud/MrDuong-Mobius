@@ -907,6 +907,12 @@ h2 {
   background: color-mix(in srgb, var(--color-black) 65%, transparent);
   color: var(--color-white);
 }
+/* Ngoài màn chụp: nổi cố định ở đáy, trên thanh tab nếu có */
+.queue-chip.is-floating {
+  position: fixed;
+  z-index: calc(var(--z-header) + 1);
+  bottom: calc(var(--space-4) + var(--tabbar-h) + env(safe-area-inset-bottom));
+}
 .queue-chip.is-ok {
   background: var(--ok-bg);
   color: var(--ok-text);
