@@ -95,6 +95,8 @@ Thành phần: `LessonCard` ([src/pages/LessonCard.jsx](../src/pages/LessonCard.
 
 **Màn hình nhỏ (dưới 640px):** hàng nút chuyển xuống dưới và căn phải, "Mở tài liệu" thành nút icon vuông 44px (vẫn có `aria-label` và tooltip), ô icon thu còn 44px.
 
+**Thanh trên của trình xem** (`PdfViewer.jsx` và `EmbedViewer.jsx`, dùng chung `.ls-vbar`): tên bài học hoặc video **chữ hoa, đậm 700** (`.ls-vtitle`) ở bên trái; bên phải là các nút điều khiển (chuyển trang nếu là PDF), nút `Trở lại danh sách` và nút toàn màn hình nằm cuối. Thanh có đệm `--space-3` `--space-4` để nút không sát lề. Không có nút mở sang Google Drive, người xem chỉ xem trong MOBIUS.
+
 **Trình xem tài liệu** (`PdfViewer.jsx`): khung xem chiếm gần hết chiều cao màn hình, hỗ trợ nút chuyển trang, phím mũi tên, lăn chuột và toàn màn hình. Đây không phải thẻ nhưng dùng cùng token và bo góc `--radius-md`.
 
 ## 4. Thẻ video (trang nhân viên, mục Video đào tạo)

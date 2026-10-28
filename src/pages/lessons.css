@@ -213,6 +213,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3);
+  padding: var(--space-3) var(--space-4); /* các nút không sát lề */
 }
 .ls-vtitle {
   flex: 1 1 200px;
@@ -220,6 +221,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase; /* tên bài học hoặc video: chữ hoa, đậm */
 }
 .ls-pager {
   display: flex;

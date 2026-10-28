@@ -205,10 +205,6 @@ export default function PdfViewer({ lesson, onClose }) {
   return (
     <section className={`ls-viewer ${fullscreen ? 'ls-full' : ''}`} ref={wrapRef}>
       <div className="ls-vbar">
-        <button type="button" className="btn btn-ghost" onClick={onClose}>
-          <Icon name="chevron-left" size={18} />
-          <span>Danh sách</span>
-        </button>
         <strong className="ls-vtitle" title={lesson.title}>{lesson.title}</strong>
         <div className="ls-pager">
           <button type="button" className="btn btn-ghost btn-icon" aria-label="Trang trước" onClick={() => go(-1)} disabled={status !== 'ready' || page <= 1}>
@@ -219,6 +215,10 @@ export default function PdfViewer({ lesson, onClose }) {
           </span>
           <button type="button" className="btn btn-ghost btn-icon" aria-label="Trang sau" onClick={() => go(1)} disabled={status !== 'ready' || page >= total}>
             <Icon name="chevron-right" size={18} />
+          </button>
+          <button type="button" className="btn btn-ghost" onClick={onClose}>
+            <Icon name="chevron-left" size={18} />
+            <span>Trở lại danh sách</span>
           </button>
           <button
             type="button"
