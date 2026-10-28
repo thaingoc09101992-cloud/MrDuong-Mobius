@@ -42,10 +42,10 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
   return (
     <div className={`ad-shell ${collapsed || narrow ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
       <aside className="ad-sidebar" aria-label="Menu">
-        <div className="ad-brandbar">
+        <button type="button" className="ad-brandbar brand-home" onClick={() => go('home')} title="Về trang chủ" aria-label="Về trang chủ">
           <Logo size={46} />
           <span className="ad-brandname">{PLATFORM_NAME}</span>
-        </div>
+        </button>
 
         <nav className="ad-nav" aria-label="Điều hướng chính">
           {nav.map((t) => (
@@ -119,7 +119,9 @@ export default function AppShell({ user, nav, active, onNavigate, theme, onToggl
           >
             <Icon name="panel" size={20} />
           </button>
-          <Logo size={36} className="ad-bar-logo" />
+          <button type="button" className="brand-home ad-bar-logo" onClick={() => go('home')} title="Về trang chủ" aria-label="Về trang chủ">
+            <Logo size={36} />
+          </button>
           <div className="ad-bar-title">
             <span className="eyebrow">{eyebrow || PLATFORM_NAME}</span>
             <h1 className="ad-pagetitle">{title}</h1>

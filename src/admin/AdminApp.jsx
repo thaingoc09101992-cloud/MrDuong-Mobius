@@ -255,10 +255,10 @@ export default function AdminApp() {
   return (
     <div className={`ad-shell ${collapsed || narrow ? 'is-collapsed' : ''} ${mobileOpen ? 'is-open' : ''}`}>
       <aside className="ad-sidebar" aria-label="Menu quản trị">
-        <div className="ad-brandbar">
+        <a className="ad-brandbar brand-home" href="/" title="Về trang chủ MOBIUS" aria-label="Về trang chủ MOBIUS">
           <Logo size={46} />
           <span className="ad-brandname">MOBIUS</span>
-        </div>
+        </a>
 
         <nav className="ad-nav" aria-label="Điều hướng admin">
           {PAGES.map((p) => (
@@ -327,7 +327,9 @@ export default function AdminApp() {
           >
             <Icon name="panel" size={20} />
           </button>
-          <Logo size={36} className="ad-bar-logo" />
+          <a className="brand-home ad-bar-logo" href="/" title="Về trang chủ MOBIUS" aria-label="Về trang chủ MOBIUS">
+            <Logo size={36} />
+          </a>
           <div className="ad-bar-title">
             <span className="eyebrow">{eyebrow}</span>
             <h1 className="ad-pagetitle">{pageTitle}</h1>

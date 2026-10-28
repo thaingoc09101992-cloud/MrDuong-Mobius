@@ -568,6 +568,18 @@
   padding: var(--space-4) var(--space-6);
   border-bottom: 1px solid var(--border);
 }
+.brand-home {
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+button.ad-brandbar {
+  width: 100%;
+  text-align: left;
+}
 .ad-brandname {
   font-family: var(--font-editorial);
   font-size: var(--fs-3xl);
