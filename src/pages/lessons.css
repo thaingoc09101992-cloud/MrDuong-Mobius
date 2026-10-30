@@ -274,8 +274,8 @@
 }
 @media (max-width: 900px) {
   .ls-stage {
-    height: max(300px, calc(calc(100 * var(--v1)) - 270px));
-    height: max(300px, calc(calc(100 * var(--dv1)) - 270px));
+    height: max(300px, calc(calc(100 * var(--v1)) - 212px));
+    height: max(300px, calc(calc(100 * var(--dv1)) - 212px));
   }
 }
 .ls-full .ls-stage {
